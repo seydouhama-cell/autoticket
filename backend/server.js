@@ -1,5 +1,5 @@
 // =============================================
-// AUTOTICKET - SERVEUR COMPLET AVEC STATISTIQUES
+// AUTOTICKET - SERVEUR COMPLET
 // Niger 🇳🇪
 // =============================================
 
@@ -90,18 +90,16 @@ const WithdrawalSchema = new mongoose.Schema({
 });
 const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);
 
-// Abonnement
+// Abonnement (SANS ESSAI GRATUIT)
 const SubscriptionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-  status: { type: String, enum: ['trial', 'active', 'expired', 'cancelled'], default: 'trial' },
-  trialStartDate: { type: Date, default: Date.now },
-  trialEndDate: { type: Date, required: true },
-  plan: { type: String, enum: ['trial', 'monthly', 'quarterly', 'semester', 'yearly'] },
-  subscriptionStartDate: { type: Date },
-  subscriptionEndDate: { type: Date },
+  status: { type: String, enum: ['active', 'expired', 'cancelled'], default: 'active' },
+  subscriptionStartDate: { type: Date, default: Date.now },
+  subscriptionEndDate: { type: Date, required: true },
+  plan: { type: String, enum: ['monthly', 'quarterly', 'semester', 'yearly'], default: 'monthly' },
   paymentMethod: { type: String },
   lastPaymentDate: { type: Date },
-  amountPaid: { type: Number },
+  amountPaid: { type: Number, default: 0 },
   autoRenew: { type: Boolean, default: false }
 });
 const Subscription = mongoose.model('Subscription', SubscriptionSchema);
@@ -117,7 +115,7 @@ app.get('/', (req, res) => {
 // ROUTES - AUTHENTIFICATION
 // =============================================
 
-// Inscription
+// Inscription (SANS ESSAI GRATUIT)
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -125,18 +123,19 @@ app.post('/api/auth/register', async (req, res) => {
     const user = new User({ name, email, password: hashedPassword, phone });
     await user.save();
 
-    // Créer un abonnement avec essai gratuit de 10 jours
-    const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + 10);
+    // Abonnement actif immédiatement (30 jours)
     const subscription = new Subscription({
       userId: user._id,
-      status: 'trial',
-      trialEndDate: trialEndDate
+      status: 'active',
+      subscriptionStartDate: new Date(),
+      subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      plan: 'monthly',
+      amountPaid: 0
     });
     await subscription.save();
 
     res.status(201).json({
-      message: 'Compte créé avec succès ! Essai gratuit de 10 jours offert.',
+      message: 'Compte créé avec succès ! Abonnement actif.',
       user: { id: user._id, name, email, phone, balance: user.balance }
     });
   } catch (error) {
@@ -360,7 +359,7 @@ app.get('/api/commissions/:userId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - RETRAIT
+// ROUTES - RETRAIT (commission 5% gardée)
 // =============================================
 app.post('/api/withdrawals', async (req, res) => {
   try {
@@ -369,6 +368,7 @@ app.post('/api/withdrawals', async (req, res) => {
     if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
     if (amount > user.balance) return res.status(400).json({ message: 'Solde insuffisant' });
 
+    // Commission de 5% gardée
     const feesPercent = 4;
     const commissionPercent = 5;
     const feeAmount = Math.round(amount * feesPercent / 100);
@@ -454,33 +454,8 @@ app.post('/api/payments/simulate/confirm/:orderId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - ABONNEMENT
+// ROUTES - ABONNEMENT (sans essai gratuit)
 // =============================================
-
-// Démarrer essai gratuit (10 jours)
-app.post('/api/subscription/start-trial', async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-
-    const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + 10);
-
-    let subscription = await Subscription.findOne({ userId });
-    if (!subscription) {
-      subscription = new Subscription({ userId, status: 'trial', trialEndDate });
-    } else {
-      subscription.status = 'trial';
-      subscription.trialEndDate = trialEndDate;
-    }
-    await subscription.save();
-
-    res.json({ success: true, message: 'Essai gratuit de 10 jours activé !', trialEndDate });
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
 
 // Payer un abonnement
 app.post('/api/subscription/pay', async (req, res) => {
@@ -537,16 +512,7 @@ app.get('/api/subscription/:userId', async (req, res) => {
     let status = subscription.status;
     let daysLeft = 0;
 
-    if (status === 'trial') {
-      if (now > subscription.trialEndDate) {
-        status = 'expired';
-        subscription.status = 'expired';
-        await subscription.save();
-      } else {
-        const diff = subscription.trialEndDate - now;
-        daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
-      }
-    } else if (status === 'active') {
+    if (status === 'active') {
       if (subscription.subscriptionEndDate && now > subscription.subscriptionEndDate) {
         status = 'expired';
         subscription.status = 'expired';
@@ -560,10 +526,9 @@ app.get('/api/subscription/:userId', async (req, res) => {
     res.json({
       status,
       daysLeft,
-      trialEndDate: subscription.trialEndDate,
       subscriptionEndDate: subscription.subscriptionEndDate,
-      plan: subscription.plan || 'trial',
-      isActive: status === 'trial' || status === 'active'
+      plan: subscription.plan || 'monthly',
+      isActive: status === 'active'
     });
   } catch (error) {
     res.status(500).json({ message: 'Erreur', error: error.message });
