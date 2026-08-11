@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoTicket - Vente WiFi 🇳🇪</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f5f7fa; padding: 20px; }
+    .container { max-width: 480px; margin: 0 auto; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    h1 { font-size: 24px; text-align: center; color: #0d1b2a; }
+    .subtitle { text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-weight: 600; font-size: 14px; color: #2c3e50; margin-bottom: 4px; }
+    input, select { width: 100%; padding: 12px; border: 2px solid #e0e4e8; border-radius: 12px; font-size: 16px; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: #e67e22; color: white; }
+    .btn-primary:hover { background: #d35400; }
+    .btn-success { background: #27ae60; color: white; }
+    .card { background: #f8f9fa; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #e9ecef; }
+    .card-title { font-weight: 700; font-size: 17px; }
+    .card-price { font-size: 20px; font-weight: 700; color: #e67e22; }
+    .hidden { display: none; }
+    #ticket-code { background: #1a1a2e; color: #27ae60; padding: 20px; border-radius: 14px; font-size: 24px; font-family: monospace; text-align: center; letter-spacing: 2px; margin: 16px 0; }
+    .alert { padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 14px; }
+    .alert-success { background: #d5f5e3; color: #1a7a42; border: 1px solid #a9dfbf; }
+    .alert-error { background: #fadbd8; color: #922b21; border: 1px solid #f5b7b1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛜 AutoTicket</h1>
+    <p class="subtitle">Achetez votre ticket WiFi en 1 minute</p>
+    <div id="alert"></div>
+
+    <div id="step-products">
+      <h2>📶 Choisissez votre forfait</h2>
+      <div id="products-list"></div>
+    </div>
+
+    <div id="step-payment" class="hidden">
+      <h2>💳 Paiement</h2>
+      <div class="form-group">
+        <label>Numéro Mobile Money</label>
+        <input type="tel" id="customer-phone" placeholder="Ex: 98765432">
+      </div>
+      <button class="btn btn-primary" id="pay-btn">💰 Payer</button>
+      <button class="btn btn-success" id="back-btn" style="margin-top:8px;">← Retour</button>
+    </div>
+
+    <div id="step-success" class="hidden">
+      <h2>✅ Ticket reçu !</h2>
+      <div id="ticket-code">WIFI-XXXX</div>
+      <button class="btn btn-success" id="reset-btn">🔁 Nouvel achat</button>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+    const USER_ID = '6a7a76ba6b197186941d4937';
+
+    function showMessage(msg, type) {
+      const alert = document.getElementById('alert');
+      alert.className = `alert alert-${type}`;
+      alert.textContent = msg;
+      setTimeout(() => alert.innerHTML = '', 5000);
+    }
+
+    async function apiCall(endpoint, method, data) {
+      const options = { method, headers: { 'Content-Type': 'application/json' } };
+      if (data) options.body = JSON.stringify(data);
+      const res = await fetch(API_URL + endpoint, options);
+      return await res.json();
+    }
+
+    async function loadProducts() {
+      try {
+        const products = await apiCall(`/products/${USER_ID}`, 'GET');
+        const container = document.getElementById('products-list');
+        container.innerHTML = '';
+        if (products.length === 0) {
+          container.innerHTML = '<p style="color:#7f8c8d;">Aucun forfait disponible.</p>';
+          return;
+        }
+        products.forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerHTML = `
+            <div class="card-title">${p.name}</div>
+            <div class="card-price">${p.price} FCFA</div>
+            <div class="card-sub">Durée : ${p.duration}</div>
+            <button class="btn btn-primary" style="margin-top:10px;" data-id="${p._id}">Sélectionner</button>
+          `;
+          container.appendChild(div);
+        });
+        document.querySelectorAll('[data-id]').forEach(btn => {
+          btn.onclick = function() {
+            document.getElementById('step-products').classList.add('hidden');
+            document.getElementById('step-payment').classList.remove('hidden');
+            document.getElementById('pay-btn').dataset.productId = this.dataset.id;
+          };
+        });
+      } catch (error) {
+        showMessage('Erreur: ' + error.message, 'error');
+      }
+    }
+
+    document.getElementById('pay-btn').onclick = async function() {
+      const phone = document.getElementById('customer-phone').value.trim();
+      if (!phone || phone.length < 8) {
+        showMessage('Entrez un numéro valide.', 'error');
+        return;
+      }
+      const productId = this.dataset.productId;
+      try {
+        const order = await apiCall('/payments/simulate/create', 'POST', {
+          userId: USER_ID,
+          productId: productId,
+          customerPhone: phone
+        });
+        const confirm = await apiCall(`/payments/simulate/confirm/${order.orderId}`, 'POST');
+        document.getElementById('step-payment').classList.add('hidden');
+        document.getElementById('step-success').classList.remove('hidden');
+        document.getElementById('ticket-code').textContent = confirm.ticket.code;
+        showMessage('✅ Paiement confirmé !', 'success');
+      } catch (error) {
+        showMessage('Erreur: ' + error.message, 'error');
+      }
+    };
+
+    document.getElementById('back-btn').onclick = function() {
+      document.getElementById('step-payment').classList.add('hidden');
+      document.getElementById('step-products').classList.remove('hidden');
+    };
+
+    document.getElementById('reset-btn').onclick = function() {
+      document.getElementById('step-success').classList.add('hidden');
+      document.getElementById('step-products').classList.remove('hidden');
+    };
+
+    loadProducts();
+  </script>
+</body>
+</html>
