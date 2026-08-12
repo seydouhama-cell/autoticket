@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoTicket Pro - Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 260px;
+      background: #0d1b2a;
+      color: #c9d1d9;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+    }
+    .sidebar .logo { font-size: 22px; font-weight: 700; color: #e67e22; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .sidebar .logo span { color: white; }
+    .sidebar .user-info { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin: 16px 0 24px 0; text-align: center; }
+    .sidebar .user-info .avatar { font-size: 40px; display: block; margin-bottom: 4px; }
+    .sidebar .user-info .name { font-weight: 700; font-size: 16px; color: white; }
+    .sidebar .user-info .email { font-size: 12px; color: #7f8c8d; }
+    .sidebar .menu { list-style: none; flex: 1; }
+    .sidebar .menu li { padding: 12px 16px; border-radius: 10px; margin-bottom: 4px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #b0b8c4; }
+    .sidebar .menu li:hover { background: rgba(255,255,255,0.08); color: white; }
+    .sidebar .menu li.active { background: #e67e22; color: white; }
+    .sidebar .menu li .icon { font-size: 18px; width: 24px; text-align: center; }
+    .sidebar .menu-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; margin-top: 12px; }
+    .sidebar .menu li.logout { color: #e74c3c; }
+    .sidebar .menu li.logout:hover { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+
+    .main { margin-left: 260px; flex: 1; padding: 24px 32px; }
+    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .main-header h1 { font-size: 24px; color: #0d1b2a; }
+    .main-header .badge { padding: 4px 14px; border-radius: 30px; font-size: 12px; font-weight: 600; }
+    .main-header .badge.active { background: #27ae60; color: white; }
+    .main-header .badge.trial { background: #f39c12; color: white; }
+    .main-header .badge.expired { background: #e74c3c; color: white; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: white; padding: 16px 20px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e9ecef; }
+    .stat-card .label { font-size: 13px; color: #7f8c8d; }
+    .stat-card .value { font-size: 26px; font-weight: 700; color: #0d1b2a; margin-top: 4px; }
+    .stat-card .value.orange { color: #e67e22; }
+    .stat-card .value.green { color: #27ae60; }
+    .stat-card .value.red { color: #e74c3c; }
+    .stat-card .sub { font-size: 12px; color: #95a5a6; margin-top: 2px; }
+
+    .alert-box { background: #fef9f0; border: 1px solid #f7dc6f; border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .alert-box.hidden { display: none; }
+    .alert-box .icon { font-size: 24px; }
+    .alert-box .text { flex: 1; font-size: 14px; color: #2c3e50; }
+    .alert-box .text strong { color: #e67e22; }
+    .alert-box .btn { background: #e67e22; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    .alert-box .btn:hover { background: #d35400; }
+
+    .table-wrap { background: white; border-radius: 14px; padding: 20px; border: 1px solid #e9ecef; margin-bottom: 24px; }
+    .table-wrap h3 { font-size: 16px; color: #0d1b2a; margin-bottom: 12px; }
+    .table-wrap table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .table-wrap th { text-align: left; padding: 10px 12px; background: #f8f9fa; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e9ecef; }
+    .table-wrap td { padding: 10px 12px; border-bottom: 1px solid #f0f2f5; }
+    .table-wrap tr:last-child td { border-bottom: none; }
+    .table-wrap .status { padding: 2px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .table-wrap .status.active { background: #d5f5e3; color: #1a7a42; }
+    .table-wrap .status.inactive { background: #fadbd8; color: #922b21; }
+
+    .balance-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .balance-card { background: white; border-radius: 14px; padding: 20px; border: 1px solid #e9ecef; }
+    .balance-card .label { font-size: 13px; color: #7f8c8d; }
+    .balance-card .value { font-size: 28px; font-weight: 700; color: #e67e22; }
+    .balance-card .value.green { color: #27ae60; }
+    .balance-card .value.red { color: #e74c3c; }
+    .balance-card .sub { font-size: 12px; color: #95a5a6; margin-top: 4px; }
+    .balance-card .btn { margin-top: 12px; background: #27ae60; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    .balance-card .btn:hover { background: #1e8449; }
+
+    .balance-card.commission { grid-column: span 2; background: #fef9f0; border: 2px solid #f7dc6f; }
+    .balance-card.commission .value { font-size: 24px; }
+
+    .stats-avancees { margin-top: 24px; }
+    .periode-btn { transition: all 0.3s; }
+    .periode-btn:hover { transform: scale(1.05); }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-weight: 600; font-size: 13px; color: #2c3e50; margin-bottom: 4px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 2px solid #e0e4e8; border-radius: 12px; font-size: 14px; background: #fafbfc; transition: 0.3s; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #e67e22; outline: none; background: white; }
+    .form-group textarea { min-height: 80px; font-family: 'Courier New', monospace; }
+
+    .btn { padding: 10px 20px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%; }
+    .btn-primary { background: #e67e22; color: white; }
+    .btn-primary:hover { background: #d35400; }
+    .btn-success { background: #27ae60; color: white; }
+    .btn-success:hover { background: #1e8449; }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-danger:hover { background: #c0392b; }
+    .btn-sm { width: auto; padding: 4px 14px; font-size: 12px; border-radius: 20px; }
+    .card { background: #f8f9fa; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid #e9ecef; }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 200px; padding: 16px 12px; }
+      .main { margin-left: 200px; padding: 16px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .balance-section { grid-template-columns: 1fr; }
+      .balance-card.commission { grid-column: span 1; }
+      .stats-avancees > div { grid-template-columns: 1fr !important; }
+      .stats-avancees > div:last-child { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar { width: 100%; position: relative; height: auto; flex-direction: row; flex-wrap: wrap; padding: 12px 16px; gap: 8px; }
+      .sidebar .logo { font-size: 18px; }
+      .sidebar .user-info { display: none; }
+      .sidebar .menu { display: flex; flex-wrap: wrap; gap: 4px; }
+      .sidebar .menu li { padding: 6px 12px; font-size: 12px; }
+      .sidebar .menu-bottom { border: none; padding: 0; margin: 0; }
+      .main { margin-left: 0; padding: 16px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .alert-box { flex-direction: column; text-align: center; }
+      .stats-avancees > div:last-child { grid-template-columns: 1fr; }
+      .periode-btn { font-size: 12px; padding: 4px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ========== SIDEBAR ========== -->
+  <div class="sidebar">
+    <div class="logo">🛜 Auto<span>Ticket</span></div>
+    <div class="user-info">
+      <span class="avatar">👤</span>
+      <div class="name" id="sidebar-name">__________</div>
+      <div class="email" id="sidebar-email">__________</div>
+    </div>
+    <ul class="menu">
+      <li class="active" onclick="showTab('overview')"><span class="icon">📊</span> Vue d'ensemble</li>
+      <li onclick="window.location.href='affiche-qr.html'"><span class="icon">🖼️</span> Mon affiche QR</li>
+      <li onclick="window.location.href='guide.html'"><span class="icon">📖</span> Guide de prise en main</li>
+      <li onclick="window.location.href='faq.html'"><span class="icon">❓</span> FAQ & aide</li>
+      <li onclick="window.location.href='ventes.html'"><span class="icon">📈</span> Ventes</li>
+      <li onclick="showTab('forfaits')"><span class="icon">📦</span> Forfaits</li>
+      <li onclick="showTab('tickets')"><span class="icon">🎫</span> Tickets</li>
+      <li onclick="showTab('retrait')"><span class="icon">💰</span> Retraits</li>
+      <li class="menu-bottom">
+        <li onclick="window.location.href='abonnement.html'"><span class="icon">📋</span> Abonnement</li>
+        <li onclick="window.location.href='mikrotik.html'"><span class="icon">🛜</span> Configuration MikroTik</li>
+        <li onclick="window.location.href='parametres.html'"><span class="icon">⚙️</span> Paramètres</li>
+        <li class="logout" onclick="logout()"><span class="icon">🚪</span> Déconnexion</li>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ========== MAIN ========== -->
+  <div class="main">
+
+    <div class="main-header">
+      <h1 id="page-title">📊 Vue d'ensemble</h1>
+      <span class="badge trial" id="status-badge">🎁 Essai gratuit</span>
+    </div>
+
+    <!-- ALERTE ABONNEMENT (cachée par défaut, affichée uniquement si expiré) -->
+    <div class="alert-box hidden" id="alert-subscription">
+      <span class="icon">⚠️</span>
+      <span class="text"><strong>L'abonnement de cette zone a expiré.</strong> Vos clients ne peuvent plus y accéder.</span>
+      <button class="btn" onclick="window.location.href='abonnement.html'">🔄 Renouveler</button>
+    </div>
+
+    <!-- ========== STATISTIQUES DE BASE ========== -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">💰 Solde global</div><div class="value orange" id="stat-balance">0 FCFA</div><div class="sub">Disponible pour retrait</div></div>
+      <div class="stat-card"><div class="label">🎫 Tickets vendus</div><div class="value" id="stat-tickets">0</div><div class="sub">Total</div></div>
+      <div class="stat-card"><div class="label">📦 Forfaits actifs</div><div class="value green" id="stat-products">0</div><div class="sub">Disponibles</div></div>
+      <div class="stat-card"><div class="label">📈 Revenus totaux</div><div class="value" id="stat-revenue">0 FCFA</div><div class="sub">Depuis le début</div></div>
+    </div>
+
+    <!-- ========== SOLDE ET ABONNEMENT ========== -->
+    <div class="balance-section">
+      <div class="balance-card">
+        <div class="label">💰 Solde global</div>
+        <div class="value" id="balance-display">0 FCFA</div>
+        <div class="sub">Total disponible pour retrait</div>
+        <button class="btn" onclick="showTab('retrait')">📤 Demander un retrait</button>
+      </div>
+      <div class="balance-card">
+        <div class="label">📊 Mon abonnement</div>
+        <div class="value green" id="sub-status-text">✅ Actif</div>
+        <div class="sub" id="sub-days-text">Prochain renouvellement : --</div>
+        <button class="btn" style="background:#2c3e50;" onclick="window.location.href='abonnement.html'">🔄 Gérer mon abonnement</button>
+      </div>
+
+      <!-- CARTE COMMISSION 5% -->
+      <div class="balance-card commission">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div class="label">💰 Commission AutoTicket (5%)</div>
+            <div class="value" id="total-commission" style="font-size:24px;">0 FCFA</div>
+            <div class="sub">Total des commissions prélevées</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="label">📊 Nombre de retraits</div>
+            <div style="font-size:24px;font-weight:700;color:#1a1a2e;" id="withdrawal-count">0</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:#7f8c8d;">
+          ⚡ 5% de commission sont prélevés sur chaque retrait pour le fonctionnement d'AutoTicket.
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== STATISTIQUES AVANCÉES ========== -->
+    <div class="stats-avancees">
+      <h2 style="margin-bottom:16px;font-size:18px;color:#0d1b2a;border-left:4px solid #e67e22;padding-left:12px;">📈 Évolution des ventes</h2>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="btn btn-sm periode-btn active" data-period="7" style="width:auto;background:#e67e22;color:white;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">7 jours</button>
+        <button class="btn btn-sm periode-btn" data-period="30" style="width:auto;background:#f0f2f5;color:#2c3e50;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">30 jours</button>
+        <button class="btn btn-sm periode-btn" data-period="90" style="width:auto;background:#f0f2f5;color:#2c3e50;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">90 jours</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;">
+        <div style="background:white;border-radius:14px;padding:20px;border:1px solid #e9ecef;">
+          <canvas id="salesChart" height="200"></canvas>
+        </div>
+        <div style="background:white;border-radius:14px;padding:20px;border:1px solid #e9ecef;">
+          <h3 style="font-size:14px;color:#7f8c8d;margin-bottom:12px;">📊 Répartition par forfait</h3>
+          <canvas id="productsChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
+          <div style="font-size:13px;color:#7f8c8d;">📈 Meilleure vente</div>
+          <div style="font-size:18px;font-weight:700;color:#e67e22;" id="best-day">-</div>
+          <div style="font-size:12px;color:#95a5a6;">Jour</div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
+          <div style="font-size:13px;color:#7f8c8d;">📊 Total ventes</div>
+          <div style="font-size:18px;font-weight:700;color:#1a1a2e;" id="total-sales">0</div>
+          <div style="font-size:12px;color:#95a5a6;">Tickets vendus</div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
+          <div style="font-size:13px;color:#7f8c8d;">💰 Revenu moyen</div>
+          <div style="font-size:18px;font-weight:700;color:#27ae60;" id="avg-revenue">0 F</div>
+          <div style="font-size:12px;color:#95a5a6;">Par jour</div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
+          <div style="font-size:13px;color:#7f8c8d;">📆 Période</div>
+          <div style="font-size:18px;font-weight:700;color:#0d1b2a;" id="period-days">7</div>
+          <div style="font-size:12px;color:#95a5a6;">Derniers jours</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== VUE D'ENSEMBLE (FORFAITS) ========== -->
+    <div class="table-wrap" id="tab-overview">
+      <h3>📋 Forfaits actifs</h3>
+      <div id="products-table-container"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait disponible</p></div>
+    </div>
+
+    <!-- ========== FORFAITS ========== -->
+    <div class="table-wrap" id="tab-forfaits" style="display:none;">
+      <h3>📦 Gérer mes forfaits</h3>
+      <div id="products-list"></div>
+      <h4 style="margin-top:16px;">➕ Ajouter un forfait</h4>
+      <div class="form-group"><label>Nom (ex: "24h")</label><input type="text" id="product-name" placeholder="24h, 12h, 1 semaine..."></div>
+      <div class="form-group"><label>Prix (FCFA)</label><input type="number" id="product-price" placeholder="100"></div>
+      <div class="form-group"><label>Durée</label><input type="text" id="product-duration" placeholder="24 heures, 7 jours..."></div>
+      <button class="btn btn-primary" id="add-product-btn">➕ Ajouter</button>
+    </div>
+
+    <!-- ========== TICKETS ========== -->
+    <div class="table-wrap" id="tab-tickets" style="display:none;">
+      <h3>🎫 Importer des tickets</h3>
+      <div class="form-group"><label>Codes WiFi (un par ligne)</label><textarea id="ticket-codes" placeholder="WIFI-001&#10;WIFI-002&#10;WIFI-003"></textarea></div>
+      <div class="form-group"><label>Forfait associé</label><select id="ticket-product-select"><option value="">Sélectionner un forfait</option></select></div>
+      <button class="btn btn-primary" id="import-tickets-btn">📥 Importer</button>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #e9ecef;">
+      <h4>📋 Tickets disponibles</h4>
+      <div id="tickets-list" style="max-height:200px;overflow-y:auto;background:#f8f9fa;border-radius:10px;padding:8px;"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p></div>
+    </div>
+
+    <!-- ========== RETRAIT ========== -->
+    <div class="table-wrap" id="tab-retrait" style="display:none;">
+      <h3>💰 Retirer mes fonds</h3>
+      <p style="color:#7f8c8d;font-size:13px;margin-bottom:12px;">Commission de 5% prélevée sur chaque retrait.</p>
+      <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="withdraw-amount" placeholder="1000 minimum"></div>
+      <div class="form-group"><label>Numéro Mobile Money</label><input type="tel" id="withdraw-phone" placeholder="98765432"></div>
+      <button class="btn btn-success" id="withdraw-btn">📤 Demander le retrait</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+  // =============================================
+  // CONFIGURATION
+  // =============================================
+  const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
+  let USER_ID = localStorage.getItem('userId') || '6a7a76ba6b197186941d4937';
+
+  let salesChart = null;
+  let productsChart = null;
+  let currentPeriod = 7;
+
+  // =============================================
+  // FONCTIONS UTILITAIRES
+  // =============================================
+  function formatPrice(amount) { return amount.toLocaleString() + ' FCFA'; }
+
+  async function apiCall(endpoint, method, data) {
+    const options = { method, headers: { 'Content-Type': 'application/json' } };
+    if (data) options.body = JSON.stringify(data);
+    const res = await fetch(API_URL + endpoint, options);
+    return await res.json();
+  }
+
+  // =============================================
+  // NAVIGATION
+  // =============================================
+  function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.getElementById('tab-overview').style.display = 'none';
+    const content = document.getElementById('tab-' + tab);
+    if (content) content.style.display = 'block';
+    document.querySelectorAll('.menu li').forEach(el => el.classList.remove('active'));
+    const menuItem = document.querySelector(`.menu li[onclick*="${tab}"]`);
+    if (menuItem) menuItem.classList.add('active');
+    const titles = { 'overview': '📊 Vue d\'ensemble', 'forfaits': '📦 Gestion des forfaits', 'tickets': '🎫 Gestion des tickets', 'retrait': '💰 Retraits' };
+    document.getElementById('page-title').textContent = titles[tab] || '📊 Dashboard';
+  }
+
+  function showDefaultTab() {
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.getElementById('tab-overview').style.display = 'block';
+    document.querySelectorAll('.menu li').forEach(el => el.classList.remove('active'));
+    document.querySelector('.menu li[onclick*="overview"]').classList.add('active');
+  }
+
+  function logout() {
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    window.location.href = 'login.html';
+  }
+
+  // =============================================
+  // GRAPHIQUES
+  // =============================================
+  function initSalesChart(data) {
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    if (salesChart) { salesChart.destroy(); }
+
+    salesChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.labels || [],
+        datasets: [
+          {
+            label: 'Ventes (tickets)',
+            data: data.sales || [],
+            backgroundColor: 'rgba(230, 126, 34, 0.7)',
+            borderColor: '#e67e22',
+            borderWidth: 2,
+            borderRadius: 4,
+            order: 1
+          },
+          {
+            label: 'Revenus (FCFA)',
+            data: data.revenues || [],
+            type: 'line',
+            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+            borderColor: '#27ae60',
+            borderWidth: 3,
+            pointBackgroundColor: '#27ae60',
+            pointRadius: 4,
+            tension: 0.3,
+            fill: true,
+            order: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                let value = context.raw || 0;
+                if (context.dataset.label.includes('Revenus')) {
+                  return label + ': ' + value.toLocaleString() + ' FCFA';
+                }
+                return label + ': ' + value;
+              }
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function initProductsChart(products) {
+    const ctx = document.getElementById('productsChart').getContext('2d');
+    if (productsChart) { productsChart.destroy(); }
+
+    if (!products || products.length === 0) {
+      products = [{ name: 'Aucune vente', count: 1 }];
+    }
+
+    const colors = ['#e67e22', '#f39c12', '#27ae60', '#3498db', '#9b59b6', '#1abc9c', '#e74c3c', '#2ecc71'];
+
+    productsChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: products.map(p => p.name),
+        datasets: [{
+          data: products.map(p => p.count),
+          backgroundColor: colors.slice(0, products.length),
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10, padding: 8 } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                let percentage = total > 0 ? Math.round((context.raw / total) * 100) : 0;
+                return context.label + ': ' + context.raw + ' (' + percentage + '%)';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // =============================================
+  // STATISTIQUES AVANCÉES
+  // =============================================
+  async function loadAdvancedStats(period = 7) {
+    currentPeriod = period;
+
+    try {
+      const data = await apiCall(`/stats/advanced/${USER_ID}/${period}`, 'GET');
+
+      initSalesChart(data);
+      initProductsChart(data.products || []);
+
+      document.getElementById('total-sales').textContent = data.summary?.totalSales || 0;
+      document.getElementById('avg-revenue').textContent = (data.summary?.avgRevenue || 0).toLocaleString() + ' F';
+      document.getElementById('best-day').textContent = data.summary?.bestDay || '-';
+      document.getElementById('period-days').textContent = period;
+
+    } catch (error) {
+      console.error('Erreur chargement stats avancées:', error);
+    }
+  }
+
+  // =============================================
+  // CHARGEMENT DES DONNÉES
+  // =============================================
+  async function loadSubscriptionStatus() {
+    try {
+      const sub = await apiCall(`/subscription/${USER_ID}`, 'GET');
+      const badge = document.getElementById('status-badge');
+      const alertBox = document.getElementById('alert-subscription');
+      const statusText = document.getElementById('sub-status-text');
+      const daysText = document.getElementById('sub-days-text');
+
+      if (sub.status === 'trial') {
+        badge.textContent = `🎁 Essai gratuit (${sub.daysLeft || 0}j)`;
+        badge.className = 'badge trial';
+        alertBox.classList.add('hidden');
+        statusText.textContent = '🎁 Essai gratuit';
+        statusText.className = 'value orange';
+        daysText.textContent = `${sub.daysLeft || 0} jours restants`;
+      } else if (sub.status === 'active') {
+        badge.textContent = '✅ Abonnement actif';
+        badge.className = 'badge active';
+        alertBox.classList.add('hidden');
+        statusText.textContent = '✅ Actif';
+        statusText.className = 'value green';
+        daysText.textContent = `Prochain renouvellement : ${sub.daysLeft || 0} jours`;
+      } else if (sub.status === 'expired' || sub.status === 'inactive') {
+        badge.textContent = '⛔ Abonnement expiré';
+        badge.className = 'badge expired';
+        alertBox.classList.remove('hidden');
+        statusText.textContent = '⛔ Expiré';
+        statusText.className = 'value red';
+        daysText.textContent = 'Veuillez renouveler';
+      } else {
+        badge.textContent = '⚠️ Aucun abonnement';
+        badge.className = 'badge expired';
+        alertBox.classList.remove('hidden');
+        statusText.textContent = '⚠️ Non souscrit';
+        statusText.className = 'value red';
+        daysText.textContent = 'Activez votre essai gratuit';
+      }
+    } catch (error) {
+      console.error('Erreur abonnement:', error);
+    }
+  }
+
+  async function loadStats() {
+    try {
+      const stats = await apiCall(`/stats/${USER_ID}`, 'GET');
+      document.getElementById('stat-balance').textContent = formatPrice(stats.balance || 0);
+      document.getElementById('balance-display').textContent = formatPrice(stats.balance || 0);
+      document.getElementById('stat-tickets').textContent = stats.availableTickets || 0;
+      document.getElementById('stat-products').textContent = stats.total?.count || 0;
+      document.getElementById('stat-revenue').textContent = formatPrice(stats.total?.revenue || 0);
+    } catch (error) { console.error('Erreur stats:', error); }
+  }
+
+  async function loadCommissions() {
+    try {
+      const data = await apiCall(`/commissions/${USER_ID}`, 'GET');
+      document.getElementById('total-commission').textContent = formatPrice(data.totalCommission || 0);
+      document.getElementById('withdrawal-count').textContent = data.count || 0;
+    } catch (error) { console.error('Erreur commissions:', error); }
+  }
+
+  async function loadProducts() {
+    try {
+      const products = await apiCall(`/products/${USER_ID}`, 'GET');
+      const container = document.getElementById('products-list');
+      const tableContainer = document.getElementById('products-table-container');
+      container.innerHTML = '';
+      tableContainer.innerHTML = '';
+      if (products.length === 0) {
+        container.innerHTML = '<p style="color:#7f8c8d;">Aucun forfait.</p>';
+        tableContainer.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait disponible</p>';
+        return;
+      }
+      let html = `<table><thead><tr><th>Nom</th><th>Prix</th><th>Durée</th><th>Statut</th></tr></thead><tbody>`;
+      products.forEach(p => { html += `<tr><td><strong>${p.name}</strong></td><td>${formatPrice(p.price)}</td><td>${p.duration}</td><td><span class="status active">Actif</span></td></tr>`; });
+      html += `</tbody></table>`;
+      tableContainer.innerHTML = html;
+      products.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;"><div><strong>${p.name}</strong> - ${formatPrice(p.price)}<div style="font-size:12px;color:#7f8c8d;">${p.duration}</div></div><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p._id}')">🗑️</button></div>`;
+        container.appendChild(div);
+      });
+      populateProductSelect(products);
+    } catch (error) { console.error('Erreur forfaits:', error); }
+  }
+
+  function populateProductSelect(products) {
+    const select = document.getElementById('ticket-product-select');
+    select.innerHTML = '<option value="">Sélectionner un forfait</option>';
+    (products || []).forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p._id;
+      opt.textContent = `${p.name} - ${formatPrice(p.price)}`;
+      select.appendChild(opt);
+    });
+  }
+
+  document.getElementById('add-product-btn').onclick = async function() {
+    const name = document.getElementById('product-name').value.trim();
+    const price = parseInt(document.getElementById('product-price').value);
+    const duration = document.getElementById('product-duration').value.trim();
+    if (!name || !price || !duration) { alert('Veuillez remplir tous les champs.'); return; }
+    try {
+      await apiCall('/products', 'POST', { userId: USER_ID, name, price, duration });
+      document.getElementById('product-name').value = '';
+      document.getElementById('product-price').value = '';
+      document.getElementById('product-duration').value = '';
+      loadProducts();
+      loadStats();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
+
+  async function deleteProduct(productId) {
+    if (!confirm('Supprimer ce forfait ?')) return;
+    try {
+      await apiCall(`/products/${productId}`, 'DELETE');
+      loadProducts();
+      loadStats();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  }
+
+  document.getElementById('import-tickets-btn').onclick = async function() {
+    const codes = document.getElementById('ticket-codes').value.split('\n').map(c => c.trim()).filter(c => c);
+    const productId = document.getElementById('ticket-product-select').value;
+    if (codes.length === 0) { alert('Collez des codes.'); return; }
+    if (!productId) { alert('Sélectionnez un forfait.'); return; }
+    try {
+      const result = await apiCall('/tickets/bulk', 'POST', { userId: USER_ID, codes, productId });
+      document.getElementById('ticket-codes').value = '';
+      loadTickets();
+      loadStats();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
+
+  async function loadTickets() {
+    try {
+      const data = await apiCall(`/tickets/${USER_ID}`, 'GET');
+      const container = document.getElementById('tickets-list');
+      container.innerHTML = '';
+      if (!data.tickets || data.tickets.length === 0) { container.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket disponible</p>'; return; }
+      data.tickets.slice(0, 30).forEach(t => {
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #e9ecef;font-family:monospace;font-size:13px;';
+        div.innerHTML = `<span>${t.code}</span><span style="font-size:11px;padding:2px 12px;border-radius:20px;background:#27ae60;color:white;">${t.isUsed ? 'Vendu' : 'Disponible'}</span>`;
+        container.appendChild(div);
+      });
+    } catch (error) { console.error('Erreur tickets:', error); }
+  }
+
+  document.getElementById('withdraw-btn').onclick = async function() {
+    const amount = parseInt(document.getElementById('withdraw-amount').value);
+    const phone = document.getElementById('withdraw-phone').value.trim();
+    if (!amount || amount < 1000) { alert('Montant minimum : 1000 FCFA.'); return; }
+    if (!phone || phone.length < 8) { alert('Numéro valide requis.'); return; }
+    try {
+      const result = await apiCall('/withdrawals', 'POST', { userId: USER_ID, amount, phone, method: 'airtelmoney' });
+      alert(`✅ Retrait de ${formatPrice(amount)} demandé ! Commission: ${formatPrice(result.commission)}`);
+      document.getElementById('withdraw-amount').value = '';
+      document.getElementById('withdraw-phone').value = '';
+      loadStats();
+      loadCommissions();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
+
+  // =============================================
+  // GESTION DES BOUTONS DE PÉRIODE
+  // =============================================
+  document.querySelectorAll('.periode-btn').forEach(btn => {
+    btn.onclick = function() {
+      document.querySelectorAll('.periode-btn').forEach(b => {
+        b.style.background = '#f0f2f5';
+        b.style.color = '#2c3e50';
+      });
+      this.style.background = '#e67e22';
+      this.style.color = 'white';
+      loadAdvancedStats(parseInt(this.dataset.period));
+    };
+  });
+
+  // =============================================
+  // INITIALISATION
+  // =============================================
+  async function init() {
+    document.getElementById('sidebar-name').textContent = localStorage.getItem('userName') || '__________';
+    document.getElementById('sidebar-email').textContent = localStorage.getItem('userEmail') || '__________';
+    await loadSubscriptionStatus();
+    await loadStats();
+    await loadProducts();
+    await loadTickets();
+    await loadCommissions();
+    await loadAdvancedStats(7);
+    showDefaultTab();
+  }
+  init();
+</script>
+
+</body>
+</html>

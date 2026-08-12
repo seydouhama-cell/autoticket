@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon affiche QR - AutoTicket 🇳🇪</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #1a1a2e; }
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 260px;
+      background: #0d1b2a;
+      color: #c9d1d9;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+    }
+    .sidebar .logo { font-size: 22px; font-weight: 700; color: #e67e22; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .sidebar .logo span { color: white; }
+    .sidebar .user-info { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin: 16px 0 24px 0; text-align: center; }
+    .sidebar .user-info .avatar { font-size: 40px; display: block; margin-bottom: 4px; }
+    .sidebar .user-info .name { font-weight: 700; font-size: 16px; color: white; }
+    .sidebar .user-info .email { font-size: 12px; color: #7f8c8d; }
+    .sidebar .menu { list-style: none; flex: 1; }
+    .sidebar .menu li { padding: 12px 16px; border-radius: 10px; margin-bottom: 4px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #b0b8c4; }
+    .sidebar .menu li:hover { background: rgba(255,255,255,0.08); color: white; }
+    .sidebar .menu li.active { background: #e67e22; color: white; }
+    .sidebar .menu li .icon { font-size: 18px; width: 24px; text-align: center; }
+    .sidebar .menu-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; margin-top: 12px; }
+    .sidebar .menu li.logout { color: #e74c3c; }
+    .sidebar .menu li.logout:hover { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+
+    .main { margin-left: 260px; flex: 1; padding: 24px 32px; }
+    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .main-header h1 { font-size: 24px; color: #0d1b2a; }
+
+    .card { background: white; border-radius: 14px; padding: 24px; border: 1px solid #e9ecef; margin-bottom: 24px; }
+    .card h2 { font-size: 18px; color: #0d1b2a; margin-bottom: 4px; }
+    .card .desc { font-size: 13px; color: #7f8c8d; margin-bottom: 16px; }
+
+    .format-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .format-card { background: #f8f9fa; border-radius: 12px; padding: 16px; border: 2px solid #e9ecef; cursor: pointer; transition: 0.3s; text-align: center; }
+    .format-card:hover { border-color: #e67e22; }
+    .format-card.selected { border-color: #e67e22; background: #fef9f0; }
+    .format-card .icon { font-size: 32px; display: block; margin-bottom: 8px; }
+    .format-card .name { font-weight: 700; }
+    .format-card .sub { font-size: 12px; color: #7f8c8d; }
+
+    .btn { padding: 10px 24px; border: none; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    .btn-primary { background: #e67e22; color: white; }
+    .btn-primary:hover { background: #d35400; }
+    .btn-secondary { background: #2c3e50; color: white; }
+    .btn-secondary:hover { background: #1a252f; }
+    .btn-success { background: #27ae60; color: white; }
+    .btn-success:hover { background: #1e8449; }
+    .btn-outline { background: transparent; color: #e67e22; border: 2px solid #e67e22; }
+    .btn-outline:hover { background: #e67e22; color: white; }
+
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .btn-group .btn { flex: 1; min-width: 140px; text-align: center; }
+
+    .a5-preview { max-width: 400px; margin: 0 auto; background: white; border-radius: 12px; padding: 20px; border: 2px solid #e9ecef; text-align: center; }
+    .a5-preview .title { font-size: 22px; font-weight: 700; color: #e67e22; }
+    .a5-preview .subtitle { font-size: 14px; color: #2c3e50; margin: 8px 0; }
+    .a5-preview .steps { display: flex; justify-content: center; gap: 12px; margin: 12px 0; flex-wrap: wrap; }
+    .a5-preview .steps span { background: #f0f2f5; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .a5-preview .qr { font-size: 60px; display: block; margin: 12px 0; }
+    .a5-preview .footer { font-size: 11px; color: #7f8c8d; margin-top: 8px; }
+
+    .info-box { background: #f8f9fa; border-radius: 12px; padding: 16px; margin-top: 12px; border: 1px solid #e9ecef; }
+    .info-box .label { font-size: 13px; color: #7f8c8d; }
+    .info-box .value { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 200px; padding: 16px 12px; }
+      .main { margin-left: 200px; padding: 16px; }
+      .format-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .sidebar { width: 100%; position: relative; height: auto; flex-direction: row; flex-wrap: wrap; padding: 12px 16px; gap: 8px; }
+      .sidebar .logo { font-size: 18px; }
+      .sidebar .user-info { display: none; }
+      .sidebar .menu { display: flex; flex-wrap: wrap; gap: 4px; }
+      .sidebar .menu li { padding: 6px 12px; font-size: 12px; }
+      .sidebar .menu-bottom { border: none; padding: 0; margin: 0; }
+      .main { margin-left: 0; padding: 16px; }
+      .btn-group { flex-direction: column; }
+      .btn-group .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">🛜 Auto<span>Ticket</span></div>
+    <div class="user-info">
+      <span class="avatar">👤</span>
+      <div class="name" id="sidebar-name">__________</div>
+      <div class="email" id="sidebar-email">__________</div>
+    </div>
+    <ul class="menu">
+      <li onclick="window.location.href='dashboard.html'"><span class="icon">📊</span> Vue d'ensemble</li>
+      <li class="active"><span class="icon">🖼️</span> Mon affiche QR</li>
+      <li onclick="window.location.href='dashboard.html'"><span class="icon">📦</span> Forfaits</li>
+      <li onclick="window.location.href='dashboard.html'"><span class="icon">🎫</span> Tickets</li>
+      <li onclick="window.location.href='dashboard.html'"><span class="icon">💰</span> Retraits</li>
+      <li class="menu-bottom">
+        <li onclick="window.location.href='abonnement.html'"><span class="icon">📋</span> Abonnement</li>
+        <li onclick="window.location.href='mikrotik.html'"><span class="icon">🛜</span> Configuration MikroTik</li>
+        <li onclick="window.location.href='parametres.html'"><span class="icon">⚙️</span> Paramètres</li>
+        <li class="logout" onclick="logout()"><span class="icon">🚪</span> Déconnexion</li>
+      </li>
+    </ul>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <div class="main-header">
+      <h1>🖼️ Mon affiche QR</h1>
+    </div>
+
+    <!-- ZONE ACTIVE -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div>
+          <span style="font-size:13px;color:#7f8c8d;">📍 ZONE WIFI ACTIVE</span>
+          <div class="zone-name" id="zone-name-display" style="font-size:20px;font-weight:700;color:#e67e22;">__________</div>
+          <div style="font-size:13px;color:#7f8c8d;">Tout l'historique, les forfaits et le stock de tickets s'adaptera à cette zone.</div>
+        </div>
+        <span style="background:#27ae60;color:white;padding:4px 14px;border-radius:30px;font-size:12px;font-weight:600;">✅ ACTIF</span>
+      </div>
+    </div>
+
+    <!-- CHOISIR LE FORMAT -->
+    <div class="card">
+      <h2>📐 Choisissez votre format</h2>
+      <p class="desc">Téléchargez votre affiche au format souhaité.</p>
+
+      <div class="format-grid">
+        <div class="format-card selected" onclick="selectFormat('a5')" id="format-a5">
+          <span class="icon">📄</span>
+          <div class="name">Affiche A5 portrait</div>
+          <div class="sub">Pour comptoir, boutique, mur et impression papier</div>
+        </div>
+        <div class="format-card" onclick="selectFormat('carre')" id="format-carre">
+          <span class="icon">🟦</span>
+          <div class="name">Visuel carré</div>
+          <div class="sub">Pour WhatsApp, Facebook et publication numérique</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APERÇU -->
+    <div class="card">
+      <h2>👁️ Aperçu</h2>
+      <p class="desc" id="apercu-desc">Format A5 portrait - 148 x 210 mm</p>
+
+      <div class="a5-preview" id="preview-container">
+        <div class="title">🛜 AutoTicket</div>
+        <div style="font-size:24px;font-weight:700;margin:4px 0;" id="preview-zone">__________</div>
+        <div class="subtitle">WIFI DISPONIBLE ICI</div>
+        <div style="font-size:13px;color:#2c3e50;">SCANNEZ. PAYEZ. CONNECTEZ-VOUS.</div>
+        <div class="steps">
+          <span>1. Scannez</span>
+          <span>2. Choisissez</span>
+          <span>3. Payez</span>
+          <span>4. Recevez</span>
+        </div>
+        <div class="qr">⬛</div>
+        <div style="font-size:11px;color:#7f8c8d;font-family:monospace;" id="preview-url">autoticket-ne.com/zone/__________</div>
+        <div class="footer">DISPONIBLE SUR AUTOTICKET</div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="card">
+      <h2>📥 Diffuser l'affiche</h2>
+      <p class="desc">Téléchargez ou partagez votre affiche QR.</p>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="downloadPDF()">📄 Télécharger le PDF A5</button>
+        <button class="btn btn-secondary" onclick="downloadPNG()">🖼️ Télécharger le carré PNG</button>
+        <button class="btn btn-success" onclick="shareLink()">📤 Partager</button>
+        <button class="btn btn-outline" onclick="copyLink()">🔗 Copier seulement le lien</button>
+        <button class="btn btn-outline" onclick="downloadQR()">⬛ Télécharger seulement le QR</button>
+      </div>
+
+      <div style="margin-top:12px;font-size:12px;color:#7f8c8d;">
+        Le QR code utilisé le lien permanent <span id="zone-slug-display" style="font-family:monospace;">/zone/__________</span>.<br>
+        Même après une correction, les anciennes affiches continueront de rediriger vers le site.
+      </div>
+
+      <!-- Informations supplémentaires -->
+      <div class="info-box" style="margin-top:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <div class="label">📋 Statut</div>
+            <div class="value">__________</div>
+          </div>
+          <div>
+            <div class="label">📅 Créé le</div>
+            <div class="value">__________</div>
+          </div>
+          <div>
+            <div class="label">👤 Propriétaire</div>
+            <div class="value">__________</div>
+          </div>
+          <div>
+            <div class="label">📊 Vues</div>
+            <div class="value">__________</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let selectedFormat = 'a5';
+
+  function selectFormat(format) {
+    selectedFormat = format;
+    document.querySelectorAll('.format-card').forEach(el => el.classList.remove('selected'));
+    document.getElementById(`format-${format}`).classList.add('selected');
+
+    const desc = document.getElementById('apercu-desc');
+    const container = document.getElementById('preview-container');
+
+    if (format === 'a5') {
+      desc.textContent = 'Format A5 portrait - 148 x 210 mm';
+      container.style.maxWidth = '400px';
+    } else {
+      desc.textContent = 'Format carré - 1080 x 1080 px';
+      container.style.maxWidth = '300px';
+    }
+  }
+
+  function downloadPDF() { alert('📄 Téléchargement du PDF A5 en cours...'); }
+  function downloadPNG() { alert('🖼️ Téléchargement du PNG en cours...'); }
+  function downloadQR() { alert('⬛ Téléchargement du QR code en cours...'); }
+
+  function shareLink() {
+    const url = 'https://autoticket-ne.com/zone/__________';
+    if (navigator.share) {
+      navigator.share({ title: 'AutoTicket - WiFi', text: 'Scannez pour acheter votre ticket WiFi', url: url });
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('✅ Lien copié !');
+    }
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText('https://autoticket-ne.com/zone/__________');
+    alert('✅ Lien copié !');
+  }
+
+  function logout() {
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    window.location.href = 'login.html';
+  }
+
+  function init() {
+    document.getElementById('sidebar-name').textContent = localStorage.getItem('userName') || '__________';
+    document.getElementById('sidebar-email').textContent = localStorage.getItem('userEmail') || '__________';
+  }
+
+  init();
+</script>
+
+</body>
+</html>
