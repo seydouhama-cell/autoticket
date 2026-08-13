@@ -2,201 +2,264 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>Acheter un ticket WiFi 🇳🇪</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoTicket - Vendez vos tickets WiFi 🇳🇪</title>
   <style>
+    /* =============================================
+       STYLES GÉNÉRAUX
+    ============================================= */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; }
-    .container { max-width: 480px; margin: 0 auto; background: white; border-radius: 20px; padding: 24px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-    h1 { font-size: 24px; font-weight: 700; color: #0d1b2a; text-align: center; margin-bottom: 8px; }
-    .subtitle { text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 24px; }
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 14px; font-weight: 600; color: #2c3e50; margin-bottom: 4px; }
-    input, select { width: 100%; padding: 12px 14px; border: 2px solid #e0e4e8; border-radius: 12px; font-size: 16px; transition: border 0.3s; background: #fafbfc; }
-    input:focus, select:focus { border-color: #e67e22; outline: none; background: white; box-shadow: 0 0 0 4px rgba(230,126,34,0.15); }
-    .btn { display: inline-block; width: 100%; padding: 14px; border: none; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; text-align: center; }
-    .btn-primary { background: linear-gradient(135deg, #e67e22, #d35400); color: white; }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(230,126,34,0.4); }
-    .btn-success { background: linear-gradient(135deg, #27ae60, #1e8449); color: white; }
-    .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(39,174,96,0.4); }
-    .btn-outline { background: transparent; color: #e67e22; border: 2px solid #e67e22; }
-    .btn-outline:hover { background: #e67e22; color: white; }
-    .card { background: #f8f9fa; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: none; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
-    .card-title { font-weight: 700; font-size: 17px; color: #1a1a2e; }
-    .card-price { font-size: 20px; font-weight: 700; color: #e67e22; }
-    .card-sub { color: #7f8c8d; font-size: 13px; }
-    .alert { padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 14px; }
-    .alert-success { background: #d5f5e3; color: #1a7a42; border: none; }
-    .alert-error { background: #fadbd8; color: #922b21; border: none; }
-    .alert-info { background: #d6eaf8; color: #1a5276; border: none; }
-    .hidden { display: none; }
-    #ticket-code { background: #0d1b2a; color: #27ae60; padding: 20px; border-radius: 14px; font-size: 24px; font-family: monospace; text-align: center; letter-spacing: 2px; margin: 16px 0; }
-    .footer-links { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e9ecef; font-size: 13px; color: #7f8c8d; }
-    .footer-links a { color: #e67e22; text-decoration: none; font-weight: 600; }
-    .footer-links a:hover { text-decoration: underline; }
-    .loading { text-align: center; padding: 30px 0; }
-    .loading .spinner { font-size: 40px; display: block; margin-bottom: 12px; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @media (max-width: 480px) { body { padding: 10px; } .container { padding: 16px; } }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #1a1a2e; line-height: 1.6; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* =============================================
+       HEADER
+    ============================================= */
+    .header {
+      background: linear-gradient(135deg, #0d1b2a, #1b3a4b);
+      color: white;
+      padding: 20px 0;
+      border-radius: 0 0 30px 30px;
+    }
+    .header .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .header .logo { font-size: 28px; font-weight: 700; color: #e67e22; }
+    .header .logo span { color: white; }
+    .header .nav { display: flex; gap: 16px; flex-wrap: wrap; }
+    .header .nav a { color: #c9d1d9; text-decoration: none; font-weight: 600; transition: color 0.3s; }
+    .header .nav a:hover { color: #e67e22; }
+    .header .nav .btn-nav { background: #e67e22; color: white; padding: 8px 20px; border-radius: 30px; }
+    .header .nav .btn-nav:hover { background: #d35400; color: white; }
+
+    /* =============================================
+       HERO
+    ============================================= */
+    .hero {
+      padding: 60px 0;
+      text-align: center;
+    }
+    .hero h1 { font-size: 42px; font-weight: 800; margin-bottom: 16px; }
+    .hero h1 span { color: #e67e22; }
+    .hero p { font-size: 18px; color: #7f8c8d; max-width: 600px; margin: 0 auto 24px; }
+    .hero .btn-hero { background: linear-gradient(135deg, #e67e22, #d35400); color: white; padding: 14px 40px; border-radius: 50px; font-size: 18px; font-weight: 700; border: none; cursor: pointer; transition: 0.3s; }
+    .hero .btn-hero:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(230,126,34,0.4); }
+    .hero .badge { display: inline-block; background: #27ae60; color: white; padding: 4px 16px; border-radius: 30px; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+
+    /* =============================================
+       FEATURES
+    ============================================= */
+    .features { padding: 60px 0; }
+    .features h2 { text-align: center; font-size: 32px; margin-bottom: 40px; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+    .feature-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); text-align: center; transition: 0.3s; }
+    .feature-card:hover { transform: translateY(-8px); box-shadow: 0 8px 40px rgba(0,0,0,0.1); }
+    .feature-card .icon { font-size: 48px; display: block; margin-bottom: 16px; }
+    .feature-card h3 { font-size: 20px; margin-bottom: 8px; }
+    .feature-card p { color: #7f8c8d; font-size: 14px; }
+
+    /* =============================================
+       COMMENT ÇA MARCHE
+    ============================================= */
+    .how-it-works { background: white; padding: 60px 0; border-radius: 30px; margin: 20px 0; }
+    .how-it-works h2 { text-align: center; font-size: 32px; margin-bottom: 40px; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+    .step { text-align: center; }
+    .step .num { background: #e67e22; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 12px; }
+    .step h4 { font-size: 18px; margin-bottom: 4px; }
+    .step p { color: #7f8c8d; font-size: 14px; }
+
+    /* =============================================
+       TARIFS
+    ============================================= */
+    .pricing { padding: 60px 0; }
+    .pricing h2 { text-align: center; font-size: 32px; margin-bottom: 40px; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
+    .pricing-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); text-align: center; border: 2px solid transparent; transition: 0.3s; }
+    .pricing-card:hover { border-color: #e67e22; }
+    .pricing-card.popular { border-color: #e67e22; background: #fef9f0; }
+    .pricing-card .plan { font-size: 20px; font-weight: 700; }
+    .pricing-card .price { font-size: 32px; font-weight: 800; color: #e67e22; margin: 8px 0; }
+    .pricing-card .price small { font-size: 14px; font-weight: 400; color: #7f8c8d; }
+    .pricing-card .btn-plan { background: #e67e22; color: white; padding: 10px 30px; border-radius: 30px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 12px; }
+    .pricing-card .btn-plan:hover { background: #d35400; }
+    .pricing-card .popular-badge { background: #e67e22; color: white; font-size: 12px; font-weight: 600; padding: 2px 14px; border-radius: 30px; display: inline-block; margin-bottom: 8px; }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    .footer { background: #0d1b2a; color: #c9d1d9; padding: 40px 0; margin-top: 40px; border-radius: 30px 30px 0 0; }
+    .footer .container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+    .footer .logo { font-size: 24px; font-weight: 700; color: #e67e22; }
+    .footer .logo span { color: white; }
+    .footer .links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer .links a { color: #c9d1d9; text-decoration: none; }
+    .footer .links a:hover { color: #e67e22; }
+    .footer .copy { text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 20px; font-size: 13px; color: #7f8c8d; }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 28px; }
+      .header .nav { width: 100%; justify-content: center; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .footer .container { flex-direction: column; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 24px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🛜 Ticket WiFi</h1>
-    <p class="subtitle">Achetez votre accès Internet en 1 minute</p>
-    
-    <div id="alert"></div>
-    
-    <div id="step-products">
-      <h2 style="font-size:18px;font-weight:600;color:#1b3a4b;margin-bottom:16px;border-left:4px solid #e67e22;padding-left:12px;">📶 Choisissez votre forfait</h2>
-      <div id="products-list"></div>
+
+  <!-- =============================================
+  HEADER
+  ============================================= -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">🛜 Auto<span>Ticket</span></div>
+      <nav class="nav">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#pricing">Tarifs</a>
+        <a href="#how-it-works">Guide</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="register.html" class="btn-nav">S'inscrire</a>
+        <a href="index.html" style="background:#2c3e50;padding:8px 20px;border-radius:30px;">Acheter</a>
+      </nav>
     </div>
-    
-    <div id="step-payment" class="hidden">
-      <h2 style="font-size:18px;font-weight:600;color:#1b3a4b;margin-bottom:16px;border-left:4px solid #e67e22;padding-left:12px;">💳 Paiement</h2>
-      <div class="form-group">
-        <label>Numéro Mobile Money</label>
-        <input type="tel" id="customer-phone" placeholder="Ex: 98765432" required>
-        <small style="color:#7f8c8d;">Numéro Airtel Money, Orange Money ou Moov Flooz</small>
+  </header>
+
+  <!-- =============================================
+  HERO
+  ============================================= -->
+  <section class="hero">
+    <div class="container">
+      <span class="badge">✅ Solution n°1 au Niger</span>
+      <h1>Vendez vos tickets WiFi<br><span>même en votre absence</span></h1>
+      <p>Avec AutoTicket, vos clients achètent leurs tickets WiFi en ligne, paient par Mobile Money et reçoivent leur code instantanément.</p>
+      <a href="register.html" class="btn-hero">🚀 Créer mon compte</a>
+    </div>
+  </section>
+
+  <!-- =============================================
+  FONCTIONNALITÉS
+  ============================================= -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2>🌟 Pourquoi choisir AutoTicket ?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="icon">📱</span>
+          <h3>Paiement Mobile Money</h3>
+          <p>Airtel Money, Orange Money, Moov Flooz</p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">🔄</span>
+          <h3>Automatisation totale</h3>
+          <p>Vendez des tickets 24h/24, même en votre absence</p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">📊</span>
+          <h3>Tableau de bord</h3>
+          <p>Suivez vos ventes, revenus et stock en temps réel</p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">🔒</span>
+          <h3>Sécurisé</h3>
+          <p>Données chiffrées et paiements sécurisés</p>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Moyen de paiement</label>
-        <select id="payment-method">
-          <option value="airtelmoney">Airtel Money</option>
-          <option value="orangemoney">Orange Money</option>
-          <option value="moov">Moov Flooz</option>
-        </select>
+    </div>
+  </section>
+
+  <!-- =============================================
+  COMMENT ÇA MARCHE
+  ============================================= -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <h2>📋 Comment ça marche ?</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <h4>Créez votre compte</h4>
+          <p>Inscrivez-vous en 1 minute</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h4>Configurez votre zone</h4>
+          <p>Ajoutez vos forfaits et tarifs</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h4>Importez vos tickets</h4>
+          <p>Chargez vos codes WiFi</p>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <h4>Vendez en automatique</h4>
+          <p>Partagez votre lien et recevez les paiements</p>
+        </div>
       </div>
-      <button class="btn btn-primary" id="pay-btn">💰 Payer maintenant</button>
-      <button class="btn btn-outline" id="back-btn" style="margin-top:8px;">← Retour</button>
     </div>
-    
-    <div id="step-loading" class="hidden">
-      <div class="loading">
-        <span class="spinner">⏳</span>
-        <p>Confirmation du paiement en cours...</p>
-        <p style="font-size:13px;color:#7f8c8d;">Veuillez patienter quelques secondes.</p>
+  </section>
+
+  <!-- =============================================
+  TARIFS
+  ============================================= -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <h2>💰 Forfaits adaptés à votre activité</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="plan">📆 1 Mois</div>
+          <div class="price">1 600 F <small>/ mois</small></div>
+          <p style="color:#7f8c8d;font-size:14px;">Mise en vente des tickets</p>
+          <p style="color:#7f8c8d;font-size:14px;">Assistance AutoTicket</p>
+          <button class="btn-plan" onclick="window.location.href='register.html'">Choisir</button>
+        </div>
+        <div class="pricing-card popular">
+          <span class="popular-badge">⭐ Populaire</span>
+          <div class="plan">📅 3 Mois</div>
+          <div class="price">4 500 F <small>/ 3 mois</small></div>
+          <p style="color:#7f8c8d;font-size:14px;">Mise en vente des tickets</p>
+          <p style="color:#7f8c8d;font-size:14px;">Assistance AutoTicket</p>
+          <button class="btn-plan" onclick="window.location.href='register.html'">Choisir</button>
+        </div>
+        <div class="pricing-card">
+          <div class="plan">📅 1 An</div>
+          <div class="price">15 000 F <small>/ an</small></div>
+          <p style="color:#7f8c8d;font-size:14px;">Mise en vente des tickets</p>
+          <p style="color:#7f8c8d;font-size:14px;">Assistance AutoTicket</p>
+          <button class="btn-plan" onclick="window.location.href='register.html'">Choisir</button>
+        </div>
       </div>
     </div>
-    
-    <div id="step-success" class="hidden" style="text-align:center;">
-      <h2 style="font-size:18px;font-weight:600;color:#1b3a4b;margin-bottom:8px;">✅ Ticket reçu !</h2>
-      <p style="font-size:14px;color:#7f8c8d;">Voici votre code d'accès :</p>
-      <div id="ticket-code">WIFI-XXXX</div>
-      <p style="font-size:13px;color:#7f8c8d;">Saisissez ce code sur le portail captif du WiFi.</p>
-      <button class="btn btn-success" id="reset-btn">🔁 Nouvel achat</button>
+  </section>
+
+  <!-- =============================================
+  FOOTER
+  ============================================= -->
+  <footer class="footer">
+    <div class="container">
+      <div>
+        <div class="logo">🛜 Auto<span>Ticket</span></div>
+        <p style="margin-top:8px;font-size:14px;color:#7f8c8d;">Vente de tickets WiFi au Niger</p>
+      </div>
+      <div class="links">
+        <a href="register.html">S'inscrire</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="index.html">Acheter</a>
+        <a href="faq.html">FAQ</a>
+        <a href="guide.html">Guide</a>
+      </div>
     </div>
-    
-    <div class="footer-links">
-      <a href="dashboard.html">📊 Dashboard vendeur</a> &nbsp;|&nbsp; <a href="register.html">📝 Créer un compte</a>
+    <div class="copy">
+      © 2026 AutoTicket Niger 🇳🇪 – Tous droits réservés
     </div>
-  </div>
-  
-  <script>
-    const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
-    const USER_ID = '6a7a76ba6b197186941d4937';
-    let selectedProductId = null;
-    let currentOrderId = null;
-    
-    function showMessage(message, type) {
-      const alertDiv = document.getElementById('alert');
-      alertDiv.className = `alert alert-${type}`;
-      alertDiv.textContent = message;
-      setTimeout(() => alertDiv.innerHTML = '', 5000);
-    }
-    
-    function formatPrice(amount) {
-      return amount.toLocaleString() + ' FCFA';
-    }
-    
-    async function apiCall(endpoint, method, data) {
-      const options = { method: method || 'GET', headers: { 'Content-Type': 'application/json' } };
-      if (data) options.body = JSON.stringify(data);
-      const response = await fetch(API_URL + endpoint, options);
-      return await response.json();
-    }
-    
-    async function loadProducts() {
-      try {
-        const products = await apiCall(`/products/${USER_ID}`, 'GET');
-        const container = document.getElementById('products-list');
-        container.innerHTML = '';
-        if (!products || products.length === 0) {
-          container.innerHTML = '<p style="color:#7f8c8d;">Aucun forfait disponible pour le moment.</p>';
-          return;
-        }
-        products.forEach(product => {
-          const div = document.createElement('div');
-          div.className = 'card';
-          div.innerHTML = `
-            <div class="card-title">${product.name}</div>
-            <div class="card-price">${formatPrice(product.price)}</div>
-            <div class="card-sub">Durée : ${product.duration}</div>
-            <button class="btn btn-primary" style="margin-top:10px;" data-product-id="${product._id}">Sélectionner</button>
-          `;
-          container.appendChild(div);
-        });
-        document.querySelectorAll('[data-product-id]').forEach(btn => {
-          btn.addEventListener('click', function() {
-            selectedProductId = this.dataset.productId;
-            document.getElementById('step-products').classList.add('hidden');
-            document.getElementById('step-payment').classList.remove('hidden');
-          });
-        });
-      } catch (error) {
-        showMessage('Erreur : ' + error.message, 'error');
-      }
-    }
-    
-    async function handlePayment() {
-      const phone = document.getElementById('customer-phone').value.trim();
-      const method = document.getElementById('payment-method').value;
-      if (!phone || phone.length < 8) {
-        showMessage('Veuillez entrer un numéro de téléphone valide.', 'error');
-        return;
-      }
-      if (!selectedProductId) {
-        showMessage('Veuillez sélectionner un forfait.', 'error');
-        return;
-      }
-      document.getElementById('step-payment').classList.add('hidden');
-      document.getElementById('step-loading').classList.remove('hidden');
-      try {
-        const response = await apiCall('/payment/initiate', 'POST', {
-          userId: USER_ID,
-          productId: selectedProductId,
-          customerPhone: phone,
-          method: method
-        });
-        if (response.success && response.paymentUrl) {
-          window.location.href = response.paymentUrl;
-        } else {
-          showMessage('Erreur paiement: ' + (response.message || 'Réessayez'), 'error');
-          document.getElementById('step-loading').classList.add('hidden');
-          document.getElementById('step-payment').classList.remove('hidden');
-        }
-      } catch (error) {
-        showMessage('Erreur: ' + error.message, 'error');
-        document.getElementById('step-loading').classList.add('hidden');
-        document.getElementById('step-payment').classList.remove('hidden');
-      }
-    }
-    
-    function resetPurchase() {
-      selectedProductId = null;
-      currentOrderId = null;
-      document.getElementById('step-success').classList.add('hidden');
-      document.getElementById('step-payment').classList.add('hidden');
-      document.getElementById('step-loading').classList.add('hidden');
-      document.getElementById('step-products').classList.remove('hidden');
-      document.getElementById('customer-phone').value = '';
-    }
-    
-    document.getElementById('pay-btn').addEventListener('click', handlePayment);
-    document.getElementById('back-btn').addEventListener('click', resetPurchase);
-    document.getElementById('reset-btn').addEventListener('click', resetPurchase);
-    loadProducts();
-  </script>
+  </footer>
+
 </body>
 </html>
