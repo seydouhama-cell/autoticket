@@ -64,7 +64,7 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   balance: { type: Number, default: 0 },
   hotspotName: { type: String },
-  // ✅ Routeurs MikroTik multiples
+  // ✅ Routeurs MikroTik multiples avec configuration individuelle
   mikrotiks: [{
     name: { type: String, required: true },
     ip: { type: String, required: true },
@@ -74,6 +74,18 @@ const UserSchema = new mongoose.Schema({
     ssid: { type: String },
     location: { type: String },
     isActive: { type: Boolean, default: true },
+    // ✅ Configuration spécifique à chaque routeur
+    config: {
+      dns: { type: String, default: '' },
+      portalUrl: { type: String, default: '' },
+      ticketFormat: { type: String, enum: ['code', 'userpass', 'both'], default: 'code' },
+      walledGarden: { type: Boolean, default: true },
+      maxUsers: { type: Number, default: 100 },
+      sessionTimeout: { type: Number, default: 3600 },
+      rateLimit: { type: Number, default: 1000 },
+      backupEnabled: { type: Boolean, default: false },
+      backupInterval: { type: Number, default: 24 }
+    },
     createdAt: { type: Date, default: Date.now }
   }],
   // ✅ GPS
@@ -690,7 +702,7 @@ app.get('/api/subscription/:userId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - MIKROTIK (Gestion de plusieurs routeurs)
+// ROUTES - MIKROTIK (Gestion de plusieurs routeurs avec config individuelle)
 // =============================================
 
 // Ajouter un routeur MikroTik
@@ -700,7 +712,23 @@ app.post('/api/mikrotik/add', async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
-    user.mikrotiks.push({ name, ip, username, password, port, ssid, location });
+    user.mikrotiks.push({ 
+      name, 
+      ip, 
+      username, 
+      password, 
+      port: port || 8728, 
+      ssid, 
+      location,
+      config: {
+        dns: '',
+        portalUrl: '',
+        ticketFormat: 'code',
+        walledGarden: true,
+        maxUsers: 100,
+        sessionTimeout: 3600
+      }
+    });
     await user.save();
 
     res.json({ success: true, message: 'Routeur MikroTik ajouté', mikrotiks: user.mikrotiks });
@@ -748,6 +776,59 @@ app.put('/api/mikrotik/toggle/:userId/:mikrotikId', async (req, res) => {
     await user.save();
 
     res.json({ success: true, message: 'Routeur mis à jour', mikrotik });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// ✅ Mettre à jour la configuration d'un routeur
+app.put('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
+  try {
+    const { userId, mikrotikId } = req.params;
+    const { config } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    const mikrotik = user.mikrotiks.id(mikrotikId);
+    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
+
+    // Mettre à jour la configuration
+    mikrotik.config = { ...mikrotik.config, ...config };
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: 'Configuration mise à jour',
+      mikrotik 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// ✅ Récupérer la configuration d'un routeur
+app.get('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    const mikrotik = user.mikrotiks.id(req.params.mikrotikId);
+    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
+
+    res.json({ 
+      success: true,
+      mikrotik: {
+        id: mikrotik._id,
+        name: mikrotik.name,
+        ip: mikrotik.ip,
+        port: mikrotik.port,
+        ssid: mikrotik.ssid,
+        location: mikrotik.location,
+        isActive: mikrotik.isActive,
+        config: mikrotik.config || {}
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
