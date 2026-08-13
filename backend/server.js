@@ -247,6 +247,38 @@ app.get('/api/tickets/:userId', async (req, res) => {
 // IMPORT PDF
 // =============================================
 
+app.post('/api/tickets/preview-pdf', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
+    }
+
+    const data = await pdfParse(req.file.buffer);
+    const text = data.text;
+
+    const lines = text.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    const codes = lines.filter(line => {
+      return /^[A-Z0-9\-]{4,20}$/i.test(line);
+    });
+
+    res.json({
+      totalLines: lines.length,
+      detectedCodes: codes.length,
+      codes: codes.slice(0, 50),
+      preview: text.slice(0, 1000)
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Erreur lors de la lecture du PDF', 
+      error: error.message 
+    });
+  }
+});
+
 app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
   try {
     const { userId, productId } = req.body;
@@ -309,38 +341,6 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
     console.error('Erreur import PDF:', error);
     res.status(500).json({ 
       message: 'Erreur lors de l\'import du PDF', 
-      error: error.message 
-    });
-  }
-});
-
-app.post('/api/tickets/preview-pdf', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
-    }
-
-    const data = await pdfParse(req.file.buffer);
-    const text = data.text;
-
-    const lines = text.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-
-    const codes = lines.filter(line => {
-      return /^[A-Z0-9\-]{4,20}$/i.test(line);
-    });
-
-    res.json({
-      totalLines: lines.length,
-      detectedCodes: codes.length,
-      codes: codes.slice(0, 50),
-      preview: text.slice(0, 1000)
-    });
-
-  } catch (error) {
-    res.status(500).json({ 
-      message: 'Erreur lors de la lecture du PDF', 
       error: error.message 
     });
   }
