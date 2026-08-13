@@ -1,5 +1,5 @@
 // =============================================
-// AUTOTICKET - SERVEUR COMPLET AVEC IMPORT PDF
+// AUTOTICKET - SERVEUR COMPLET
 // Niger 🇳🇪
 // =============================================
 
@@ -217,7 +217,7 @@ app.delete('/api/products/:id', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - TICKETS (BULK + PDF)
+// ROUTES - TICKETS
 // =============================================
 
 app.post('/api/tickets/bulk', async (req, res) => {
@@ -252,97 +252,52 @@ app.post('/api/tickets/preview-pdf', upload.single('file'), async (req, res) => 
     if (!req.file) {
       return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
     }
-
     const data = await pdfParse(req.file.buffer);
     const text = data.text;
-
-    const lines = text.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-
-    const codes = lines.filter(line => {
-      return /^[A-Z0-9\-]{4,20}$/i.test(line);
-    });
-
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const codes = lines.filter(line => /^[A-Z0-9\-]{4,20}$/i.test(line));
     res.json({
       totalLines: lines.length,
       detectedCodes: codes.length,
       codes: codes.slice(0, 50),
       preview: text.slice(0, 1000)
     });
-
   } catch (error) {
-    res.status(500).json({ 
-      message: 'Erreur lors de la lecture du PDF', 
-      error: error.message 
-    });
+    res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
 app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
   try {
     const { userId, productId } = req.body;
-
     if (!req.file) {
       return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
     }
-
     const data = await pdfParse(req.file.buffer);
     const text = data.text;
-
-    const lines = text.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
-
-    const codes = lines.filter(line => {
-      return /^[A-Z0-9\-]{4,20}$/i.test(line);
-    });
-
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const codes = lines.filter(line => /^[A-Z0-9\-]{4,20}$/i.test(line));
     if (codes.length === 0) {
-      return res.status(400).json({ 
-        message: 'Aucun code valide trouvé dans le PDF.',
-        preview: text.slice(0, 500)
-      });
+      return res.status(400).json({ message: 'Aucun code valide trouvé', preview: text.slice(0, 500) });
     }
-
-    const existingCodes = await Ticket.find({ 
-      userId: userId,
-      code: { $in: codes }
-    });
+    const existingCodes = await Ticket.find({ userId: userId, code: { $in: codes } });
     const existingSet = new Set(existingCodes.map(t => t.code));
     const newCodes = codes.filter(code => !existingSet.has(code));
-
     if (newCodes.length === 0) {
-      return res.status(400).json({ 
-        message: 'Tous les codes existent déjà dans votre stock.',
-        total: codes.length,
-        duplicates: codes.length
-      });
+      return res.status(400).json({ message: 'Tous les codes existent déjà' });
     }
-
-    const tickets = newCodes.map(code => ({ 
-      userId, 
-      code: code.trim(), 
-      productId: productId || null 
-    }));
-
+    const tickets = newCodes.map(code => ({ userId, code: code.trim(), productId: productId || null }));
     const inserted = await Ticket.insertMany(tickets);
-
     res.json({
       success: true,
-      message: `${inserted.length} tickets importés depuis le PDF`,
+      message: `${inserted.length} tickets importés`,
       total: codes.length,
       imported: inserted.length,
       duplicates: codes.length - newCodes.length,
       tickets: inserted
     });
-
   } catch (error) {
-    console.error('Erreur import PDF:', error);
-    res.status(500).json({ 
-      message: 'Erreur lors de l\'import du PDF', 
-      error: error.message 
-    });
+    res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
@@ -475,7 +430,7 @@ app.get('/api/commissions/:userId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - RETRAIT
+// ROUTES - RETRAIT (commission 5%)
 // =============================================
 
 app.post('/api/withdrawals', async (req, res) => {
@@ -522,7 +477,7 @@ app.post('/api/withdrawals', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - PAIEMENT MESOMB
+// ROUTES - PAIEMENT MESOMB (ACTIVÉ)
 // =============================================
 
 app.post('/api/payment/initiate', async (req, res) => {
@@ -545,15 +500,41 @@ app.post('/api/payment/initiate', async (req, res) => {
     });
     await order.save();
 
-    res.json({
-      success: true,
-      orderId: order._id,
-      transactionId: order.transactionId,
-      paymentUrl: 'https://mesomb.hachther.com/payment/simulate',
-      message: 'Paiement initié. Veuillez confirmer sur votre téléphone.'
+    // Appel API MeSomb
+    const response = await axios.post(`${MESOMB_API_URL}/payment/initiate/`, {
+      amount: product.price,
+      phone: customerPhone,
+      method: method || 'airtelmoney',
+      reference: order.transactionId,
+      description: `Ticket ${product.name}`,
+      country: MESOMB_COUNTRY,
+      currency: MESOMB_CURRENCY,
+      return_url: 'https://autoticket-pi.vercel.app/payment-status.html',
+      webhook_url: 'https://autoticket-backend-ktsj.onrender.com/api/payment/webhook'
+    }, {
+      headers: {
+        'X-Access-Key': MESOMB_ACCESS_KEY,
+        'X-Secret-Key': MESOMB_SECRET_KEY,
+        'Content-Type': 'application/json'
+      }
     });
 
+    if (response.data && response.data.success) {
+      res.json({
+        success: true,
+        orderId: order._id,
+        transactionId: order.transactionId,
+        paymentUrl: response.data.payment_url,
+        message: 'Paiement initié. Veuillez confirmer sur votre téléphone.'
+      });
+    } else {
+      order.status = 'failed';
+      await order.save();
+      res.status(400).json({ message: 'Erreur paiement', error: response.data.message });
+    }
+
   } catch (error) {
+    console.error('Erreur paiement MeSomb:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });

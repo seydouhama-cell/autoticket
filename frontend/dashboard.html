@@ -47,7 +47,7 @@
     .main-header .badge.expired { background: #e74c3c; color: white; }
 
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: white; padding: 16px 20px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e9ecef; }
+    .stat-card { background: white; padding: 16px 20px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e9ecef; }
     .stat-card .label { font-size: 13px; color: #7f8c8d; }
     .stat-card .value { font-size: 26px; font-weight: 700; color: #0d1b2a; margin-top: 4px; }
     .stat-card .value.orange { color: #e67e22; }
@@ -63,7 +63,7 @@
     .alert-box .btn { background: #e67e22; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
     .alert-box .btn:hover { background: #d35400; }
 
-    .table-wrap { background: white; border-radius: 14px; padding: 20px; border: 1px solid #e9ecef; margin-bottom: 24px; }
+    .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; margin-bottom: 24px; }
     .table-wrap h3 { font-size: 16px; color: #0d1b2a; margin-bottom: 12px; }
     .table-wrap table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .table-wrap th { text-align: left; padding: 10px 12px; background: #f8f9fa; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e9ecef; }
@@ -74,7 +74,7 @@
     .table-wrap .status.inactive { background: #fadbd8; color: #922b21; }
 
     .balance-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-    .balance-card { background: white; border-radius: 14px; padding: 20px; border: 1px solid #e9ecef; }
+    .balance-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; }
     .balance-card .label { font-size: 13px; color: #7f8c8d; }
     .balance-card .value { font-size: 28px; font-weight: 700; color: #e67e22; }
     .balance-card .value.green { color: #27ae60; }
@@ -93,18 +93,18 @@
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-weight: 600; font-size: 13px; color: #2c3e50; margin-bottom: 4px; }
     .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 2px solid #e0e4e8; border-radius: 12px; font-size: 14px; background: #fafbfc; transition: 0.3s; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #e67e22; outline: none; background: white; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #e67e22; outline: none; background: white; box-shadow: 0 0 0 4px rgba(230,126,34,0.15); }
     .form-group textarea { min-height: 80px; font-family: 'Courier New', monospace; }
 
-    .btn { padding: 10px 20px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%; }
-    .btn-primary { background: #e67e22; color: white; }
-    .btn-primary:hover { background: #d35400; }
-    .btn-success { background: #27ae60; color: white; }
-    .btn-success:hover { background: #1e8449; }
-    .btn-danger { background: #e74c3c; color: white; }
-    .btn-danger:hover { background: #c0392b; }
+    .btn { padding: 10px 20px; border: none; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%; }
+    .btn-primary { background: linear-gradient(135deg, #e67e22, #d35400); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(230,126,34,0.4); }
+    .btn-success { background: linear-gradient(135deg, #27ae60, #1e8449); color: white; }
+    .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(39,174,96,0.4); }
+    .btn-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(231,76,60,0.4); }
     .btn-sm { width: auto; padding: 4px 14px; font-size: 12px; border-radius: 20px; }
-    .card { background: #f8f9fa; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid #e9ecef; }
+    .card { background: #f8f9fa; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid #e9ecef; }
 
     .pdf-zone { border: 2px dashed #e0e4e8; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; background: #fafbfc; }
     .pdf-zone input[type="file"] { margin: 8px 0; }
@@ -286,11 +286,8 @@
     <div class="table-wrap" id="tab-tickets" style="display:none;">
       <h3>🎫 Importer des tickets</h3>
 
-      <!-- Zone d'import PDF -->
       <div class="pdf-zone">
-        <p style="font-size:14px;color:#2c3e50;margin-bottom:8px;">
-          📄 Importer depuis un PDF (MikroTik / Mikhmon)
-        </p>
+        <p style="font-size:14px;color:#2c3e50;margin-bottom:8px;">📄 Importer depuis un PDF (MikroTik / Mikhmon)</p>
         <input type="file" id="pdf-file-input" accept=".pdf">
         <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
           <button class="btn btn-primary" id="preview-pdf-btn" style="width:auto;padding:6px 20px;font-size:13px;">👁️ Prévisualiser</button>
@@ -299,7 +296,6 @@
         <div id="pdf-preview" class="pdf-preview"></div>
       </div>
 
-      <!-- Import par texte -->
       <div class="form-group"><label>Codes WiFi (un par ligne)</label><textarea id="ticket-codes" placeholder="WIFI-001&#10;WIFI-002&#10;WIFI-003"></textarea></div>
       <div class="form-group"><label>Forfait associé</label><select id="ticket-product-select"><option value="">Sélectionner un forfait</option></select></div>
       <button class="btn btn-primary" id="import-tickets-btn">📥 Importer</button>
@@ -323,9 +319,6 @@
 
 <!-- ========== JAVASCRIPT ========== -->
 <script>
-  // =============================================
-  // CONFIGURATION
-  // =============================================
   const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
   let USER_ID = localStorage.getItem('userId') || '6a7a76ba6b197186941d4937';
 
@@ -333,9 +326,6 @@
   let productsChart = null;
   let currentPeriod = 7;
 
-  // =============================================
-  // FONCTIONS UTILITAIRES
-  // =============================================
   function formatPrice(amount) { return amount.toLocaleString() + ' FCFA'; }
 
   async function apiCall(endpoint, method, data) {
@@ -345,9 +335,6 @@
     return await res.json();
   }
 
-  // =============================================
-  // NAVIGATION
-  // =============================================
   function showTab(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.getElementById('tab-overview').style.display = 'none';
@@ -374,9 +361,6 @@
     window.location.href = 'login.html';
   }
 
-  // =============================================
-  // GRAPHIQUES
-  // =============================================
   function initSalesChart(data) {
     const ctx = document.getElementById('salesChart').getContext('2d');
     if (salesChart) { salesChart.destroy(); }
@@ -476,31 +460,21 @@
     });
   }
 
-  // =============================================
-  // STATISTIQUES AVANCÉES
-  // =============================================
   async function loadAdvancedStats(period = 7) {
     currentPeriod = period;
-
     try {
       const data = await apiCall(`/stats/advanced/${USER_ID}/${period}`, 'GET');
-
       initSalesChart(data);
       initProductsChart(data.products || []);
-
       document.getElementById('total-sales').textContent = data.summary?.totalSales || 0;
       document.getElementById('avg-revenue').textContent = (data.summary?.avgRevenue || 0).toLocaleString() + ' F';
       document.getElementById('best-day').textContent = data.summary?.bestDay || '-';
       document.getElementById('period-days').textContent = period;
-
     } catch (error) {
       console.error('Erreur chargement stats avancées:', error);
     }
   }
 
-  // =============================================
-  // CHARGEMENT DES DONNÉES
-  // =============================================
   async function loadSubscriptionStatus() {
     try {
       const sub = await apiCall(`/subscription/${USER_ID}`, 'GET');
@@ -613,9 +587,6 @@
     } catch (error) { alert('Erreur: ' + error.message); }
   }
 
-  // =============================================
-  // IMPORT TICKETS (TEXTE)
-  // =============================================
   document.getElementById('import-tickets-btn').onclick = async function() {
     const codes = document.getElementById('ticket-codes').value.split('\n').map(c => c.trim()).filter(c => c);
     const productId = document.getElementById('ticket-product-select').value;
@@ -629,9 +600,6 @@
     } catch (error) { alert('Erreur: ' + error.message); }
   };
 
-  // =============================================
-  // IMPORT PDF
-  // =============================================
   document.getElementById('preview-pdf-btn').onclick = async function() {
     const fileInput = document.getElementById('pdf-file-input');
     const file = fileInput.files[0];
@@ -697,9 +665,6 @@
     } catch (error) { alert('Erreur: ' + error.message); }
   };
 
-  // =============================================
-  // CHARGER TICKETS
-  // =============================================
   async function loadTickets() {
     try {
       const data = await apiCall(`/tickets/${USER_ID}`, 'GET');
@@ -715,9 +680,6 @@
     } catch (error) { console.error('Erreur tickets:', error); }
   }
 
-  // =============================================
-  // RETRAIT
-  // =============================================
   document.getElementById('withdraw-btn').onclick = async function() {
     const amount = parseInt(document.getElementById('withdraw-amount').value);
     const phone = document.getElementById('withdraw-phone').value.trim();
@@ -733,9 +695,6 @@
     } catch (error) { alert('Erreur: ' + error.message); }
   };
 
-  // =============================================
-  // GESTION DES BOUTONS DE PÉRIODE
-  // =============================================
   document.querySelectorAll('.periode-btn').forEach(btn => {
     btn.onclick = function() {
       document.querySelectorAll('.periode-btn').forEach(b => {
@@ -748,9 +707,6 @@
     };
   });
 
-  // =============================================
-  // INITIALISATION
-  // =============================================
   async function init() {
     document.getElementById('sidebar-name').textContent = localStorage.getItem('userName') || '__________';
     document.getElementById('sidebar-email').textContent = localStorage.getItem('userEmail') || '__________';
