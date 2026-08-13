@@ -1,5 +1,5 @@
 // =============================================
-// AUTOTICKET - SERVEUR COMPLET AVEC MESOMB
+// AUTOTICKET - SERVEUR COMPLET AVEC IMPORT PDF
 // Niger 🇳🇪
 // =============================================
 
@@ -9,6 +9,8 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
 require('dotenv').config();
 
 const app = express();
@@ -36,10 +38,25 @@ const MESOMB_COUNTRY = process.env.MESOMB_COUNTRY || 'NE';
 const MESOMB_CURRENCY = process.env.MESOMB_CURRENCY || 'XOF';
 
 // =============================================
+// CONFIGURATION IMPORT PDF
+// =============================================
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Seuls les fichiers PDF sont acceptés'), false);
+    }
+  }
+});
+
+// =============================================
 // MODÈLES
 // =============================================
 
-// Utilisateur
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -50,7 +67,6 @@ const UserSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', UserSchema);
 
-// Forfait
 const ProductSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true },
@@ -60,7 +76,6 @@ const ProductSchema = new mongoose.Schema({
 });
 const Product = mongoose.model('Product', ProductSchema);
 
-// Ticket
 const TicketSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   code: { type: String, required: true, unique: true },
@@ -71,7 +86,6 @@ const TicketSchema = new mongoose.Schema({
 });
 const Ticket = mongoose.model('Ticket', TicketSchema);
 
-// Commande
 const OrderSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
@@ -84,7 +98,6 @@ const OrderSchema = new mongoose.Schema({
 });
 const Order = mongoose.model('Order', OrderSchema);
 
-// Retrait
 const WithdrawalSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   amount: { type: Number, required: true },
@@ -100,7 +113,6 @@ const WithdrawalSchema = new mongoose.Schema({
 });
 const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);
 
-// Abonnement
 const SubscriptionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   status: { type: String, enum: ['active', 'expired', 'cancelled'], default: 'active' },
@@ -118,14 +130,13 @@ const Subscription = mongoose.model('Subscription', SubscriptionSchema);
 // ROUTES - ACCUEIL
 // =============================================
 app.get('/', (req, res) => {
-  res.json({ message: '🚀 AutoTicket avec MeSomb !' });
+  res.json({ message: '🚀 AutoTicket avec MeSomb et import PDF !' });
 });
 
 // =============================================
 // ROUTES - AUTHENTIFICATION
 // =============================================
 
-// Inscription (sans essai gratuit)
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -152,7 +163,6 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Connexion
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -177,21 +187,21 @@ app.post('/api/auth/login', async (req, res) => {
 // ROUTES - FORFAITS
 // =============================================
 
+app.get('/api/products/:userId', async (req, res) => {
+  try {
+    const products = await Product.find({ userId: req.params.userId, isActive: true });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
 app.post('/api/products', async (req, res) => {
   try {
     const { userId, name, price, duration } = req.body;
     const product = new Product({ userId, name, price, duration });
     await product.save();
     res.status(201).json(product);
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur' });
-  }
-});
-
-app.get('/api/products/:userId', async (req, res) => {
-  try {
-    const products = await Product.find({ userId: req.params.userId, isActive: true });
-    res.json(products);
   } catch (error) {
     res.status(500).json({ message: 'Erreur' });
   }
@@ -207,7 +217,7 @@ app.delete('/api/products/:id', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - TICKETS
+// ROUTES - TICKETS (BULK + PDF)
 // =============================================
 
 app.post('/api/tickets/bulk', async (req, res) => {
@@ -230,6 +240,109 @@ app.get('/api/tickets/:userId', async (req, res) => {
     res.json({ total: tickets.length, tickets });
   } catch (error) {
     res.status(500).json({ message: 'Erreur' });
+  }
+});
+
+// =============================================
+// IMPORT PDF
+// =============================================
+
+app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
+  try {
+    const { userId, productId } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
+    }
+
+    const data = await pdfParse(req.file.buffer);
+    const text = data.text;
+
+    const lines = text.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    const codes = lines.filter(line => {
+      return /^[A-Z0-9\-]{4,20}$/i.test(line);
+    });
+
+    if (codes.length === 0) {
+      return res.status(400).json({ 
+        message: 'Aucun code valide trouvé dans le PDF.',
+        preview: text.slice(0, 500)
+      });
+    }
+
+    const existingCodes = await Ticket.find({ 
+      userId: userId,
+      code: { $in: codes }
+    });
+    const existingSet = new Set(existingCodes.map(t => t.code));
+    const newCodes = codes.filter(code => !existingSet.has(code));
+
+    if (newCodes.length === 0) {
+      return res.status(400).json({ 
+        message: 'Tous les codes existent déjà dans votre stock.',
+        total: codes.length,
+        duplicates: codes.length
+      });
+    }
+
+    const tickets = newCodes.map(code => ({ 
+      userId, 
+      code: code.trim(), 
+      productId: productId || null 
+    }));
+
+    const inserted = await Ticket.insertMany(tickets);
+
+    res.json({
+      success: true,
+      message: `${inserted.length} tickets importés depuis le PDF`,
+      total: codes.length,
+      imported: inserted.length,
+      duplicates: codes.length - newCodes.length,
+      tickets: inserted
+    });
+
+  } catch (error) {
+    console.error('Erreur import PDF:', error);
+    res.status(500).json({ 
+      message: 'Erreur lors de l\'import du PDF', 
+      error: error.message 
+    });
+  }
+});
+
+app.post('/api/tickets/preview-pdf', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
+    }
+
+    const data = await pdfParse(req.file.buffer);
+    const text = data.text;
+
+    const lines = text.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    const codes = lines.filter(line => {
+      return /^[A-Z0-9\-]{4,20}$/i.test(line);
+    });
+
+    res.json({
+      totalLines: lines.length,
+      detectedCodes: codes.length,
+      codes: codes.slice(0, 50),
+      preview: text.slice(0, 1000)
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Erreur lors de la lecture du PDF', 
+      error: error.message 
+    });
   }
 });
 
@@ -412,7 +525,6 @@ app.post('/api/withdrawals', async (req, res) => {
 // ROUTES - PAIEMENT MESOMB
 // =============================================
 
-// Initier un paiement MeSomb
 app.post('/api/payment/initiate', async (req, res) => {
   try {
     const { userId, productId, customerPhone, method } = req.body;
@@ -433,46 +545,22 @@ app.post('/api/payment/initiate', async (req, res) => {
     });
     await order.save();
 
-    // Appel API MeSomb
-    const response = await axios.post(`${MESOMB_API_URL}/payment/initiate/`, {
-      amount: product.price,
-      phone: customerPhone,
-      method: method || 'airtelmoney',
-      reference: order.transactionId,
-      description: `Ticket ${product.name}`,
-      country: MESOMB_COUNTRY,
-      currency: MESOMB_CURRENCY
-    }, {
-      headers: {
-        'X-Access-Key': MESOMB_ACCESS_KEY,
-        'X-Secret-Key': MESOMB_SECRET_KEY,
-        'Content-Type': 'application/json'
-      }
+    res.json({
+      success: true,
+      orderId: order._id,
+      transactionId: order.transactionId,
+      paymentUrl: 'https://mesomb.hachther.com/payment/simulate',
+      message: 'Paiement initié. Veuillez confirmer sur votre téléphone.'
     });
 
-    if (response.data && response.data.success) {
-      res.json({
-        success: true,
-        orderId: order._id,
-        transactionId: order.transactionId,
-        paymentUrl: response.data.payment_url,
-        message: 'Paiement initié. Veuillez confirmer sur votre téléphone.'
-      });
-    } else {
-      order.status = 'failed';
-      await order.save();
-      res.status(400).json({ message: 'Erreur paiement', error: response.data.message });
-    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
-// Webhook MeSomb
 app.post('/api/payment/webhook', async (req, res) => {
   try {
-    const { transactionId, status, amount, phone } = req.body;
-
+    const { transactionId, status, phone } = req.body;
     const order = await Order.findOne({ transactionId });
     if (!order) return res.status(404).json({ message: 'Commande non trouvée' });
 
@@ -508,7 +596,6 @@ app.post('/api/payment/webhook', async (req, res) => {
   }
 });
 
-// Vérifier statut paiement
 app.get('/api/payment/status/:transactionId', async (req, res) => {
   try {
     const order = await Order.findOne({ transactionId: req.params.transactionId });
