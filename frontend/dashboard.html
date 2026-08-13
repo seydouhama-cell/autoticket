@@ -170,7 +170,7 @@
 
     <div class="main-header">
       <h1 id="page-title">📊 Vue d'ensemble</h1>
-      <span class="badge trial" id="status-badge">🎁 Essai gratuit</span>
+      <span class="badge active" id="status-badge">✅ Abonnement actif</span>
     </div>
 
     <div class="alert-box hidden" id="alert-subscription">
@@ -319,6 +319,18 @@
 
 <!-- ========== JAVASCRIPT ========== -->
 <script>
+  // =============================================
+  // VÉRIFICATION DE CONNEXION
+  // =============================================
+  const userId = localStorage.getItem('userId');
+  if (!userId) {
+    alert('Veuillez vous connecter pour accéder au dashboard.');
+    window.location.href = 'register.html';
+  }
+
+  // =============================================
+  // CONFIGURATION
+  // =============================================
   const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
   let USER_ID = localStorage.getItem('userId') || '6a7a76ba6b197186941d4937';
 
@@ -326,6 +338,9 @@
   let productsChart = null;
   let currentPeriod = 7;
 
+  // =============================================
+  // FONCTIONS UTILITAIRES
+  // =============================================
   function formatPrice(amount) { return amount.toLocaleString() + ' FCFA'; }
 
   async function apiCall(endpoint, method, data) {
@@ -335,6 +350,9 @@
     return await res.json();
   }
 
+  // =============================================
+  // NAVIGATION
+  // =============================================
   function showTab(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.getElementById('tab-overview').style.display = 'none';
@@ -358,9 +376,12 @@
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');
     localStorage.removeItem('userEmail');
-    window.location.href = 'login.html';
+    window.location.href = 'register.html';
   }
 
+  // =============================================
+  // GRAPHIQUES
+  // =============================================
   function initSalesChart(data) {
     const ctx = document.getElementById('salesChart').getContext('2d');
     if (salesChart) { salesChart.destroy(); }
@@ -460,6 +481,9 @@
     });
   }
 
+  // =============================================
+  // STATISTIQUES AVANCÉES
+  // =============================================
   async function loadAdvancedStats(period = 7) {
     currentPeriod = period;
     try {
@@ -475,6 +499,9 @@
     }
   }
 
+  // =============================================
+  // ABONNEMENT (SANS ESSAI GRATUIT)
+  // =============================================
   async function loadSubscriptionStatus() {
     try {
       const sub = await apiCall(`/subscription/${USER_ID}`, 'GET');
@@ -482,14 +509,8 @@
       const alertBox = document.getElementById('alert-subscription');
       const statusText = document.getElementById('sub-status-text');
       const daysText = document.getElementById('sub-days-text');
-      if (sub.status === 'trial') {
-        badge.textContent = `🎁 Essai gratuit (${sub.daysLeft || 0}j)`;
-        badge.className = 'badge trial';
-        alertBox.classList.add('hidden');
-        statusText.textContent = '🎁 Essai gratuit';
-        statusText.className = 'value orange';
-        daysText.textContent = `${sub.daysLeft || 0} jours restants`;
-      } else if (sub.status === 'active') {
+
+      if (sub.status === 'active') {
         badge.textContent = '✅ Abonnement actif';
         badge.className = 'badge active';
         alertBox.classList.add('hidden');
@@ -504,9 +525,14 @@
         statusText.className = 'value red';
         daysText.textContent = 'Veuillez renouveler';
       }
-    } catch (error) { console.error('Erreur abonnement:', error); }
+    } catch (error) {
+      console.error('Erreur abonnement:', error);
+    }
   }
 
+  // =============================================
+  // CHARGEMENT DES DONNÉES
+  // =============================================
   async function loadStats() {
     try {
       const stats = await apiCall(`/stats/${USER_ID}`, 'GET');

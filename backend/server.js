@@ -113,6 +113,7 @@ const WithdrawalSchema = new mongoose.Schema({
 });
 const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);
 
+// ✅ Abonnement SANS essai gratuit
 const SubscriptionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   status: { type: String, enum: ['active', 'expired', 'cancelled'], default: 'active' },
@@ -134,7 +135,7 @@ app.get('/', (req, res) => {
 });
 
 // =============================================
-// ROUTES - AUTHENTIFICATION
+// ROUTES - AUTHENTIFICATION (sans essai gratuit)
 // =============================================
 
 app.post('/api/auth/register', async (req, res) => {
@@ -144,6 +145,7 @@ app.post('/api/auth/register', async (req, res) => {
     const user = new User({ name, email, password: hashedPassword, phone });
     await user.save();
 
+    // ✅ Abonnement actif immédiatement (30 jours) - PAS D'ESSAI GRATUIT
     const subscription = new Subscription({
       userId: user._id,
       status: 'active',
@@ -477,7 +479,7 @@ app.post('/api/withdrawals', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - PAIEMENT MESOMB (ACTIVÉ)
+// ROUTES - PAIEMENT MESOMB
 // =============================================
 
 app.post('/api/payment/initiate', async (req, res) => {
@@ -500,7 +502,6 @@ app.post('/api/payment/initiate', async (req, res) => {
     });
     await order.save();
 
-    // Appel API MeSomb
     const response = await axios.post(`${MESOMB_API_URL}/payment/initiate/`, {
       amount: product.price,
       phone: customerPhone,
@@ -593,7 +594,7 @@ app.get('/api/payment/status/:transactionId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - ABONNEMENT
+// ROUTES - ABONNEMENT (sans essai gratuit)
 // =============================================
 
 app.post('/api/subscription/pay', async (req, res) => {
