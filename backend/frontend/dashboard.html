@@ -169,7 +169,6 @@
       <span class="badge trial" id="status-badge">🎁 Essai gratuit</span>
     </div>
 
-    <!-- ALERTE ABONNEMENT (cachée par défaut, affichée uniquement si expiré) -->
     <div class="alert-box hidden" id="alert-subscription">
       <span class="icon">⚠️</span>
       <span class="text"><strong>L'abonnement de cette zone a expiré.</strong> Vos clients ne peuvent plus y accéder.</span>
@@ -307,8 +306,8 @@
   // =============================================
   // CONFIGURATION
   // =============================================
-  const API_URL = 'http://localhost:3000/api';
-  let USER_ID = localStorage.getItem('userId') || 'ID_DU_VENDEUR';
+  const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
+  let USER_ID = localStorage.getItem('userId') || '6a7a76ba6b197186941d4937';
 
   let salesChart = null;
   let productsChart = null;
@@ -458,7 +457,7 @@
   }
 
   // =============================================
-  // STATISTIQUES AVANCÉES
+  // STATISTIQUES AVANCÉES (CORRIGÉE)
   // =============================================
   async function loadAdvancedStats(period = 7) {
     currentPeriod = period;
@@ -489,7 +488,6 @@
       const alertBox = document.getElementById('alert-subscription');
       const statusText = document.getElementById('sub-status-text');
       const daysText = document.getElementById('sub-days-text');
-
       if (sub.status === 'trial') {
         badge.textContent = `🎁 Essai gratuit (${sub.daysLeft || 0}j)`;
         badge.className = 'badge trial';
@@ -504,24 +502,15 @@
         statusText.textContent = '✅ Actif';
         statusText.className = 'value green';
         daysText.textContent = `Prochain renouvellement : ${sub.daysLeft || 0} jours`;
-      } else if (sub.status === 'expired' || sub.status === 'inactive') {
+      } else {
         badge.textContent = '⛔ Abonnement expiré';
         badge.className = 'badge expired';
         alertBox.classList.remove('hidden');
         statusText.textContent = '⛔ Expiré';
         statusText.className = 'value red';
         daysText.textContent = 'Veuillez renouveler';
-      } else {
-        badge.textContent = '⚠️ Aucun abonnement';
-        badge.className = 'badge expired';
-        alertBox.classList.remove('hidden');
-        statusText.textContent = '⚠️ Non souscrit';
-        statusText.className = 'value red';
-        daysText.textContent = 'Activez votre essai gratuit';
       }
-    } catch (error) {
-      console.error('Erreur abonnement:', error);
-    }
+    } catch (error) { console.error('Erreur abonnement:', error); }
   }
 
   async function loadStats() {

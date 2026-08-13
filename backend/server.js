@@ -1,5 +1,5 @@
 // =============================================
-// AUTOTICKET - SERVEUR COMPLET
+// AUTOTICKET - SERVEUR COMPLET AVEC MESOMB
 // Niger 🇳🇪
 // =============================================
 
@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -24,6 +25,15 @@ mongoose.connect(MONGODB_URI)
 
 app.use(cors());
 app.use(express.json());
+
+// =============================================
+// CONFIGURATION MESOMB
+// =============================================
+const MESOMB_API_URL = 'https://mesomb.hachther.com/api/v1';
+const MESOMB_ACCESS_KEY = process.env.MESOMB_ACCESS_KEY;
+const MESOMB_SECRET_KEY = process.env.MESOMB_SECRET_KEY;
+const MESOMB_COUNTRY = process.env.MESOMB_COUNTRY || 'NE';
+const MESOMB_CURRENCY = process.env.MESOMB_CURRENCY || 'XOF';
 
 // =============================================
 // MODÈLES
@@ -90,7 +100,7 @@ const WithdrawalSchema = new mongoose.Schema({
 });
 const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);
 
-// Abonnement (SANS ESSAI GRATUIT)
+// Abonnement
 const SubscriptionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   status: { type: String, enum: ['active', 'expired', 'cancelled'], default: 'active' },
@@ -108,14 +118,14 @@ const Subscription = mongoose.model('Subscription', SubscriptionSchema);
 // ROUTES - ACCUEIL
 // =============================================
 app.get('/', (req, res) => {
-  res.json({ message: '🚀 AutoTicket avec MongoDB et Abonnements !' });
+  res.json({ message: '🚀 AutoTicket avec MeSomb !' });
 });
 
 // =============================================
 // ROUTES - AUTHENTIFICATION
 // =============================================
 
-// Inscription (SANS ESSAI GRATUIT)
+// Inscription (sans essai gratuit)
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -123,7 +133,6 @@ app.post('/api/auth/register', async (req, res) => {
     const user = new User({ name, email, password: hashedPassword, phone });
     await user.save();
 
-    // Abonnement actif immédiatement (30 jours)
     const subscription = new Subscription({
       userId: user._id,
       status: 'active',
@@ -168,7 +177,6 @@ app.post('/api/auth/login', async (req, res) => {
 // ROUTES - FORFAITS
 // =============================================
 
-// Créer un forfait
 app.post('/api/products', async (req, res) => {
   try {
     const { userId, name, price, duration } = req.body;
@@ -180,7 +188,6 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
-// Lister les forfaits
 app.get('/api/products/:userId', async (req, res) => {
   try {
     const products = await Product.find({ userId: req.params.userId, isActive: true });
@@ -190,7 +197,6 @@ app.get('/api/products/:userId', async (req, res) => {
   }
 });
 
-// Supprimer un forfait
 app.delete('/api/products/:id', async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
@@ -204,7 +210,6 @@ app.delete('/api/products/:id', async (req, res) => {
 // ROUTES - TICKETS
 // =============================================
 
-// Importer des tickets
 app.post('/api/tickets/bulk', async (req, res) => {
   try {
     const { userId, codes, productId } = req.body;
@@ -219,7 +224,6 @@ app.post('/api/tickets/bulk', async (req, res) => {
   }
 });
 
-// Voir les tickets disponibles
 app.get('/api/tickets/:userId', async (req, res) => {
   try {
     const tickets = await Ticket.find({ userId: req.params.userId, isUsed: false });
@@ -230,8 +234,9 @@ app.get('/api/tickets/:userId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - STATISTIQUES DE BASE
+// ROUTES - STATISTIQUES
 // =============================================
+
 app.get('/api/stats/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -252,9 +257,6 @@ app.get('/api/stats/:userId', async (req, res) => {
   }
 });
 
-// =============================================
-// ROUTES - STATISTIQUES AVANCÉES
-// =============================================
 app.get('/api/stats/advanced/:userId/:period', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -336,6 +338,7 @@ app.get('/api/stats/advanced/:userId/:period', async (req, res) => {
 // =============================================
 // ROUTES - COMMISSIONS
 // =============================================
+
 app.get('/api/commissions/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -359,8 +362,9 @@ app.get('/api/commissions/:userId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - RETRAIT (commission 5% gardée)
+// ROUTES - RETRAIT
 // =============================================
+
 app.post('/api/withdrawals', async (req, res) => {
   try {
     const { userId, amount, phone, method } = req.body;
@@ -368,7 +372,6 @@ app.post('/api/withdrawals', async (req, res) => {
     if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
     if (amount > user.balance) return res.status(400).json({ message: 'Solde insuffisant' });
 
-    // Commission de 5% gardée
     const feesPercent = 4;
     const commissionPercent = 5;
     const feeAmount = Math.round(amount * feesPercent / 100);
@@ -406,58 +409,125 @@ app.post('/api/withdrawals', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - SIMULATION PAIEMENT
+// ROUTES - PAIEMENT MESOMB
 // =============================================
 
-// Créer un paiement
-app.post('/api/payments/simulate/create', async (req, res) => {
+// Initier un paiement MeSomb
+app.post('/api/payment/initiate', async (req, res) => {
   try {
-    const { userId, productId, customerPhone } = req.body;
+    const { userId, productId, customerPhone, method } = req.body;
+
     const product = await Product.findOne({ _id: productId, userId });
     if (!product) return res.status(404).json({ message: 'Forfait non trouvé' });
+
     const ticket = await Ticket.findOne({ userId, productId, isUsed: false });
-    if (!ticket) return res.status(400).json({ message: 'Plus de tickets' });
+    if (!ticket) return res.status(400).json({ message: 'Plus de tickets disponibles' });
+
     const order = new Order({
       userId,
       productId,
       customerPhone,
       amount: product.price,
-      transactionId: `SIM-${Date.now()}`
+      status: 'pending',
+      transactionId: `PAY-${Date.now()}-${Math.floor(Math.random() * 10000)}`
     });
     await order.save();
-    res.json({ success: true, orderId: order._id });
+
+    // Appel API MeSomb
+    const response = await axios.post(`${MESOMB_API_URL}/payment/initiate/`, {
+      amount: product.price,
+      phone: customerPhone,
+      method: method || 'airtelmoney',
+      reference: order.transactionId,
+      description: `Ticket ${product.name}`,
+      country: MESOMB_COUNTRY,
+      currency: MESOMB_CURRENCY
+    }, {
+      headers: {
+        'X-Access-Key': MESOMB_ACCESS_KEY,
+        'X-Secret-Key': MESOMB_SECRET_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data && response.data.success) {
+      res.json({
+        success: true,
+        orderId: order._id,
+        transactionId: order.transactionId,
+        paymentUrl: response.data.payment_url,
+        message: 'Paiement initié. Veuillez confirmer sur votre téléphone.'
+      });
+    } else {
+      order.status = 'failed';
+      await order.save();
+      res.status(400).json({ message: 'Erreur paiement', error: response.data.message });
+    }
   } catch (error) {
-    res.status(500).json({ message: 'Erreur' });
+    res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
-// Confirmer un paiement
-app.post('/api/payments/simulate/confirm/:orderId', async (req, res) => {
+// Webhook MeSomb
+app.post('/api/payment/webhook', async (req, res) => {
   try {
-    const order = await Order.findById(req.params.orderId);
+    const { transactionId, status, amount, phone } = req.body;
+
+    const order = await Order.findOne({ transactionId });
     if (!order) return res.status(404).json({ message: 'Commande non trouvée' });
-    if (order.status === 'paid') return res.status(400).json({ message: 'Déjà payée' });
-    const ticket = await Ticket.findOne({ userId: order.userId, productId: order.productId, isUsed: false });
-    if (!ticket) return res.status(400).json({ message: 'Stock épuisé' });
-    ticket.isUsed = true;
-    await ticket.save();
-    order.status = 'paid';
-    order.ticketId = ticket._id;
-    await order.save();
-    const user = await User.findById(order.userId);
-    user.balance += order.amount;
-    await user.save();
-    res.json({ success: true, ticket: { code: ticket.code } });
+
+    if (status === 'success') {
+      const ticket = await Ticket.findOne({ userId: order.userId, productId: order.productId, isUsed: false });
+      if (!ticket) {
+        order.status = 'failed';
+        await order.save();
+        return res.status(400).json({ message: 'Stock épuisé' });
+      }
+
+      ticket.isUsed = true;
+      ticket.usedAt = new Date();
+      ticket.usedBy = phone || order.customerPhone;
+      await ticket.save();
+
+      order.status = 'paid';
+      order.ticketId = ticket._id;
+      await order.save();
+
+      const user = await User.findById(order.userId);
+      user.balance += order.amount;
+      await user.save();
+
+      res.json({ success: true, message: 'Paiement confirmé', ticket: { code: ticket.code } });
+    } else {
+      order.status = 'failed';
+      await order.save();
+      res.json({ success: false, message: 'Paiement échoué' });
+    }
   } catch (error) {
-    res.status(500).json({ message: 'Erreur' });
+    res.status(500).json({ message: 'Erreur webhook' });
+  }
+});
+
+// Vérifier statut paiement
+app.get('/api/payment/status/:transactionId', async (req, res) => {
+  try {
+    const order = await Order.findOne({ transactionId: req.params.transactionId });
+    if (!order) return res.status(404).json({ message: 'Commande non trouvée' });
+
+    res.json({
+      status: order.status,
+      amount: order.amount,
+      ticket: order.ticketId ? await Ticket.findById(order.ticketId) : null
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
 // =============================================
-// ROUTES - ABONNEMENT (sans essai gratuit)
+// ROUTES - ABONNEMENT
 // =============================================
 
-// Payer un abonnement
 app.post('/api/subscription/pay', async (req, res) => {
   try {
     const { userId, plan, phone, method, amount } = req.body;
@@ -469,7 +539,6 @@ app.post('/api/subscription/pay', async (req, res) => {
     if (!duration) return res.status(400).json({ message: 'Plan invalide' });
 
     const transactionId = `PAY-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + duration);
 
@@ -500,7 +569,6 @@ app.post('/api/subscription/pay', async (req, res) => {
   }
 });
 
-// Récupérer l'abonnement d'un utilisateur
 app.get('/api/subscription/:userId', async (req, res) => {
   try {
     const subscription = await Subscription.findOne({ userId: req.params.userId });
