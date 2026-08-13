@@ -63,6 +63,23 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   phone: { type: String, required: true },
   balance: { type: Number, default: 0 },
+  hotspotName: { type: String },
+  // ✅ Routeurs MikroTik multiples
+  mikrotiks: [{
+    name: { type: String, required: true },
+    ip: { type: String, required: true },
+    username: { type: String, required: true },
+    password: { type: String, required: true },
+    port: { type: Number, default: 8728 },
+    ssid: { type: String },
+    location: { type: String },
+    isActive: { type: Boolean, default: true },
+    createdAt: { type: Date, default: Date.now }
+  }],
+  // ✅ GPS
+  gpsEnabled: { type: Boolean, default: false },
+  gpsLat: { type: Number },
+  gpsLng: { type: Number },
   createdAt: { type: Date, default: Date.now }
 });
 const User = mongoose.model('User', UserSchema);
@@ -131,7 +148,7 @@ const Subscription = mongoose.model('Subscription', SubscriptionSchema);
 // ROUTES - ACCUEIL
 // =============================================
 app.get('/', (req, res) => {
-  res.json({ message: '🚀 AutoTicket avec MeSomb et import PDF !' });
+  res.json({ message: '🚀 AutoTicket avec MeSomb, import PDF, MikroTik multiple et GPS !' });
 });
 
 // =============================================
@@ -666,6 +683,113 @@ app.get('/api/subscription/:userId', async (req, res) => {
       subscriptionEndDate: subscription.subscriptionEndDate,
       plan: subscription.plan || 'monthly',
       isActive: status === 'active'
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// =============================================
+// ROUTES - MIKROTIK (Gestion de plusieurs routeurs)
+// =============================================
+
+// Ajouter un routeur MikroTik
+app.post('/api/mikrotik/add', async (req, res) => {
+  try {
+    const { userId, name, ip, username, password, port, ssid, location } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    user.mikrotiks.push({ name, ip, username, password, port, ssid, location });
+    await user.save();
+
+    res.json({ success: true, message: 'Routeur MikroTik ajouté', mikrotiks: user.mikrotiks });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// Récupérer tous les routeurs d'un vendeur
+app.get('/api/mikrotik/:userId', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    res.json(user.mikrotiks || []);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// Supprimer un routeur MikroTik
+app.delete('/api/mikrotik/:userId/:mikrotikId', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    user.mikrotiks = user.mikrotiks.filter(m => m._id.toString() !== req.params.mikrotikId);
+    await user.save();
+
+    res.json({ success: true, message: 'Routeur supprimé', mikrotiks: user.mikrotiks });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// Activer/Désactiver un routeur
+app.put('/api/mikrotik/toggle/:userId/:mikrotikId', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    const mikrotik = user.mikrotiks.id(req.params.mikrotikId);
+    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
+
+    mikrotik.isActive = !mikrotik.isActive;
+    await user.save();
+
+    res.json({ success: true, message: 'Routeur mis à jour', mikrotik });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// =============================================
+// ROUTES - GPS (Activation/Désactivation)
+// =============================================
+
+// Activer/Désactiver le GPS
+app.put('/api/gps/toggle/:userId', async (req, res) => {
+  try {
+    const { gpsEnabled, gpsLat, gpsLng } = req.body;
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    user.gpsEnabled = gpsEnabled !== undefined ? gpsEnabled : !user.gpsEnabled;
+    if (gpsLat !== undefined) user.gpsLat = gpsLat;
+    if (gpsLng !== undefined) user.gpsLng = gpsLng;
+    await user.save();
+
+    res.json({
+      success: true,
+      gpsEnabled: user.gpsEnabled,
+      gpsLat: user.gpsLat,
+      gpsLng: user.gpsLng
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// Récupérer l'état du GPS
+app.get('/api/gps/:userId', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    res.json({
+      gpsEnabled: user.gpsEnabled || false,
+      gpsLat: user.gpsLat || null,
+      gpsLng: user.gpsLng || null
     });
   } catch (error) {
     res.status(500).json({ message: 'Erreur', error: error.message });

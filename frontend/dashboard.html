@@ -41,10 +41,7 @@
     .main { margin-left: 260px; flex: 1; padding: 24px 32px; }
     .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
     .main-header h1 { font-size: 24px; color: #0d1b2a; }
-    .main-header .badge { padding: 4px 14px; border-radius: 30px; font-size: 12px; font-weight: 600; }
-    .main-header .badge.active { background: #27ae60; color: white; }
-    .main-header .badge.trial { background: #f39c12; color: white; }
-    .main-header .badge.expired { background: #e74c3c; color: white; }
+    .main-header .badge { padding: 4px 14px; border-radius: 30px; font-size: 12px; font-weight: 600; background: #27ae60; color: white; }
 
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
     .stat-card { background: white; padding: 16px 20px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e9ecef; }
@@ -54,14 +51,6 @@
     .stat-card .value.green { color: #27ae60; }
     .stat-card .value.red { color: #e74c3c; }
     .stat-card .sub { font-size: 12px; color: #95a5a6; margin-top: 2px; }
-
-    .alert-box { background: #fef9f0; border: 1px solid #f7dc6f; border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .alert-box.hidden { display: none; }
-    .alert-box .icon { font-size: 24px; }
-    .alert-box .text { flex: 1; font-size: 14px; color: #2c3e50; }
-    .alert-box .text strong { color: #e67e22; }
-    .alert-box .btn { background: #e67e22; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-    .alert-box .btn:hover { background: #d35400; }
 
     .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; margin-bottom: 24px; }
     .table-wrap h3 { font-size: 16px; color: #0d1b2a; margin-bottom: 12px; }
@@ -110,6 +99,21 @@
     .pdf-zone input[type="file"] { margin: 8px 0; }
     .pdf-preview { margin-top: 12px; text-align: left; display: none; background: #f8f9fa; padding: 12px; border-radius: 8px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; }
 
+    .mt-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8f9fa; border-radius: 12px; margin-bottom: 8px; border: 1px solid #e9ecef; }
+    .mt-item .info { flex: 1; }
+    .mt-item .info .name { font-weight: 700; }
+    .mt-item .info .ip { font-size: 13px; color: #7f8c8d; }
+    .mt-item .actions { display: flex; gap: 8px; }
+    .mt-item .actions .btn { width: auto; padding: 4px 12px; font-size: 12px; }
+
+    .gps-toggle { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f8f9fa; border-radius: 12px; }
+    .gps-toggle .status { font-weight: 600; font-size: 16px; }
+    .gps-toggle .status.on { color: #27ae60; }
+    .gps-toggle .status.off { color: #e74c3c; }
+    .toggle-btn { width: auto; padding: 8px 24px; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    .toggle-btn.on { background: #27ae60; color: white; }
+    .toggle-btn.off { background: #e74c3c; color: white; }
+
     @media (max-width: 768px) {
       .sidebar { width: 200px; padding: 16px 12px; }
       .main { margin-left: 200px; padding: 16px; }
@@ -129,7 +133,6 @@
       .sidebar .menu-bottom { border: none; padding: 0; margin: 0; }
       .main { margin-left: 0; padding: 16px; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
-      .alert-box { flex-direction: column; text-align: center; }
       .stats-avancees > div:last-child { grid-template-columns: 1fr; }
       .periode-btn { font-size: 12px; padding: 4px 12px; }
     }
@@ -150,15 +153,16 @@
     <ul class="menu">
       <li class="active" onclick="showTab('overview')"><span class="icon">📊</span> Vue d'ensemble</li>
       <li onclick="window.location.href='affiche-qr.html'"><span class="icon">🖼️</span> Mon affiche QR</li>
-      <li onclick="window.location.href='guide.html'"><span class="icon">📖</span> Guide de prise en main</li>
-      <li onclick="window.location.href='faq.html'"><span class="icon">❓</span> FAQ & aide</li>
+      <li onclick="window.location.href='guide.html'"><span class="icon">📖</span> Guide</li>
+      <li onclick="window.location.href='faq.html'"><span class="icon">❓</span> FAQ</li>
       <li onclick="window.location.href='ventes.html'"><span class="icon">📈</span> Ventes</li>
       <li onclick="showTab('forfaits')"><span class="icon">📦</span> Forfaits</li>
       <li onclick="showTab('tickets')"><span class="icon">🎫</span> Tickets</li>
       <li onclick="showTab('retrait')"><span class="icon">💰</span> Retraits</li>
+      <li onclick="showTab('mikrotik')"><span class="icon">🛜</span> MikroTik</li>
+      <li onclick="showTab('gps')"><span class="icon">📍</span> GPS</li>
       <li class="menu-bottom">
         <li onclick="window.location.href='abonnement.html'"><span class="icon">📋</span> Abonnement</li>
-        <li onclick="window.location.href='mikrotik.html'"><span class="icon">🛜</span> Configuration MikroTik</li>
         <li onclick="window.location.href='parametres.html'"><span class="icon">⚙️</span> Paramètres</li>
         <li class="logout" onclick="logout()"><span class="icon">🚪</span> Déconnexion</li>
       </li>
@@ -170,18 +174,12 @@
 
     <div class="main-header">
       <h1 id="page-title">📊 Vue d'ensemble</h1>
-      <span class="badge active" id="status-badge">✅ Abonnement actif</span>
-    </div>
-
-    <div class="alert-box hidden" id="alert-subscription">
-      <span class="icon">⚠️</span>
-      <span class="text"><strong>L'abonnement de cette zone a expiré.</strong> Vos clients ne peuvent plus y accéder.</span>
-      <button class="btn" onclick="window.location.href='abonnement.html'">🔄 Renouveler</button>
+      <span class="badge" id="status-badge">✅ Abonnement actif</span>
     </div>
 
     <!-- ========== STATISTIQUES DE BASE ========== -->
     <div class="stats-grid">
-      <div class="stat-card"><div class="label">💰 Solde global</div><div class="value orange" id="stat-balance">0 FCFA</div><div class="sub">Disponible pour retrait</div></div>
+      <div class="stat-card"><div class="label">💰 Solde global</div><div class="value orange" id="stat-balance">0 FCFA</div><div class="sub">Disponible</div></div>
       <div class="stat-card"><div class="label">🎫 Tickets vendus</div><div class="value" id="stat-tickets">0</div><div class="sub">Total</div></div>
       <div class="stat-card"><div class="label">📦 Forfaits actifs</div><div class="value green" id="stat-products">0</div><div class="sub">Disponibles</div></div>
       <div class="stat-card"><div class="label">📈 Revenus totaux</div><div class="value" id="stat-revenue">0 FCFA</div><div class="sub">Depuis le début</div></div>
@@ -192,102 +190,53 @@
       <div class="balance-card">
         <div class="label">💰 Solde global</div>
         <div class="value" id="balance-display">0 FCFA</div>
-        <div class="sub">Total disponible pour retrait</div>
+        <div class="sub">Total disponible</div>
         <button class="btn" onclick="showTab('retrait')">📤 Demander un retrait</button>
       </div>
       <div class="balance-card">
         <div class="label">📊 Mon abonnement</div>
         <div class="value green" id="sub-status-text">✅ Actif</div>
         <div class="sub" id="sub-days-text">Prochain renouvellement : --</div>
-        <button class="btn" style="background:#2c3e50;" onclick="window.location.href='abonnement.html'">🔄 Gérer mon abonnement</button>
+        <button class="btn" style="background:#2c3e50;" onclick="window.location.href='abonnement.html'">🔄 Gérer</button>
       </div>
-
-      <!-- CARTE COMMISSION 5% -->
       <div class="balance-card commission">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
           <div>
             <div class="label">💰 Commission AutoTicket (5%)</div>
             <div class="value" id="total-commission" style="font-size:24px;">0 FCFA</div>
-            <div class="sub">Total des commissions prélevées</div>
+            <div class="sub">Total prélevé</div>
           </div>
           <div style="text-align:right;">
-            <div class="label">📊 Nombre de retraits</div>
+            <div class="label">📊 Retraits</div>
             <div style="font-size:24px;font-weight:700;color:#1a1a2e;" id="withdrawal-count">0</div>
           </div>
         </div>
-        <div style="margin-top:8px;font-size:12px;color:#7f8c8d;">
-          ⚡ 5% de commission sont prélevés sur chaque retrait pour le fonctionnement d'AutoTicket.
-        </div>
+        <div style="font-size:12px;color:#7f8c8d;">⚡ 5% de commission sur chaque retrait</div>
       </div>
     </div>
 
-    <!-- ========== STATISTIQUES AVANCÉES ========== -->
-    <div class="stats-avancees">
-      <h2 style="margin-bottom:16px;font-size:18px;color:#0d1b2a;border-left:4px solid #e67e22;padding-left:12px;">📈 Évolution des ventes</h2>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
-        <button class="btn btn-sm periode-btn active" data-period="7" style="width:auto;background:#e67e22;color:white;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">7 jours</button>
-        <button class="btn btn-sm periode-btn" data-period="30" style="width:auto;background:#f0f2f5;color:#2c3e50;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">30 jours</button>
-        <button class="btn btn-sm periode-btn" data-period="90" style="width:auto;background:#f0f2f5;color:#2c3e50;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">90 jours</button>
-      </div>
-
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;">
-        <div style="background:white;border-radius:14px;padding:20px;border:1px solid #e9ecef;">
-          <canvas id="salesChart" height="200"></canvas>
-        </div>
-        <div style="background:white;border-radius:14px;padding:20px;border:1px solid #e9ecef;">
-          <h3 style="font-size:14px;color:#7f8c8d;margin-bottom:12px;">📊 Répartition par forfait</h3>
-          <canvas id="productsChart" height="180"></canvas>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
-          <div style="font-size:13px;color:#7f8c8d;">📈 Meilleure vente</div>
-          <div style="font-size:18px;font-weight:700;color:#e67e22;" id="best-day">-</div>
-          <div style="font-size:12px;color:#95a5a6;">Jour</div>
-        </div>
-        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
-          <div style="font-size:13px;color:#7f8c8d;">📊 Total ventes</div>
-          <div style="font-size:18px;font-weight:700;color:#1a1a2e;" id="total-sales">0</div>
-          <div style="font-size:12px;color:#95a5a6;">Tickets vendus</div>
-        </div>
-        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
-          <div style="font-size:13px;color:#7f8c8d;">💰 Revenu moyen</div>
-          <div style="font-size:18px;font-weight:700;color:#27ae60;" id="avg-revenue">0 F</div>
-          <div style="font-size:12px;color:#95a5a6;">Par jour</div>
-        </div>
-        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
-          <div style="font-size:13px;color:#7f8c8d;">📆 Période</div>
-          <div style="font-size:18px;font-weight:700;color:#0d1b2a;" id="period-days">7</div>
-          <div style="font-size:12px;color:#95a5a6;">Derniers jours</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========== VUE D'ENSEMBLE (FORFAITS) ========== -->
+    <!-- ========== VUE D'ENSEMBLE ========== -->
     <div class="table-wrap" id="tab-overview">
       <h3>📋 Forfaits actifs</h3>
-      <div id="products-table-container"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait disponible</p></div>
+      <div id="products-table-container"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait</p></div>
     </div>
 
     <!-- ========== FORFAITS ========== -->
     <div class="table-wrap" id="tab-forfaits" style="display:none;">
       <h3>📦 Gérer mes forfaits</h3>
       <div id="products-list"></div>
-      <h4 style="margin-top:16px;">➕ Ajouter un forfait</h4>
-      <div class="form-group"><label>Nom (ex: "24h")</label><input type="text" id="product-name" placeholder="24h, 12h, 1 semaine..."></div>
+      <h4>➕ Ajouter un forfait</h4>
+      <div class="form-group"><label>Nom</label><input type="text" id="product-name" placeholder="24h, 12h..."></div>
       <div class="form-group"><label>Prix (FCFA)</label><input type="number" id="product-price" placeholder="100"></div>
-      <div class="form-group"><label>Durée</label><input type="text" id="product-duration" placeholder="24 heures, 7 jours..."></div>
+      <div class="form-group"><label>Durée</label><input type="text" id="product-duration" placeholder="24 heures..."></div>
       <button class="btn btn-primary" id="add-product-btn">➕ Ajouter</button>
     </div>
 
-    <!-- ========== TICKETS AVEC IMPORT PDF ========== -->
+    <!-- ========== TICKETS ========== -->
     <div class="table-wrap" id="tab-tickets" style="display:none;">
       <h3>🎫 Importer des tickets</h3>
-
       <div class="pdf-zone">
-        <p style="font-size:14px;color:#2c3e50;margin-bottom:8px;">📄 Importer depuis un PDF (MikroTik / Mikhmon)</p>
+        <p>📄 Importer depuis un PDF</p>
         <input type="file" id="pdf-file-input" accept=".pdf">
         <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
           <button class="btn btn-primary" id="preview-pdf-btn" style="width:auto;padding:6px 20px;font-size:13px;">👁️ Prévisualiser</button>
@@ -295,12 +244,10 @@
         </div>
         <div id="pdf-preview" class="pdf-preview"></div>
       </div>
-
-      <div class="form-group"><label>Codes WiFi (un par ligne)</label><textarea id="ticket-codes" placeholder="WIFI-001&#10;WIFI-002&#10;WIFI-003"></textarea></div>
-      <div class="form-group"><label>Forfait associé</label><select id="ticket-product-select"><option value="">Sélectionner un forfait</option></select></div>
+      <div class="form-group"><label>Codes (un par ligne)</label><textarea id="ticket-codes" placeholder="WIFI-001"></textarea></div>
+      <div class="form-group"><label>Forfait</label><select id="ticket-product-select"><option value="">Sélectionner</option></select></div>
       <button class="btn btn-primary" id="import-tickets-btn">📥 Importer</button>
-
-      <hr style="margin:16px 0;border:none;border-top:1px solid #e9ecef;">
+      <hr style="margin:16px 0;">
       <h4>📋 Tickets disponibles</h4>
       <div id="tickets-list" style="max-height:200px;overflow-y:auto;background:#f8f9fa;border-radius:10px;padding:8px;"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p></div>
     </div>
@@ -308,10 +255,50 @@
     <!-- ========== RETRAIT ========== -->
     <div class="table-wrap" id="tab-retrait" style="display:none;">
       <h3>💰 Retirer mes fonds</h3>
-      <p style="color:#7f8c8d;font-size:13px;margin-bottom:12px;">Commission de 5% prélevée sur chaque retrait.</p>
+      <p style="color:#7f8c8d;font-size:13px;margin-bottom:12px;">Commission de 5% prélevée.</p>
       <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="withdraw-amount" placeholder="1000 minimum"></div>
       <div class="form-group"><label>Numéro Mobile Money</label><input type="tel" id="withdraw-phone" placeholder="98765432"></div>
       <button class="btn btn-success" id="withdraw-btn">📤 Demander le retrait</button>
+    </div>
+
+    <!-- ========== MIKROTIK ========== -->
+    <div class="table-wrap" id="tab-mikrotik" style="display:none;">
+      <h3>🛜 Gérer mes routeurs MikroTik</h3>
+
+      <div style="background:#f8f9fa;padding:16px;border-radius:12px;margin-bottom:16px;">
+        <h4>➕ Ajouter un routeur</h4>
+        <div class="form-group"><label>Nom</label><input type="text" id="mt-name" placeholder="Ex: Routeur Gare"></div>
+        <div class="form-group"><label>IP</label><input type="text" id="mt-ip" placeholder="192.168.1.1"></div>
+        <div class="form-group"><label>Utilisateur</label><input type="text" id="mt-username" placeholder="admin"></div>
+        <div class="form-group"><label>Mot de passe</label><input type="password" id="mt-password" placeholder="********"></div>
+        <div class="form-group"><label>Port</label><input type="number" id="mt-port" value="8728"></div>
+        <div class="form-group"><label>SSID</label><input type="text" id="mt-ssid" placeholder="Mon WiFi"></div>
+        <div class="form-group"><label>Emplacement</label><input type="text" id="mt-location" placeholder="Niamey, Niger"></div>
+        <button class="btn btn-primary" id="add-mt-btn">➕ Ajouter le routeur</button>
+      </div>
+
+      <h4>📋 Mes routeurs</h4>
+      <div id="mikrotik-list"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun routeur configuré</p></div>
+    </div>
+
+    <!-- ========== GPS ========== -->
+    <div class="table-wrap" id="tab-gps" style="display:none;">
+      <h3>📍 Géolocalisation</h3>
+
+      <div class="gps-toggle">
+        <div>
+          <div class="status" id="gps-status-text">📍 GPS Désactivé</div>
+          <div style="font-size:13px;color:#7f8c8d;" id="gps-coords">Lat: -- | Lng: --</div>
+        </div>
+        <button class="toggle-btn off" id="gps-toggle-btn">Activer</button>
+      </div>
+
+      <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label>Latitude</label><input type="text" id="gps-lat" placeholder="13.5116"></div>
+        <div class="form-group"><label>Longitude</label><input type="text" id="gps-lng" placeholder="2.1254"></div>
+      </div>
+      <button class="btn btn-success" id="gps-save-btn">💾 Enregistrer</button>
+      <button class="btn btn-secondary" id="gps-detect-btn" style="margin-top:8px;">📍 Détecter ma position</button>
     </div>
 
   </div>
@@ -320,35 +307,10 @@
 <!-- ========== JAVASCRIPT ========== -->
 <script>
   // =============================================
-  // VÉRIFICATION DE CONNEXION
-  // =============================================
-  const userId = localStorage.getItem('userId');
-  if (!userId) {
-    alert('Veuillez vous connecter pour accéder au dashboard.');
-    window.location.href = 'register.html';
-  }
-
-  // =============================================
   // CONFIGURATION
   // =============================================
   const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
   let USER_ID = localStorage.getItem('userId') || '6a7a76ba6b197186941d4937';
-
-  let salesChart = null;
-  let productsChart = null;
-  let currentPeriod = 7;
-
-  // =============================================
-  // FONCTIONS UTILITAIRES
-  // =============================================
-  function formatPrice(amount) { return amount.toLocaleString() + ' FCFA'; }
-
-  async function apiCall(endpoint, method, data) {
-    const options = { method, headers: { 'Content-Type': 'application/json' } };
-    if (data) options.body = JSON.stringify(data);
-    const res = await fetch(API_URL + endpoint, options);
-    return await res.json();
-  }
 
   // =============================================
   // NAVIGATION
@@ -361,7 +323,14 @@
     document.querySelectorAll('.menu li').forEach(el => el.classList.remove('active'));
     const menuItem = document.querySelector(`.menu li[onclick*="${tab}"]`);
     if (menuItem) menuItem.classList.add('active');
-    const titles = { 'overview': '📊 Vue d\'ensemble', 'forfaits': '📦 Gestion des forfaits', 'tickets': '🎫 Gestion des tickets', 'retrait': '💰 Retraits' };
+    const titles = {
+      'overview': '📊 Vue d\'ensemble',
+      'forfaits': '📦 Gestion des forfaits',
+      'tickets': '🎫 Gestion des tickets',
+      'retrait': '💰 Retraits',
+      'mikrotik': '🛜 MikroTik',
+      'gps': '📍 GPS'
+    };
     document.getElementById('page-title').textContent = titles[tab] || '📊 Dashboard';
   }
 
@@ -380,158 +349,45 @@
   }
 
   // =============================================
-  // GRAPHIQUES
+  // FONCTIONS UTILITAIRES
   // =============================================
-  function initSalesChart(data) {
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    if (salesChart) { salesChart.destroy(); }
+  function formatPrice(amount) { return amount.toLocaleString() + ' FCFA'; }
 
-    salesChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: data.labels || [],
-        datasets: [
-          {
-            label: 'Ventes (tickets)',
-            data: data.sales || [],
-            backgroundColor: 'rgba(230, 126, 34, 0.7)',
-            borderColor: '#e67e22',
-            borderWidth: 2,
-            borderRadius: 4,
-            order: 1
-          },
-          {
-            label: 'Revenus (FCFA)',
-            data: data.revenues || [],
-            type: 'line',
-            backgroundColor: 'rgba(39, 174, 96, 0.1)',
-            borderColor: '#27ae60',
-            borderWidth: 3,
-            pointBackgroundColor: '#27ae60',
-            pointRadius: 4,
-            tension: 0.3,
-            fill: true,
-            order: 0
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                let label = context.dataset.label || '';
-                let value = context.raw || 0;
-                if (context.dataset.label.includes('Revenus')) {
-                  return label + ': ' + value.toLocaleString() + ' FCFA';
-                }
-                return label + ': ' + value;
-              }
-            }
-          }
-        },
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-          x: { grid: { display: false } }
-        }
-      }
-    });
-  }
-
-  function initProductsChart(products) {
-    const ctx = document.getElementById('productsChart').getContext('2d');
-    if (productsChart) { productsChart.destroy(); }
-
-    if (!products || products.length === 0) {
-      products = [{ name: 'Aucune vente', count: 1 }];
-    }
-
-    const colors = ['#e67e22', '#f39c12', '#27ae60', '#3498db', '#9b59b6', '#1abc9c', '#e74c3c', '#2ecc71'];
-
-    productsChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: products.map(p => p.name),
-        datasets: [{
-          data: products.map(p => p.count),
-          backgroundColor: colors.slice(0, products.length),
-          borderWidth: 2,
-          borderColor: '#fff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10, padding: 8 } },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                let percentage = total > 0 ? Math.round((context.raw / total) * 100) : 0;
-                return context.label + ': ' + context.raw + ' (' + percentage + '%)';
-              }
-            }
-          }
-        }
-      }
-    });
+  async function apiCall(endpoint, method, data) {
+    const options = { method, headers: { 'Content-Type': 'application/json' } };
+    if (data) options.body = JSON.stringify(data);
+    const res = await fetch(API_URL + endpoint, options);
+    return await res.json();
   }
 
   // =============================================
-  // STATISTIQUES AVANCÉES
-  // =============================================
-  async function loadAdvancedStats(period = 7) {
-    currentPeriod = period;
-    try {
-      const data = await apiCall(`/stats/advanced/${USER_ID}/${period}`, 'GET');
-      initSalesChart(data);
-      initProductsChart(data.products || []);
-      document.getElementById('total-sales').textContent = data.summary?.totalSales || 0;
-      document.getElementById('avg-revenue').textContent = (data.summary?.avgRevenue || 0).toLocaleString() + ' F';
-      document.getElementById('best-day').textContent = data.summary?.bestDay || '-';
-      document.getElementById('period-days').textContent = period;
-    } catch (error) {
-      console.error('Erreur chargement stats avancées:', error);
-    }
-  }
-
-  // =============================================
-  // ABONNEMENT (SANS ESSAI GRATUIT)
+  // ABONNEMENT
   // =============================================
   async function loadSubscriptionStatus() {
     try {
       const sub = await apiCall(`/subscription/${USER_ID}`, 'GET');
       const badge = document.getElementById('status-badge');
-      const alertBox = document.getElementById('alert-subscription');
       const statusText = document.getElementById('sub-status-text');
       const daysText = document.getElementById('sub-days-text');
-
       if (sub.status === 'active') {
         badge.textContent = '✅ Abonnement actif';
-        badge.className = 'badge active';
-        alertBox.classList.add('hidden');
+        badge.className = 'badge';
         statusText.textContent = '✅ Actif';
         statusText.className = 'value green';
         daysText.textContent = `Prochain renouvellement : ${sub.daysLeft || 0} jours`;
       } else {
-        badge.textContent = '⛔ Abonnement expiré';
-        badge.className = 'badge expired';
-        alertBox.classList.remove('hidden');
+        badge.textContent = '⛔ Expiré';
+        badge.className = 'badge';
+        badge.style.background = '#e74c3c';
         statusText.textContent = '⛔ Expiré';
         statusText.className = 'value red';
         daysText.textContent = 'Veuillez renouveler';
       }
-    } catch (error) {
-      console.error('Erreur abonnement:', error);
-    }
+    } catch (error) { console.error('Erreur abonnement:', error); }
   }
 
   // =============================================
-  // CHARGEMENT DES DONNÉES
+  // STATS
   // =============================================
   async function loadStats() {
     try {
@@ -552,6 +408,9 @@
     } catch (error) { console.error('Erreur commissions:', error); }
   }
 
+  // =============================================
+  // FORFAITS
+  // =============================================
   async function loadProducts() {
     try {
       const products = await apiCall(`/products/${USER_ID}`, 'GET');
@@ -561,7 +420,7 @@
       tableContainer.innerHTML = '';
       if (products.length === 0) {
         container.innerHTML = '<p style="color:#7f8c8d;">Aucun forfait.</p>';
-        tableContainer.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait disponible</p>';
+        tableContainer.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait</p>';
         return;
       }
       let html = `<table><thead><tr><th>Nom</th><th>Prix</th><th>Durée</th><th>Statut</th></tr></thead><tbody>`;
@@ -580,7 +439,7 @@
 
   function populateProductSelect(products) {
     const select = document.getElementById('ticket-product-select');
-    select.innerHTML = '<option value="">Sélectionner un forfait</option>';
+    select.innerHTML = '<option value="">Sélectionner</option>';
     (products || []).forEach(p => {
       const opt = document.createElement('option');
       opt.value = p._id;
@@ -613,6 +472,9 @@
     } catch (error) { alert('Erreur: ' + error.message); }
   }
 
+  // =============================================
+  // TICKETS
+  // =============================================
   document.getElementById('import-tickets-btn').onclick = async function() {
     const codes = document.getElementById('ticket-codes').value.split('\n').map(c => c.trim()).filter(c => c);
     const productId = document.getElementById('ticket-product-select').value;
@@ -629,33 +491,19 @@
   document.getElementById('preview-pdf-btn').onclick = async function() {
     const fileInput = document.getElementById('pdf-file-input');
     const file = fileInput.files[0];
-    if (!file) { alert('Veuillez sélectionner un fichier PDF.'); return; }
-
+    if (!file) { alert('Sélectionnez un fichier PDF.'); return; }
     const formData = new FormData();
     formData.append('file', file);
     formData.append('userId', USER_ID);
-
     try {
-      const response = await fetch(API_URL + '/tickets/preview-pdf', {
-        method: 'POST',
-        body: formData
-      });
+      const response = await fetch(API_URL + '/tickets/preview-pdf', { method: 'POST', body: formData });
       const data = await response.json();
       const previewDiv = document.getElementById('pdf-preview');
       previewDiv.style.display = 'block';
       if (data.detectedCodes > 0) {
-        previewDiv.innerHTML = `
-          <div style="color:#27ae60;font-weight:600;">✅ ${data.detectedCodes} codes détectés</div>
-          <div style="margin-top:8px;color:#7f8c8d;font-size:12px;">Premiers codes trouvés :</div>
-          ${data.codes.map(c => `<div>• ${c}</div>`).join('')}
-          ${data.detectedCodes > 50 ? `<div>... et ${data.detectedCodes - 50} autres</div>` : ''}
-        `;
+        previewDiv.innerHTML = `<div style="color:#27ae60;font-weight:600;">✅ ${data.detectedCodes} codes détectés</div><div style="margin-top:8px;color:#7f8c8d;font-size:12px;">Premiers codes :</div>${data.codes.map(c => `<div>• ${c}</div>`).join('')}${data.detectedCodes > 50 ? `<div>... et ${data.detectedCodes - 50} autres</div>` : ''}`;
       } else {
-        previewDiv.innerHTML = `
-          <div style="color:#e74c3c;font-weight:600;">⚠️ Aucun code valide trouvé</div>
-          <div style="margin-top:8px;color:#7f8c8d;font-size:12px;">Extrait du PDF :</div>
-          <div style="background:white;padding:8px;border-radius:4px;white-space:pre-wrap;font-size:11px;">${data.preview || 'Aucun texte détecté'}</div>
-        `;
+        previewDiv.innerHTML = `<div style="color:#e74c3c;font-weight:600;">⚠️ Aucun code valide</div><div style="margin-top:8px;color:#7f8c8d;font-size:12px;">Extrait :</div><div style="background:white;padding:8px;border-radius:4px;white-space:pre-wrap;font-size:11px;">${data.preview || 'Aucun texte'}</div>`;
       }
     } catch (error) { alert('Erreur: ' + error.message); }
   };
@@ -664,20 +512,15 @@
     const fileInput = document.getElementById('pdf-file-input');
     const file = fileInput.files[0];
     const productId = document.getElementById('ticket-product-select').value;
-    if (!file) { alert('Veuillez sélectionner un fichier PDF.'); return; }
-    if (!productId) { alert('Veuillez sélectionner un forfait.'); return; }
-    if (!confirm('Importer les tickets du PDF vers le forfait sélectionné ?')) return;
-
+    if (!file) { alert('Sélectionnez un fichier PDF.'); return; }
+    if (!productId) { alert('Sélectionnez un forfait.'); return; }
+    if (!confirm('Importer les tickets ?')) return;
     const formData = new FormData();
     formData.append('file', file);
     formData.append('userId', USER_ID);
     formData.append('productId', productId);
-
     try {
-      const response = await fetch(API_URL + '/tickets/import-pdf', {
-        method: 'POST',
-        body: formData
-      });
+      const response = await fetch(API_URL + '/tickets/import-pdf', { method: 'POST', body: formData });
       const data = await response.json();
       if (response.ok) {
         alert(`✅ ${data.imported} tickets importés ! (${data.duplicates} doublons ignorés)`);
@@ -696,7 +539,7 @@
       const data = await apiCall(`/tickets/${USER_ID}`, 'GET');
       const container = document.getElementById('tickets-list');
       container.innerHTML = '';
-      if (!data.tickets || data.tickets.length === 0) { container.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket disponible</p>'; return; }
+      if (!data.tickets || data.tickets.length === 0) { container.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p>'; return; }
       data.tickets.slice(0, 30).forEach(t => {
         const div = document.createElement('div');
         div.style.cssText = 'display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #e9ecef;font-family:monospace;font-size:13px;';
@@ -706,6 +549,9 @@
     } catch (error) { console.error('Erreur tickets:', error); }
   }
 
+  // =============================================
+  // RETRAIT
+  // =============================================
   document.getElementById('withdraw-btn').onclick = async function() {
     const amount = parseInt(document.getElementById('withdraw-amount').value);
     const phone = document.getElementById('withdraw-phone').value.trim();
@@ -721,18 +567,159 @@
     } catch (error) { alert('Erreur: ' + error.message); }
   };
 
-  document.querySelectorAll('.periode-btn').forEach(btn => {
-    btn.onclick = function() {
-      document.querySelectorAll('.periode-btn').forEach(b => {
-        b.style.background = '#f0f2f5';
-        b.style.color = '#2c3e50';
+  // =============================================
+  // MIKROTIK
+  // =============================================
+  async function loadMikrotiks() {
+    try {
+      const mikrotiks = await apiCall(`/mikrotik/${USER_ID}`, 'GET');
+      const container = document.getElementById('mikrotik-list');
+      container.innerHTML = '';
+      if (!mikrotiks || mikrotiks.length === 0) {
+        container.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun routeur configuré</p>';
+        return;
+      }
+      mikrotiks.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'mt-item';
+        div.innerHTML = `
+          <div class="info">
+            <div class="name">${m.name}</div>
+            <div class="ip">${m.ip} | ${m.ssid || 'SSID: N/A'} | ${m.isActive ? '🟢 Actif' : '🔴 Inactif'}</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-sm" style="background:${m.isActive ? '#e74c3c' : '#27ae60'};color:white;" onclick="toggleMikrotik('${m._id}')">${m.isActive ? 'Désactiver' : 'Activer'}</button>
+            <button class="btn btn-sm" style="background:#e74c3c;color:white;" onclick="deleteMikrotik('${m._id}')">🗑️</button>
+          </div>
+        `;
+        container.appendChild(div);
       });
-      this.style.background = '#e67e22';
-      this.style.color = 'white';
-      loadAdvancedStats(parseInt(this.dataset.period));
-    };
-  });
+    } catch (error) { console.error('Erreur MikroTik:', error); }
+  }
 
+  document.getElementById('add-mt-btn').onclick = async function() {
+    const name = document.getElementById('mt-name').value.trim();
+    const ip = document.getElementById('mt-ip').value.trim();
+    const username = document.getElementById('mt-username').value.trim();
+    const password = document.getElementById('mt-password').value;
+    const port = parseInt(document.getElementById('mt-port').value) || 8728;
+    const ssid = document.getElementById('mt-ssid').value.trim();
+    const location = document.getElementById('mt-location').value.trim();
+
+    if (!name || !ip || !username || !password) {
+      alert('Veuillez remplir les champs obligatoires (Nom, IP, Utilisateur, Mot de passe).');
+      return;
+    }
+
+    try {
+      const result = await apiCall('/mikrotik/add', 'POST', { userId: USER_ID, name, ip, username, password, port, ssid, location });
+      alert(result.message);
+      document.getElementById('mt-name').value = '';
+      document.getElementById('mt-ip').value = '';
+      document.getElementById('mt-username').value = '';
+      document.getElementById('mt-password').value = '';
+      document.getElementById('mt-ssid').value = '';
+      document.getElementById('mt-location').value = '';
+      loadMikrotiks();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
+
+  async function toggleMikrotik(mikrotikId) {
+    try {
+      const result = await apiCall(`/mikrotik/toggle/${USER_ID}/${mikrotikId}`, 'PUT');
+      alert(result.message);
+      loadMikrotiks();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  }
+
+  async function deleteMikrotik(mikrotikId) {
+    if (!confirm('Supprimer ce routeur ?')) return;
+    try {
+      const result = await apiCall(`/mikrotik/${USER_ID}/${mikrotikId}`, 'DELETE');
+      alert(result.message);
+      loadMikrotiks();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  }
+
+  // =============================================
+  // GPS
+  // =============================================
+  let gpsEnabled = false;
+
+  async function loadGPS() {
+    try {
+      const data = await apiCall(`/gps/${USER_ID}`, 'GET');
+      gpsEnabled = data.gpsEnabled || false;
+      document.getElementById('gps-lat').value = data.gpsLat || '';
+      document.getElementById('gps-lng').value = data.gpsLng || '';
+      updateGPSUI();
+    } catch (error) { console.error('Erreur GPS:', error); }
+  }
+
+  function updateGPSUI() {
+    const statusText = document.getElementById('gps-status-text');
+    const toggleBtn = document.getElementById('gps-toggle-btn');
+    const coords = document.getElementById('gps-coords');
+    if (gpsEnabled) {
+      statusText.textContent = '📍 GPS Activé';
+      statusText.className = 'status on';
+      toggleBtn.textContent = 'Désactiver';
+      toggleBtn.className = 'toggle-btn on';
+      const lat = document.getElementById('gps-lat').value || '--';
+      const lng = document.getElementById('gps-lng').value || '--';
+      coords.textContent = `Lat: ${lat} | Lng: ${lng}`;
+    } else {
+      statusText.textContent = '📍 GPS Désactivé';
+      statusText.className = 'status off';
+      toggleBtn.textContent = 'Activer';
+      toggleBtn.className = 'toggle-btn off';
+      coords.textContent = 'Lat: -- | Lng: --';
+    }
+  }
+
+  document.getElementById('gps-toggle-btn').onclick = async function() {
+    gpsEnabled = !gpsEnabled;
+    try {
+      await apiCall(`/gps/toggle/${USER_ID}`, 'PUT', { gpsEnabled });
+      updateGPSUI();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
+
+  document.getElementById('gps-save-btn').onclick = async function() {
+    const lat = parseFloat(document.getElementById('gps-lat').value);
+    const lng = parseFloat(document.getElementById('gps-lng').value);
+    if (isNaN(lat) || isNaN(lng)) {
+      alert('Veuillez entrer des coordonnées valides.');
+      return;
+    }
+    try {
+      await apiCall(`/gps/toggle/${USER_ID}`, 'PUT', { gpsEnabled, gpsLat: lat, gpsLng: lng });
+      alert('✅ Position enregistrée !');
+      loadGPS();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
+
+  document.getElementById('gps-detect-btn').onclick = function() {
+    if (!navigator.geolocation) {
+      alert('La géolocalisation n\'est pas supportée par votre navigateur.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        document.getElementById('gps-lat').value = position.coords.latitude.toFixed(6);
+        document.getElementById('gps-lng').value = position.coords.longitude.toFixed(6);
+        alert('✅ Position détectée !');
+        loadGPS();
+      },
+      (error) => {
+        alert('Erreur de géolocalisation: ' + error.message);
+      }
+    );
+  };
+
+  // =============================================
+  // INIT
+  // =============================================
   async function init() {
     document.getElementById('sidebar-name').textContent = localStorage.getItem('userName') || '__________';
     document.getElementById('sidebar-email').textContent = localStorage.getItem('userEmail') || '__________';
@@ -741,7 +728,8 @@
     await loadProducts();
     await loadTickets();
     await loadCommissions();
-    await loadAdvancedStats(7);
+    await loadMikrotiks();
+    await loadGPS();
     showDefaultTab();
   }
   init();
