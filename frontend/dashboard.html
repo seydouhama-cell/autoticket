@@ -106,6 +106,10 @@
     .btn-sm { width: auto; padding: 4px 14px; font-size: 12px; border-radius: 20px; }
     .card { background: #f8f9fa; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid #e9ecef; }
 
+    .pdf-zone { border: 2px dashed #e0e4e8; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; background: #fafbfc; }
+    .pdf-zone input[type="file"] { margin: 8px 0; }
+    .pdf-preview { margin-top: 12px; text-align: left; display: none; background: #f8f9fa; padding: 12px; border-radius: 8px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+
     @media (max-width: 768px) {
       .sidebar { width: 200px; padding: 16px 12px; }
       .main { margin-left: 200px; padding: 16px; }
@@ -169,7 +173,6 @@
       <span class="badge trial" id="status-badge">🎁 Essai gratuit</span>
     </div>
 
-    <!-- ALERTE ABONNEMENT (cachée par défaut, affichée uniquement si expiré) -->
     <div class="alert-box hidden" id="alert-subscription">
       <span class="icon">⚠️</span>
       <span class="text"><strong>L'abonnement de cette zone a expiré.</strong> Vos clients ne peuvent plus y accéder.</span>
@@ -279,12 +282,28 @@
       <button class="btn btn-primary" id="add-product-btn">➕ Ajouter</button>
     </div>
 
-    <!-- ========== TICKETS ========== -->
+    <!-- ========== TICKETS AVEC IMPORT PDF ========== -->
     <div class="table-wrap" id="tab-tickets" style="display:none;">
       <h3>🎫 Importer des tickets</h3>
+
+      <!-- Zone d'import PDF -->
+      <div class="pdf-zone">
+        <p style="font-size:14px;color:#2c3e50;margin-bottom:8px;">
+          📄 Importer depuis un PDF (MikroTik / Mikhmon)
+        </p>
+        <input type="file" id="pdf-file-input" accept=".pdf">
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="preview-pdf-btn" style="width:auto;padding:6px 20px;font-size:13px;">👁️ Prévisualiser</button>
+          <button class="btn btn-success" id="import-pdf-btn" style="width:auto;padding:6px 20px;font-size:13px;">📥 Importer PDF</button>
+        </div>
+        <div id="pdf-preview" class="pdf-preview"></div>
+      </div>
+
+      <!-- Import par texte -->
       <div class="form-group"><label>Codes WiFi (un par ligne)</label><textarea id="ticket-codes" placeholder="WIFI-001&#10;WIFI-002&#10;WIFI-003"></textarea></div>
       <div class="form-group"><label>Forfait associé</label><select id="ticket-product-select"><option value="">Sélectionner un forfait</option></select></div>
       <button class="btn btn-primary" id="import-tickets-btn">📥 Importer</button>
+
       <hr style="margin:16px 0;border:none;border-top:1px solid #e9ecef;">
       <h4>📋 Tickets disponibles</h4>
       <div id="tickets-list" style="max-height:200px;overflow-y:auto;background:#f8f9fa;border-radius:10px;padding:8px;"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p></div>
@@ -489,7 +508,6 @@
       const alertBox = document.getElementById('alert-subscription');
       const statusText = document.getElementById('sub-status-text');
       const daysText = document.getElementById('sub-days-text');
-
       if (sub.status === 'trial') {
         badge.textContent = `🎁 Essai gratuit (${sub.daysLeft || 0}j)`;
         badge.className = 'badge trial';
@@ -504,24 +522,15 @@
         statusText.textContent = '✅ Actif';
         statusText.className = 'value green';
         daysText.textContent = `Prochain renouvellement : ${sub.daysLeft || 0} jours`;
-      } else if (sub.status === 'expired' || sub.status === 'inactive') {
+      } else {
         badge.textContent = '⛔ Abonnement expiré';
         badge.className = 'badge expired';
         alertBox.classList.remove('hidden');
         statusText.textContent = '⛔ Expiré';
         statusText.className = 'value red';
         daysText.textContent = 'Veuillez renouveler';
-      } else {
-        badge.textContent = '⚠️ Aucun abonnement';
-        badge.className = 'badge expired';
-        alertBox.classList.remove('hidden');
-        statusText.textContent = '⚠️ Non souscrit';
-        statusText.className = 'value red';
-        daysText.textContent = 'Activez votre essai gratuit';
       }
-    } catch (error) {
-      console.error('Erreur abonnement:', error);
-    }
+    } catch (error) { console.error('Erreur abonnement:', error); }
   }
 
   async function loadStats() {
@@ -604,6 +613,9 @@
     } catch (error) { alert('Erreur: ' + error.message); }
   }
 
+  // =============================================
+  // IMPORT TICKETS (TEXTE)
+  // =============================================
   document.getElementById('import-tickets-btn').onclick = async function() {
     const codes = document.getElementById('ticket-codes').value.split('\n').map(c => c.trim()).filter(c => c);
     const productId = document.getElementById('ticket-product-select').value;
@@ -617,6 +629,77 @@
     } catch (error) { alert('Erreur: ' + error.message); }
   };
 
+  // =============================================
+  // IMPORT PDF
+  // =============================================
+  document.getElementById('preview-pdf-btn').onclick = async function() {
+    const fileInput = document.getElementById('pdf-file-input');
+    const file = fileInput.files[0];
+    if (!file) { alert('Veuillez sélectionner un fichier PDF.'); return; }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', USER_ID);
+
+    try {
+      const response = await fetch(API_URL + '/tickets/preview-pdf', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      const previewDiv = document.getElementById('pdf-preview');
+      previewDiv.style.display = 'block';
+      if (data.detectedCodes > 0) {
+        previewDiv.innerHTML = `
+          <div style="color:#27ae60;font-weight:600;">✅ ${data.detectedCodes} codes détectés</div>
+          <div style="margin-top:8px;color:#7f8c8d;font-size:12px;">Premiers codes trouvés :</div>
+          ${data.codes.map(c => `<div>• ${c}</div>`).join('')}
+          ${data.detectedCodes > 50 ? `<div>... et ${data.detectedCodes - 50} autres</div>` : ''}
+        `;
+      } else {
+        previewDiv.innerHTML = `
+          <div style="color:#e74c3c;font-weight:600;">⚠️ Aucun code valide trouvé</div>
+          <div style="margin-top:8px;color:#7f8c8d;font-size:12px;">Extrait du PDF :</div>
+          <div style="background:white;padding:8px;border-radius:4px;white-space:pre-wrap;font-size:11px;">${data.preview || 'Aucun texte détecté'}</div>
+        `;
+      }
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
+
+  document.getElementById('import-pdf-btn').onclick = async function() {
+    const fileInput = document.getElementById('pdf-file-input');
+    const file = fileInput.files[0];
+    const productId = document.getElementById('ticket-product-select').value;
+    if (!file) { alert('Veuillez sélectionner un fichier PDF.'); return; }
+    if (!productId) { alert('Veuillez sélectionner un forfait.'); return; }
+    if (!confirm('Importer les tickets du PDF vers le forfait sélectionné ?')) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', USER_ID);
+    formData.append('productId', productId);
+
+    try {
+      const response = await fetch(API_URL + '/tickets/import-pdf', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert(`✅ ${data.imported} tickets importés ! (${data.duplicates} doublons ignorés)`);
+        document.getElementById('pdf-file-input').value = '';
+        document.getElementById('pdf-preview').style.display = 'none';
+        loadTickets();
+        loadStats();
+      } else {
+        alert('Erreur: ' + (data.message || 'Import échoué'));
+      }
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
+
+  // =============================================
+  // CHARGER TICKETS
+  // =============================================
   async function loadTickets() {
     try {
       const data = await apiCall(`/tickets/${USER_ID}`, 'GET');
@@ -632,6 +715,9 @@
     } catch (error) { console.error('Erreur tickets:', error); }
   }
 
+  // =============================================
+  // RETRAIT
+  // =============================================
   document.getElementById('withdraw-btn').onclick = async function() {
     const amount = parseInt(document.getElementById('withdraw-amount').value);
     const phone = document.getElementById('withdraw-phone').value.trim();
