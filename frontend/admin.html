@@ -27,7 +27,7 @@
     .chart-section h2 { font-size: 18px; margin-bottom: 16px; border-left: 4px solid #e67e22; padding-left: 12px; }
     .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
 
-    .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; overflow-x: auto; }
+    .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; overflow-x: auto; margin-bottom: 24px; }
     .table-wrap h2 { font-size: 18px; margin-bottom: 16px; border-left: 4px solid #e67e22; padding-left: 12px; }
     .table-wrap table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .table-wrap th { text-align: left; padding: 10px 12px; background: #f8f9fa; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e9ecef; }
@@ -37,12 +37,25 @@
     .table-wrap .status.completed { background: #d5f5e3; color: #1a7a42; }
     .table-wrap .status.pending { background: #fef9e7; color: #b7950b; }
 
+    /* ===== STYLE RETRAIT COMMISSIONS ===== */
+    .withdraw-section { background: white; border-radius: 16px; padding: 24px; border: 1px solid #e9ecef; margin-bottom: 24px; }
+    .withdraw-section h2 { font-size: 18px; margin-bottom: 16px; border-left: 4px solid #27ae60; padding-left: 12px; }
+    .withdraw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .withdraw-grid .form-group label { display: block; font-size: 13px; font-weight: 600; color: #2c3e50; margin-bottom: 4px; }
+    .withdraw-grid .form-group input { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; transition: 0.3s; }
+    .withdraw-grid .form-group input:focus { border-color: #27ae60; outline: none; box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15); }
+    .btn-withdraw { padding: 12px 32px; border: none; border-radius: 30px; background: #27ae60; color: white; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.3s; margin-top: 8px; }
+    .btn-withdraw:hover { background: #1e8449; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3); }
+    .btn-withdraw:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .withdraw-info { font-size: 13px; color: #7f8c8d; margin-top: 8px; }
+
     .btn-back { background: #2c3e50; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; }
     .btn-back:hover { background: #1a252f; }
 
     @media (max-width: 768px) {
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .chart-grid { grid-template-columns: 1fr; }
+      .withdraw-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .stats-grid { grid-template-columns: 1fr; }
@@ -82,6 +95,29 @@
       <div class="number red" id="stat-fees">0 F</div>
       <div class="label">📋 Frais (4%)</div>
     </div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- SECTION RETRAIT DES COMMISSIONS (AJOUTÉE)     -->
+  <!-- ============================================= -->
+  <div class="withdraw-section" id="withdrawSection">
+    <h2>💰 Retirer mes commissions</h2>
+    <p style="color:#7f8c8d;font-size:14px;margin-bottom:16px;">
+      Vous pouvez retirer vos commissions (5%) sur votre compte Mobile Money.
+      Montant minimum : <strong>1 000 FCFA</strong>
+    </p>
+    <div class="withdraw-grid">
+      <div class="form-group">
+        <label for="admin-withdraw-amount">Montant (FCFA)</label>
+        <input type="number" id="admin-withdraw-amount" placeholder="Ex: 5000" min="1000">
+      </div>
+      <div class="form-group">
+        <label for="admin-withdraw-phone">Numéro Mobile Money</label>
+        <input type="tel" id="admin-withdraw-phone" placeholder="Ex: 98765432">
+      </div>
+    </div>
+    <button class="btn-withdraw" id="admin-withdraw-btn">📤 Retirer mes commissions</button>
+    <div class="withdraw-info" id="withdrawInfo">💡 Le retrait est immédiat vers votre compte Mobile Money.</div>
   </div>
 
   <!-- GRAPHIQUE -->
@@ -144,6 +180,13 @@
       document.getElementById('stat-retraits').textContent = data.totalRetraits || 0;
       document.getElementById('stat-withdrawn').textContent = formatPrice(data.totalWithdrawn || 0);
       document.getElementById('stat-fees').textContent = formatPrice(data.totalFees || 0);
+
+      // Mettre à jour l'info de retrait avec le solde disponible
+      const totalCommission = data.totalCommission || 0;
+      const infoEl = document.getElementById('withdrawInfo');
+      if (infoEl) {
+        infoEl.innerHTML = `💰 Solde disponible : <strong>${formatPrice(totalCommission)}</strong> — Retrait immédiat vers Mobile Money.`;
+      }
 
       // Graphique des commissions
       if (data.dailyData) {
@@ -287,12 +330,89 @@
         tableContainer.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:20px;">Aucun retrait effectué</p>';
       }
 
+      // Retourner les données pour le retrait
+      return data;
+
     } catch (error) {
       console.error('Erreur chargement stats admin:', error);
       document.getElementById('withdrawals-table').innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">Erreur chargement des données</p>';
+      return { totalCommission: 0 };
     }
   }
 
+  // =============================================
+  // RETRAIT DES COMMISSIONS (AJOUTÉ)
+  // =============================================
+  document.getElementById('admin-withdraw-btn').addEventListener('click', async function() {
+    const amountInput = document.getElementById('admin-withdraw-amount');
+    const phoneInput = document.getElementById('admin-withdraw-phone');
+    const btn = this;
+
+    const amount = parseInt(amountInput.value);
+    const phone = phoneInput.value.trim();
+
+    // Validation
+    if (!amount || amount < 1000) {
+      alert('⚠️ Montant minimum : 1 000 FCFA.');
+      amountInput.focus();
+      return;
+    }
+    if (!phone || phone.length < 8) {
+      alert('⚠️ Numéro Mobile Money valide requis (minimum 8 chiffres).');
+      phoneInput.focus();
+      return;
+    }
+
+    // Récupérer le solde des commissions
+    const stats = await loadAdminStats();
+    const totalCommission = stats.totalCommission || 0;
+
+    if (amount > totalCommission) {
+      alert(`❌ Solde insuffisant. Vous avez ${formatPrice(totalCommission)} de commissions disponibles.`);
+      return;
+    }
+
+    if (!confirm(`Confirmer le retrait de ${formatPrice(amount)} vers ${phone} ?`)) {
+      return;
+    }
+
+    // Désactiver le bouton pendant l'opération
+    btn.disabled = true;
+    btn.textContent = '⏳ Traitement...';
+
+    try {
+      const response = await fetch(`${API_URL}/admin/withdraw-commission`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          amount: amount, 
+          phone: phone, 
+          method: 'airtelmoney' 
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`✅ Retrait effectué avec succès !\n\n💰 ${formatPrice(amount)} envoyés vers ${phone}\n📋 Transaction: ${data.transactionId}`);
+        amountInput.value = '';
+        phoneInput.value = '';
+        loadAdminStats(); // Rafraîchir les stats
+      } else {
+        alert('❌ ' + (data.message || 'Erreur lors du retrait'));
+      }
+    } catch (error) {
+      console.error('Erreur retrait:', error);
+      alert('❌ Erreur de connexion au serveur. Veuillez réessayer.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '📤 Retirer mes commissions';
+    }
+  });
+
+  // =============================================
+  // CHARGEMENT INITIAL
+  // =============================================
   loadAdminStats();
   setInterval(loadAdminStats, 60000);
 </script>
