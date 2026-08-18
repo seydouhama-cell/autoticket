@@ -52,6 +52,14 @@
     .stat-card .value.red { color: #e74c3c; }
     .stat-card .sub { font-size: 12px; color: #95a5a6; margin-top: 2px; }
 
+    .alert-box { background: #fef9f0; border: 1px solid #f7dc6f; border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .alert-box.hidden { display: none; }
+    .alert-box .icon { font-size: 24px; }
+    .alert-box .text { flex: 1; font-size: 14px; color: #2c3e50; }
+    .alert-box .text strong { color: #e67e22; }
+    .alert-box .btn { background: #e67e22; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    .alert-box .btn:hover { background: #d35400; }
+
     .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; margin-bottom: 24px; }
     .table-wrap h3 { font-size: 16px; color: #0d1b2a; margin-bottom: 12px; }
     .table-wrap table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -61,6 +69,7 @@
     .table-wrap .status { padding: 2px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .table-wrap .status.active { background: #d5f5e3; color: #1a7a42; }
     .table-wrap .status.inactive { background: #fadbd8; color: #922b21; }
+    .table-wrap .status.warning { background: #fef9e7; color: #b7950b; }
 
     .balance-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
     .balance-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; }
@@ -92,27 +101,27 @@
     .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(39,174,96,0.4); }
     .btn-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }
     .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(231,76,60,0.4); }
+    .btn-secondary { background: #2c3e50; color: white; }
+    .btn-secondary:hover { background: #1a252f; }
     .btn-sm { width: auto; padding: 4px 14px; font-size: 12px; border-radius: 20px; }
     .card { background: #f8f9fa; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid #e9ecef; }
 
-    .pdf-zone { border: 2px dashed #e0e4e8; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px; background: #fafbfc; }
-    .pdf-zone input[type="file"] { margin: 8px 0; }
-    .pdf-preview { margin-top: 12px; text-align: left; display: none; background: #f8f9fa; padding: 12px; border-radius: 8px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+    .pdf-zone { border: 2px dashed #e0e4e8; border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 16px; background: #fafbfc; }
+    .pdf-zone .icon { font-size: 48px; }
+    .pdf-zone .title { font-size: 16px; font-weight: 600; color: #2c3e50; }
+    .pdf-zone .sub { font-size: 13px; color: #7f8c8d; }
+    .pdf-zone .dropzone { border: 2px dashed #bdc3c7; border-radius: 12px; padding: 20px; background: white; margin: 12px 0; cursor: pointer; }
+    .pdf-zone .dropzone:hover { border-color: #e67e22; }
+    .pdf-preview { display: none; text-align: left; background: #f8f9fa; padding: 16px; border-radius: 12px; margin-top: 12px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 13px; border: 1px solid #e9ecef; }
+    .pdf-preview .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .pdf-preview .header .count { background: #e67e22; color: white; padding: 2px 12px; border-radius: 30px; font-size: 12px; }
+    .pdf-preview .code-item { display: flex; justify-content: space-between; padding: 4px 8px; border-bottom: 1px solid #e9ecef; }
+    .pdf-preview .code-item .valid { color: #27ae60; }
+    .pdf-preview .code-item .invalid { color: #e74c3c; }
+    .pdf-info { margin-top: 12px; font-size: 12px; color: #7f8c8d; background: #fef9f0; padding: 10px; border-radius: 8px; border: 1px solid #f7dc6f; }
 
-    .mt-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f8f9fa; border-radius: 12px; margin-bottom: 8px; border: 1px solid #e9ecef; }
-    .mt-item .info { flex: 1; }
-    .mt-item .info .name { font-weight: 700; }
-    .mt-item .info .ip { font-size: 13px; color: #7f8c8d; }
-    .mt-item .actions { display: flex; gap: 8px; }
-    .mt-item .actions .btn { width: auto; padding: 4px 12px; font-size: 12px; }
-
-    .gps-toggle { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f8f9fa; border-radius: 12px; }
-    .gps-toggle .status { font-weight: 600; font-size: 16px; }
-    .gps-toggle .status.on { color: #27ae60; }
-    .gps-toggle .status.off { color: #e74c3c; }
-    .toggle-btn { width: auto; padding: 8px 24px; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-    .toggle-btn.on { background: #27ae60; color: white; }
-    .toggle-btn.off { background: #e74c3c; color: white; }
+    .stock-table td:first-child { font-weight: 600; }
+    .stock-table .count { font-size: 20px; font-weight: 700; text-align: center; }
 
     @media (max-width: 768px) {
       .sidebar { width: 200px; padding: 16px 12px; }
@@ -122,6 +131,7 @@
       .balance-card.commission { grid-column: span 1; }
       .stats-avancees > div { grid-template-columns: 1fr !important; }
       .stats-avancees > div:last-child { grid-template-columns: 1fr 1fr; }
+      .pdf-zone { padding: 20px; }
     }
 
     @media (max-width: 480px) {
@@ -133,8 +143,12 @@
       .sidebar .menu-bottom { border: none; padding: 0; margin: 0; }
       .main { margin-left: 0; padding: 16px; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
+      .alert-box { flex-direction: column; text-align: center; }
       .stats-avancees > div:last-child { grid-template-columns: 1fr; }
       .periode-btn { font-size: 12px; padding: 4px 12px; }
+      .pdf-zone { padding: 16px; }
+      .pdf-zone .dropzone { padding: 14px; }
+      .pdf-zone .btn { width: 100%; }
     }
   </style>
 </head>
@@ -215,13 +229,57 @@
       </div>
     </div>
 
+    <!-- ========== STATISTIQUES AVANCÉES ========== -->
+    <div class="stats-avancees">
+      <h2 style="margin-bottom:16px;font-size:18px;color:#0d1b2a;border-left:4px solid #e67e22;padding-left:12px;">📈 Évolution des ventes</h2>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="btn btn-sm periode-btn active" data-period="7" style="width:auto;background:#e67e22;color:white;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">7 jours</button>
+        <button class="btn btn-sm periode-btn" data-period="30" style="width:auto;background:#f0f2f5;color:#2c3e50;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">30 jours</button>
+        <button class="btn btn-sm periode-btn" data-period="90" style="width:auto;background:#f0f2f5;color:#2c3e50;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">90 jours</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;">
+        <div style="background:white;border-radius:14px;padding:20px;border:1px solid #e9ecef;">
+          <canvas id="salesChart" height="200"></canvas>
+        </div>
+        <div style="background:white;border-radius:14px;padding:20px;border:1px solid #e9ecef;">
+          <h3 style="font-size:14px;color:#7f8c8d;margin-bottom:12px;">📊 Répartition par forfait</h3>
+          <canvas id="productsChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
+          <div style="font-size:13px;color:#7f8c8d;">📈 Meilleure vente</div>
+          <div style="font-size:18px;font-weight:700;color:#e67e22;" id="best-day">-</div>
+          <div style="font-size:12px;color:#95a5a6;">Jour</div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
+          <div style="font-size:13px;color:#7f8c8d;">📊 Total ventes</div>
+          <div style="font-size:18px;font-weight:700;color:#1a1a2e;" id="total-sales">0</div>
+          <div style="font-size:12px;color:#95a5a6;">Tickets vendus</div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
+          <div style="font-size:13px;color:#7f8c8d;">💰 Revenu moyen</div>
+          <div style="font-size:18px;font-weight:700;color:#27ae60;" id="avg-revenue">0 F</div>
+          <div style="font-size:12px;color:#95a5a6;">Par jour</div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
+          <div style="font-size:13px;color:#7f8c8d;">📆 Période</div>
+          <div style="font-size:18px;font-weight:700;color:#0d1b2a;" id="period-days">7</div>
+          <div style="font-size:12px;color:#95a5a6;">Derniers jours</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ========== VUE D'ENSEMBLE ========== -->
     <div class="table-wrap" id="tab-overview">
       <h3>📋 Forfaits actifs</h3>
       <div id="products-table-container"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait</p></div>
     </div>
 
-    <!-- ========== FORFAITS ========== -->
+    <!-- ========== FORFAITS AVEC STOCK ========== -->
     <div class="table-wrap" id="tab-forfaits" style="display:none;">
       <h3>📦 Gérer mes forfaits</h3>
       <div id="products-list"></div>
@@ -230,26 +288,63 @@
       <div class="form-group"><label>Prix (FCFA)</label><input type="number" id="product-price" placeholder="100"></div>
       <div class="form-group"><label>Durée</label><input type="text" id="product-duration" placeholder="24 heures..."></div>
       <button class="btn btn-primary" id="add-product-btn">➕ Ajouter</button>
+
+      <!-- STOCK PAR FORFAIT -->
+      <div style="margin-top: 20px; border-top: 1px solid #e9ecef; padding-top: 16px;">
+        <h3>📊 Stock par forfait</h3>
+        <div id="stock-by-product">
+          <p style="color:#7f8c8d;text-align:center;padding:16px;">Chargement...</p>
+        </div>
+      </div>
     </div>
 
-    <!-- ========== TICKETS ========== -->
+    <!-- ========== TICKETS AVEC IMPORT PDF ========== -->
     <div class="table-wrap" id="tab-tickets" style="display:none;">
       <h3>🎫 Importer des tickets</h3>
+
       <div class="pdf-zone">
-        <p>📄 Importer depuis un PDF</p>
-        <input type="file" id="pdf-file-input" accept=".pdf">
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
-          <button class="btn btn-primary" id="preview-pdf-btn" style="width:auto;padding:6px 20px;font-size:13px;">👁️ Prévisualiser</button>
-          <button class="btn btn-success" id="import-pdf-btn" style="width:auto;padding:6px 20px;font-size:13px;">📥 Importer PDF</button>
+        <div class="icon">📄</div>
+        <div class="title">Importez votre PDF MikroTik / Mikhmon</div>
+        <div class="sub">Glissez le fichier exporté ou sélectionnez-le</div>
+
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;">
+          <span style="color: #7f8c8d; font-size: 14px;">📂 Cliquez pour sélectionner un fichier PDF</span>
         </div>
-        <div id="pdf-preview" class="pdf-preview"></div>
+
+        <div class="pdf-preview" id="pdf-preview">
+          <div class="header">
+            <span style="font-weight: 600; color: #27ae60;">✅ Codes détectés</span>
+            <span class="count" id="codes-count">0</span>
+          </div>
+          <div id="codes-list"></div>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
+          <button class="btn btn-secondary" id="preview-pdf-btn" style="width: auto; padding: 8px 24px; font-size: 14px;">👁️ Prévisualiser</button>
+          <button class="btn btn-success" id="import-pdf-btn" style="width: auto; padding: 8px 24px; font-size: 14px;">📥 Importer PDF</button>
+          <button class="btn btn-secondary" id="clear-pdf-btn" style="width: auto; padding: 8px 24px; font-size: 14px; background: #e74c3c;">🗑️ Effacer</button>
+        </div>
+
+        <div class="pdf-info">
+          ⚡ Petit lot de test recommandé avant l'importation complète.
+        </div>
       </div>
-      <div class="form-group"><label>Codes (un par ligne)</label><textarea id="ticket-codes" placeholder="WIFI-001"></textarea></div>
-      <div class="form-group"><label>Forfait</label><select id="ticket-product-select"><option value="">Sélectionner</option></select></div>
-      <button class="btn btn-primary" id="import-tickets-btn">📥 Importer</button>
-      <hr style="margin:16px 0;">
+
+      <div style="margin-top: 12px;">
+        <div class="form-group">
+          <label>Forfait associé</label>
+          <select id="ticket-product-select" style="width:100%;padding:10px;border:2px solid #e0e4e8;border-radius:12px;font-size:14px;background:#fafbfc;">
+            <option value="">Sélectionner un forfait</option>
+          </select>
+        </div>
+      </div>
+
+      <hr style="margin:16px 0;border:none;border-top:1px solid #e9ecef;">
       <h4>📋 Tickets disponibles</h4>
-      <div id="tickets-list" style="max-height:200px;overflow-y:auto;background:#f8f9fa;border-radius:10px;padding:8px;"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p></div>
+      <div id="tickets-list" style="max-height:200px;overflow-y:auto;background:#f8f9fa;border-radius:10px;padding:8px;">
+        <p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p>
+      </div>
     </div>
 
     <!-- ========== RETRAIT ========== -->
@@ -285,12 +380,12 @@
     <div class="table-wrap" id="tab-gps" style="display:none;">
       <h3>📍 Géolocalisation</h3>
 
-      <div class="gps-toggle">
+      <div class="gps-toggle" style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:#f8f9fa;border-radius:12px;">
         <div>
-          <div class="status" id="gps-status-text">📍 GPS Désactivé</div>
+          <div class="status" id="gps-status-text" style="font-weight:600;font-size:16px;">📍 GPS Désactivé</div>
           <div style="font-size:13px;color:#7f8c8d;" id="gps-coords">Lat: -- | Lng: --</div>
         </div>
-        <button class="toggle-btn off" id="gps-toggle-btn">Activer</button>
+        <button class="toggle-btn off" id="gps-toggle-btn" style="width:auto;padding:8px 24px;border:none;border-radius:30px;font-weight:600;cursor:pointer;background:#e74c3c;color:white;">Activer</button>
       </div>
 
       <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -311,6 +406,22 @@
   // =============================================
   const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
   let USER_ID = localStorage.getItem('userId') || '6a7a76ba6b197186941d4937';
+
+  let salesChart = null;
+  let productsChart = null;
+  let currentPeriod = 7;
+
+  // =============================================
+  // FONCTIONS UTILITAIRES
+  // =============================================
+  function formatPrice(amount) { return amount.toLocaleString() + ' FCFA'; }
+
+  async function apiCall(endpoint, method, data) {
+    const options = { method, headers: { 'Content-Type': 'application/json' } };
+    if (data) options.body = JSON.stringify(data);
+    const res = await fetch(API_URL + endpoint, options);
+    return await res.json();
+  }
 
   // =============================================
   // NAVIGATION
@@ -349,15 +460,123 @@
   }
 
   // =============================================
-  // FONCTIONS UTILITAIRES
+  // GRAPHIQUES
   // =============================================
-  function formatPrice(amount) { return amount.toLocaleString() + ' FCFA'; }
+  function initSalesChart(data) {
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    if (salesChart) { salesChart.destroy(); }
 
-  async function apiCall(endpoint, method, data) {
-    const options = { method, headers: { 'Content-Type': 'application/json' } };
-    if (data) options.body = JSON.stringify(data);
-    const res = await fetch(API_URL + endpoint, options);
-    return await res.json();
+    salesChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.labels || [],
+        datasets: [
+          {
+            label: 'Ventes (tickets)',
+            data: data.sales || [],
+            backgroundColor: 'rgba(230, 126, 34, 0.7)',
+            borderColor: '#e67e22',
+            borderWidth: 2,
+            borderRadius: 4,
+            order: 1
+          },
+          {
+            label: 'Revenus (FCFA)',
+            data: data.revenues || [],
+            type: 'line',
+            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+            borderColor: '#27ae60',
+            borderWidth: 3,
+            pointBackgroundColor: '#27ae60',
+            pointRadius: 4,
+            tension: 0.3,
+            fill: true,
+            order: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                let value = context.raw || 0;
+                if (context.dataset.label.includes('Revenus')) {
+                  return label + ': ' + value.toLocaleString() + ' FCFA';
+                }
+                return label + ': ' + value;
+              }
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function initProductsChart(products) {
+    const ctx = document.getElementById('productsChart').getContext('2d');
+    if (productsChart) { productsChart.destroy(); }
+
+    if (!products || products.length === 0) {
+      products = [{ name: 'Aucune vente', count: 1 }];
+    }
+
+    const colors = ['#e67e22', '#f39c12', '#27ae60', '#3498db', '#9b59b6', '#1abc9c', '#e74c3c', '#2ecc71'];
+
+    productsChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: products.map(p => p.name),
+        datasets: [{
+          data: products.map(p => p.count),
+          backgroundColor: colors.slice(0, products.length),
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10, padding: 8 } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                let percentage = total > 0 ? Math.round((context.raw / total) * 100) : 0;
+                return context.label + ': ' + context.raw + ' (' + percentage + '%)';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // =============================================
+  // STATISTIQUES AVANCÉES
+  // =============================================
+  async function loadAdvancedStats(period = 7) {
+    currentPeriod = period;
+    try {
+      const data = await apiCall(`/stats/advanced/${USER_ID}/${period}`, 'GET');
+      initSalesChart(data);
+      initProductsChart(data.products || []);
+      document.getElementById('total-sales').textContent = data.summary?.totalSales || 0;
+      document.getElementById('avg-revenue').textContent = (data.summary?.avgRevenue || 0).toLocaleString() + ' F';
+      document.getElementById('best-day').textContent = data.summary?.bestDay || '-';
+      document.getElementById('period-days').textContent = period;
+    } catch (error) {
+      console.error('Erreur chargement stats avancées:', error);
+    }
   }
 
   // =============================================
@@ -406,6 +625,71 @@
       document.getElementById('total-commission').textContent = formatPrice(data.totalCommission || 0);
       document.getElementById('withdrawal-count').textContent = data.count || 0;
     } catch (error) { console.error('Erreur commissions:', error); }
+  }
+
+  // =============================================
+  // STOCK PAR FORFAIT
+  // =============================================
+  async function loadStockByProduct() {
+    try {
+      const products = await apiCall(`/products/${USER_ID}`, 'GET');
+      if (!products || products.length === 0) {
+        document.getElementById('stock-by-product').innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait créé.</p>';
+        return;
+      }
+
+      const ticketsData = await apiCall(`/tickets/${USER_ID}`, 'GET');
+      const tickets = ticketsData.tickets || [];
+
+      let html = `
+        <table class="stock-table">
+          <thead>
+            <tr>
+              <th>Forfait</th>
+              <th>Prix</th>
+              <th>Durée</th>
+              <th style="text-align:center;">Tickets disponibles</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      products.forEach(product => {
+        const available = tickets.filter(t => t.productId === product._id && !t.isUsed);
+        const count = available.length;
+        
+        let status = '';
+        let statusClass = '';
+        if (count === 0) {
+          status = '⛔ Rupture de stock';
+          statusClass = 'status inactive';
+        } else if (count <= 5) {
+          status = `⚠️ Stock faible (${count})`;
+          statusClass = 'status warning';
+        } else {
+          status = `✅ ${count} disponibles`;
+          statusClass = 'status active';
+        }
+
+        html += `
+          <tr>
+            <td><strong>${product.name}</strong></td>
+            <td>${formatPrice(product.price)}</td>
+            <td>${product.duration}</td>
+            <td style="font-weight:700;text-align:center;font-size:22px;color:#e67e22;">${count}</td>
+            <td><span class="${statusClass}">${status}</span></td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table>`;
+      document.getElementById('stock-by-product').innerHTML = html;
+
+    } catch (error) {
+      console.error('Erreur chargement stock:', error);
+      document.getElementById('stock-by-product').innerHTML = '<p style="color:#e74c3c;text-align:center;padding:16px;">Erreur chargement du stock</p>';
+    }
   }
 
   // =============================================
@@ -460,6 +744,7 @@
       document.getElementById('product-duration').value = '';
       loadProducts();
       loadStats();
+      loadStockByProduct();
     } catch (error) { alert('Erreur: ' + error.message); }
   };
 
@@ -469,71 +754,120 @@
       await apiCall(`/products/${productId}`, 'DELETE');
       loadProducts();
       loadStats();
+      loadStockByProduct();
     } catch (error) { alert('Erreur: ' + error.message); }
   }
 
   // =============================================
-  // TICKETS
+  // IMPORT PDF
   // =============================================
-  document.getElementById('import-tickets-btn').onclick = async function() {
-    const codes = document.getElementById('ticket-codes').value.split('\n').map(c => c.trim()).filter(c => c);
-    const productId = document.getElementById('ticket-product-select').value;
-    if (codes.length === 0) { alert('Collez des codes.'); return; }
-    if (!productId) { alert('Sélectionnez un forfait.'); return; }
-    try {
-      const result = await apiCall('/tickets/bulk', 'POST', { userId: USER_ID, codes, productId });
-      document.getElementById('ticket-codes').value = '';
-      loadTickets();
-      loadStats();
-    } catch (error) { alert('Erreur: ' + error.message); }
-  };
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('pdf-file-input');
+  const productSelect = document.getElementById('ticket-product-select');
+
+  dropzone.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      document.querySelector('#dropzone span').textContent = `📄 ${this.files[0].name}`;
+    }
+  });
 
   document.getElementById('preview-pdf-btn').onclick = async function() {
-    const fileInput = document.getElementById('pdf-file-input');
     const file = fileInput.files[0];
-    if (!file) { alert('Sélectionnez un fichier PDF.'); return; }
+    if (!file) {
+      alert('Veuillez sélectionner un fichier PDF.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('userId', USER_ID);
+
     try {
-      const response = await fetch(API_URL + '/tickets/preview-pdf', { method: 'POST', body: formData });
+      const response = await fetch(API_URL + '/tickets/preview-pdf', {
+        method: 'POST',
+        body: formData
+      });
       const data = await response.json();
       const previewDiv = document.getElementById('pdf-preview');
+      const codesList = document.getElementById('codes-list');
+      const codesCount = document.getElementById('codes-count');
+
       previewDiv.style.display = 'block';
+      codesList.innerHTML = '';
+      codesCount.textContent = data.detectedCodes || 0;
+
       if (data.detectedCodes > 0) {
-        previewDiv.innerHTML = `<div style="color:#27ae60;font-weight:600;">✅ ${data.detectedCodes} codes détectés</div><div style="margin-top:8px;color:#7f8c8d;font-size:12px;">Premiers codes :</div>${data.codes.map(c => `<div>• ${c}</div>`).join('')}${data.detectedCodes > 50 ? `<div>... et ${data.detectedCodes - 50} autres</div>` : ''}`;
+        data.codes.forEach(code => {
+          const div = document.createElement('div');
+          div.className = 'code-item';
+          div.innerHTML = `<span>${code}</span><span class="valid">✅ Valide</span>`;
+          codesList.appendChild(div);
+        });
+        if (data.detectedCodes > 50) {
+          codesList.innerHTML += `<div style="text-align:center;color:#7f8c8d;padding:8px;">... et ${data.detectedCodes - 50} autres</div>`;
+        }
       } else {
-        previewDiv.innerHTML = `<div style="color:#e74c3c;font-weight:600;">⚠️ Aucun code valide</div><div style="margin-top:8px;color:#7f8c8d;font-size:12px;">Extrait :</div><div style="background:white;padding:8px;border-radius:4px;white-space:pre-wrap;font-size:11px;">${data.preview || 'Aucun texte'}</div>`;
+        codesList.innerHTML = `<div style="color:#e74c3c;padding:8px;">⚠️ Aucun code valide trouvé</div>`;
       }
-    } catch (error) { alert('Erreur: ' + error.message); }
+    } catch (error) {
+      alert('Erreur: ' + error.message);
+    }
   };
 
   document.getElementById('import-pdf-btn').onclick = async function() {
-    const fileInput = document.getElementById('pdf-file-input');
     const file = fileInput.files[0];
-    const productId = document.getElementById('ticket-product-select').value;
-    if (!file) { alert('Sélectionnez un fichier PDF.'); return; }
-    if (!productId) { alert('Sélectionnez un forfait.'); return; }
-    if (!confirm('Importer les tickets ?')) return;
+    const productId = productSelect.value;
+
+    if (!file) {
+      alert('Veuillez sélectionner un fichier PDF.');
+      return;
+    }
+    if (!productId) {
+      alert('Veuillez sélectionner un forfait.');
+      return;
+    }
+    if (!confirm('Importer les tickets du PDF vers le forfait sélectionné ?')) return;
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('userId', USER_ID);
     formData.append('productId', productId);
+
     try {
-      const response = await fetch(API_URL + '/tickets/import-pdf', { method: 'POST', body: formData });
+      const response = await fetch(API_URL + '/tickets/import-pdf', {
+        method: 'POST',
+        body: formData
+      });
       const data = await response.json();
       if (response.ok) {
         alert(`✅ ${data.imported} tickets importés ! (${data.duplicates} doublons ignorés)`);
-        document.getElementById('pdf-file-input').value = '';
+        fileInput.value = '';
+        document.querySelector('#dropzone span').textContent = '📂 Cliquez pour sélectionner un fichier PDF';
         document.getElementById('pdf-preview').style.display = 'none';
         loadTickets();
         loadStats();
+        loadStockByProduct();
       } else {
         alert('Erreur: ' + (data.message || 'Import échoué'));
       }
-    } catch (error) { alert('Erreur: ' + error.message); }
+    } catch (error) {
+      alert('Erreur: ' + error.message);
+    }
   };
 
+  document.getElementById('clear-pdf-btn').onclick = function() {
+    fileInput.value = '';
+    document.querySelector('#dropzone span').textContent = '📂 Cliquez pour sélectionner un fichier PDF';
+    document.getElementById('pdf-preview').style.display = 'none';
+  };
+
+  // =============================================
+  // CHARGER TICKETS
+  // =============================================
   async function loadTickets() {
     try {
       const data = await apiCall(`/tickets/${USER_ID}`, 'GET');
@@ -581,15 +915,15 @@
       }
       mikrotiks.forEach(m => {
         const div = document.createElement('div');
-        div.className = 'mt-item';
+        div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f8f9fa;border-radius:12px;margin-bottom:8px;border:1px solid #e9ecef;';
         div.innerHTML = `
           <div class="info">
-            <div class="name">${m.name}</div>
-            <div class="ip">${m.ip} | ${m.ssid || 'SSID: N/A'} | ${m.isActive ? '🟢 Actif' : '🔴 Inactif'}</div>
+            <div style="font-weight:700;">${m.name}</div>
+            <div style="font-size:13px;color:#7f8c8d;">${m.ip} | ${m.ssid || 'SSID: N/A'} | ${m.isActive ? '🟢 Actif' : '🔴 Inactif'}</div>
           </div>
-          <div class="actions">
-            <button class="btn btn-sm" style="background:${m.isActive ? '#e74c3c' : '#27ae60'};color:white;" onclick="toggleMikrotik('${m._id}')">${m.isActive ? 'Désactiver' : 'Activer'}</button>
-            <button class="btn btn-sm" style="background:#e74c3c;color:white;" onclick="deleteMikrotik('${m._id}')">🗑️</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm" style="background:${m.isActive ? '#e74c3c' : '#27ae60'};color:white;border:none;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:12px;" onclick="toggleMikrotik('${m._id}')">${m.isActive ? 'Désactiver' : 'Activer'}</button>
+            <button class="btn btn-sm" style="background:#e74c3c;color:white;border:none;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:12px;" onclick="deleteMikrotik('${m._id}')">🗑️</button>
           </div>
         `;
         container.appendChild(div);
@@ -662,17 +996,19 @@
     const coords = document.getElementById('gps-coords');
     if (gpsEnabled) {
       statusText.textContent = '📍 GPS Activé';
-      statusText.className = 'status on';
+      statusText.style.color = '#27ae60';
       toggleBtn.textContent = 'Désactiver';
-      toggleBtn.className = 'toggle-btn on';
+      toggleBtn.style.background = '#e74c3c';
+      toggleBtn.style.color = 'white';
       const lat = document.getElementById('gps-lat').value || '--';
       const lng = document.getElementById('gps-lng').value || '--';
       coords.textContent = `Lat: ${lat} | Lng: ${lng}`;
     } else {
       statusText.textContent = '📍 GPS Désactivé';
-      statusText.className = 'status off';
+      statusText.style.color = '#e74c3c';
       toggleBtn.textContent = 'Activer';
-      toggleBtn.className = 'toggle-btn off';
+      toggleBtn.style.background = '#27ae60';
+      toggleBtn.style.color = 'white';
       coords.textContent = 'Lat: -- | Lng: --';
     }
   }
@@ -718,6 +1054,21 @@
   };
 
   // =============================================
+  // BOUTONS DE PÉRIODE
+  // =============================================
+  document.querySelectorAll('.periode-btn').forEach(btn => {
+    btn.onclick = function() {
+      document.querySelectorAll('.periode-btn').forEach(b => {
+        b.style.background = '#f0f2f5';
+        b.style.color = '#2c3e50';
+      });
+      this.style.background = '#e67e22';
+      this.style.color = 'white';
+      loadAdvancedStats(parseInt(this.dataset.period));
+    };
+  });
+
+  // =============================================
   // INIT
   // =============================================
   async function init() {
@@ -730,6 +1081,8 @@
     await loadCommissions();
     await loadMikrotiks();
     await loadGPS();
+    await loadStockByProduct();
+    await loadAdvancedStats(7);
     showDefaultTab();
   }
   init();

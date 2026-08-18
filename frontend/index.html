@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoTicket - Solution WiFi Zone au Niger 🇳🇪</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; color: #1a1a2e; line-height: 1.6; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    .header {
+      background: linear-gradient(135deg, #0d1b2a, #1b3a4b);
+      color: white;
+      padding: 16px 0;
+      border-radius: 0 0 30px 30px;
+    }
+    .header .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .header .logo { font-size: 26px; font-weight: 700; color: #e67e22; }
+    .header .logo span { color: white; }
+    .header .nav { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .header .nav a { color: #c9d1d9; text-decoration: none; font-weight: 600; transition: color 0.3s; padding: 8px 18px; border-radius: 30px; font-size: 14px; }
+    .header .nav a:hover { color: #e67e22; }
+    .header .nav .btn-login { background: transparent; border: 2px solid #e67e22; color: #e67e22; padding: 8px 24px; border-radius: 30px; }
+    .header .nav .btn-login:hover { background: #e67e22; color: white; }
+    .header .nav .btn-register { background: #e67e22; color: white; padding: 8px 24px; border-radius: 30px; }
+    .header .nav .btn-register:hover { background: #d35400; }
+
+    .hero { padding: 60px 0; text-align: center; }
+    .hero .badge { display: inline-block; background: #27ae60; color: white; padding: 4px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+    .hero h1 { font-size: 42px; font-weight: 800; margin-bottom: 16px; }
+    .hero h1 span { color: #e67e22; }
+    .hero p { font-size: 18px; color: #7f8c8d; max-width: 600px; margin: 0 auto 24px; }
+    .hero .btn-hero { background: linear-gradient(135deg, #e67e22, #d35400); color: white; padding: 14px 40px; border-radius: 50px; font-size: 18px; font-weight: 700; border: none; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; }
+    .hero .btn-hero:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(230,126,34,0.4); }
+
+    .stats-demo { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; max-width: 700px; margin: 0 auto 40px; }
+    .stat-demo { background: white; padding: 16px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); text-align: center; border: 1px solid #e9ecef; }
+    .stat-demo .number { font-size: 28px; font-weight: 700; color: #e67e22; }
+    .stat-demo .label { font-size: 13px; color: #7f8c8d; }
+    .stat-demo .sub { font-size: 12px; color: #27ae60; font-weight: 600; }
+
+    .payment-section { text-align: center; padding: 30px 20px; background: white; border-radius: 20px; margin: 20px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #e9ecef; }
+    .payment-section .label { font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 16px; }
+    .payment-section .sub { font-size: 14px; color: #7f8c8d; margin-bottom: 20px; }
+    .payment-grid { display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap; }
+    .payment-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .payment-item .logo { width: 70px; height: 70px; object-fit: contain; border-radius: 12px; background: white; padding: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.3s; }
+    .payment-item .logo:hover { transform: scale(1.05); }
+    .payment-item .name { font-size: 13px; color: #7f8c8d; font-weight: 600; }
+
+    .features { padding: 40px 0; }
+    .features h2 { text-align: center; font-size: 32px; margin-bottom: 40px; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+    .feature-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); text-align: center; transition: 0.3s; border: 1px solid #e9ecef; }
+    .feature-card:hover { transform: translateY(-8px); box-shadow: 0 8px 40px rgba(0,0,0,0.1); }
+    .feature-card .icon { font-size: 48px; display: block; margin-bottom: 16px; }
+    .feature-card h3 { font-size: 20px; margin-bottom: 8px; }
+    .feature-card p { color: #7f8c8d; font-size: 14px; }
+
+    .how-it-works { background: white; padding: 60px 0; border-radius: 30px; margin: 20px 0; }
+    .how-it-works h2 { text-align: center; font-size: 32px; margin-bottom: 40px; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+    .step { text-align: center; }
+    .step .num { background: #e67e22; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 12px; }
+    .step h4 { font-size: 18px; margin-bottom: 4px; }
+    .step p { color: #7f8c8d; font-size: 14px; }
+
+    .footer { background: #0d1b2a; color: #c9d1d9; padding: 40px 0; margin-top: 40px; border-radius: 30px 30px 0 0; }
+    .footer .container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+    .footer .logo { font-size: 24px; font-weight: 700; color: #e67e22; }
+    .footer .logo span { color: white; }
+    .footer .links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer .links a { color: #c9d1d9; text-decoration: none; font-size: 14px; }
+    .footer .links a:hover { color: #e67e22; }
+    .footer .copy { text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 20px; font-size: 13px; color: #7f8c8d; }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 28px; }
+      .header .nav { width: 100%; justify-content: center; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .footer .container { flex-direction: column; text-align: center; }
+      .stats-demo { grid-template-columns: 1fr 1fr; }
+      .payment-grid { gap: 20px; }
+      .payment-item .logo { width: 60px; height: 60px; }
+    }
+    @media (max-width: 480px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 24px; }
+      .stats-demo { grid-template-columns: 1fr; }
+      .payment-grid { gap: 14px; }
+      .payment-item .logo { width: 50px; height: 50px; }
+      .payment-item .name { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="container">
+      <div class="logo">🛜 Auto<span>Ticket</span></div>
+      <nav class="nav">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#how-it-works">Comment ça marche</a>
+        <a href="login.html" class="btn-login">🔐 Se connecter</a>
+        <a href="register.html" class="btn-register">S'inscrire</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <span class="badge">✅ Solution n°1 au Niger</span>
+      <h1>Vendez vos tickets WiFi<br><span>même en votre absence</span></h1>
+      <p>Avec AutoTicket, vos clients achètent leurs tickets WiFi en ligne, paient par Mobile Money et reçoivent leur code instantanément, même lorsque vous êtes absent.</p>
+      <a href="register.html" class="btn-hero">🚀 Créer mon compte</a>
+    </div>
+  </section>
+
+  <!-- ========== STATISTIQUES DYNAMIQUES ========== -->
+  <div class="container">
+    <div class="stats-demo">
+      <div class="stat-demo">
+        <div class="number" id="stat-today-count">0</div>
+        <div class="label">Ventes aujourd'hui</div>
+        <div class="sub" id="stat-last-sale">Chargement...</div>
+      </div>
+      <div class="stat-demo">
+        <div class="number" id="stat-today-revenue">0 F</div>
+        <div class="label">Revenus du jour</div>
+        <div class="sub">Mis à jour en temps réel</div>
+      </div>
+      <div class="stat-demo">
+        <div class="number" id="stat-tickets">0</div>
+        <div class="label">Tickets disponibles</div>
+        <div class="sub">En stock</div>
+      </div>
+      <div class="stat-demo">
+        <div class="number" id="stat-total-revenue">0 F</div>
+        <div class="label">Revenus totaux</div>
+        <div class="sub">Depuis le début</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MOYENS DE PAIEMENT AVEC VRAIS LOGOS ========== -->
+  <div class="container">
+    <div class="payment-section">
+      <div class="label">💳 Vos clients peuvent payer avec</div>
+      <div class="sub">Paiement sécurisé par Mobile Money</div>
+      <div class="payment-grid">
+
+        <div class="payment-item">
+          <img src="img/airtel.png" alt="Airtel Money" class="logo">
+          <span class="name">Airtel Money</span>
+        </div>
+
+        <div class="payment-item">
+          <img src="img/orange.png" alt="Orange Money" class="logo">
+          <span class="name">Orange Money</span>
+        </div>
+
+        <div class="payment-item">
+          <img src="img/moov.png" alt="Moov Flooz" class="logo">
+          <span class="name">Moov Flooz</span>
+        </div>
+
+        <div class="payment-item">
+          <img src="img/mynita.png" alt="mynita" class="logo">
+          <span class="name">MyNita</span>
+        </div>
+
+        <div class="payment-item">
+          <img src="img/amana.png" alt="AmanaTa" class="logo">
+          <span class="name">AmanaTa</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== FONCTIONNALITÉS ========== -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2>🌟 Pourquoi choisir AutoTicket ?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="icon">📱</span>
+          <h3>Paiement Mobile Money</h3>
+          <p>Airtel Money, Orange Money, Moov Flooz, MyNita, AmanaTa</p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">🔄</span>
+          <h3>Automatisation totale</h3>
+          <p>Vendez des tickets 24h/24, même en votre absence</p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">📊</span>
+          <h3>Tableau de bord</h3>
+          <p>Suivez vos ventes, revenus et stock en temps réel</p>
+        </div>
+        <div class="feature-card">
+          <span class="icon">🔒</span>
+          <h3>Sécurisé</h3>
+          <p>Données chiffrées et paiements sécurisés</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== COMMENT ÇA MARCHE ========== -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <h2>📋 Comment ça marche ?</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <h4>Créez votre compte</h4>
+          <p>Inscrivez-vous en 1 minute</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h4>Configurez votre zone</h4>
+          <p>Ajoutez vos forfaits et tarifs</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h4>Importez vos tickets</h4>
+          <p>Chargez vos codes WiFi</p>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <h4>Vendez en automatique</h4>
+          <p>Partagez votre lien et recevez les paiements</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <div>
+        <div class="logo">🛜 Auto<span>Ticket</span></div>
+        <p style="margin-top:8px;font-size:14px;color:#7f8c8d;">Vente de tickets WiFi au Niger</p>
+      </div>
+      <div class="links">
+        <a href="register.html">S'inscrire</a>
+        <a href="login.html">Se connecter</a>
+        <a href="achat.html">Acheter un ticket</a>
+        <a href="faq.html">FAQ</a>
+        <a href="guide.html">Guide</a>
+      </div>
+    </div>
+    <div class="copy">
+      © 2026 AutoTicket Niger 🇳🇪 – Tous droits réservés
+    </div>
+  </footer>
+
+  <script>
+    const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
+    const USER_ID = '6a7a76ba6b197186941d4937';
+
+    async function loadStats() {
+      try {
+        const response = await fetch(`${API_URL}/stats/${USER_ID}`);
+        const stats = await response.json();
+
+        document.getElementById('stat-today-count').textContent = stats.today?.count || 0;
+        document.getElementById('stat-today-revenue').textContent = (stats.today?.revenue || 0).toLocaleString() + ' F';
+        document.getElementById('stat-total-revenue').textContent = (stats.total?.revenue || 0).toLocaleString() + ' F';
+        document.getElementById('stat-tickets').textContent = stats.availableTickets || 0;
+
+        if (stats.total?.count > 0) {
+          document.getElementById('stat-last-sale').textContent = `${stats.total.count} ventes totales`;
+        } else {
+          document.getElementById('stat-last-sale').textContent = 'Aucune vente pour le moment';
+        }
+      } catch (error) {
+        console.error('Erreur chargement statistiques:', error);
+      }
+    }
+
+    loadStats();
+    setInterval(loadStats, 30000);
+  </script>
+
+</body>
+</html>

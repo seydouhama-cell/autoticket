@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - AutoTicket 🇳🇪</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #1a1a2e; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #0d1b2a, #1b3a4b); color: white; padding: 24px; border-radius: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .header h1 { font-size: 28px; }
+    .header h1 span { color: #e67e22; }
+    .header .badge { background: #e67e22; color: white; padding: 6px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1px solid #e9ecef; }
+    .stat-card .number { font-size: 28px; font-weight: 700; }
+    .stat-card .number.gold { color: #e67e22; }
+    .stat-card .number.green { color: #27ae60; }
+    .stat-card .number.blue { color: #3498db; }
+    .stat-card .number.red { color: #e74c3c; }
+    .stat-card .label { font-size: 13px; color: #7f8c8d; margin-top: 4px; }
+
+    .chart-section { background: white; border-radius: 16px; padding: 24px; border: 1px solid #e9ecef; margin-bottom: 24px; }
+    .chart-section h2 { font-size: 18px; margin-bottom: 16px; border-left: 4px solid #e67e22; padding-left: 12px; }
+    .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+
+    .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; overflow-x: auto; }
+    .table-wrap h2 { font-size: 18px; margin-bottom: 16px; border-left: 4px solid #e67e22; padding-left: 12px; }
+    .table-wrap table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .table-wrap th { text-align: left; padding: 10px 12px; background: #f8f9fa; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e9ecef; }
+    .table-wrap td { padding: 10px 12px; border-bottom: 1px solid #f0f2f5; }
+    .table-wrap tr:last-child td { border-bottom: none; }
+    .table-wrap .status { padding: 2px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .table-wrap .status.completed { background: #d5f5e3; color: #1a7a42; }
+    .table-wrap .status.pending { background: #fef9e7; color: #b7950b; }
+
+    .btn-back { background: #2c3e50; color: white; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; }
+    .btn-back:hover { background: #1a252f; }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .header { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div>
+      <h1>📊 Admin <span>Dashboard</span></h1>
+      <p style="color:#7f8c8d;font-size:14px;">Gestion des commissions et retraits</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <span class="badge">💰 Commissions</span>
+      <a href="dashboard.html" class="btn-back">⬅ Retour</a>
+    </div>
+  </div>
+
+  <!-- STATISTIQUES -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card">
+      <div class="number gold" id="stat-commission">0 F</div>
+      <div class="label">💰 Commissions totales (5%)</div>
+    </div>
+    <div class="stat-card">
+      <div class="number blue" id="stat-retraits">0</div>
+      <div class="label">📊 Nombre de retraits</div>
+    </div>
+    <div class="stat-card">
+      <div class="number green" id="stat-withdrawn">0 F</div>
+      <div class="label">💸 Montant total retiré</div>
+    </div>
+    <div class="stat-card">
+      <div class="number red" id="stat-fees">0 F</div>
+      <div class="label">📋 Frais (4%)</div>
+    </div>
+  </div>
+
+  <!-- GRAPHIQUE -->
+  <div class="chart-section">
+    <h2>📈 Évolution des commissions</h2>
+    <div class="chart-grid">
+      <div>
+        <canvas id="commissionChart" height="200"></canvas>
+      </div>
+      <div>
+        <h3 style="font-size:14px;color:#7f8c8d;margin-bottom:12px;">📊 Par méthode de paiement</h3>
+        <canvas id="methodChart" height="180"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- DERNIERS RETRAITS -->
+  <div class="table-wrap">
+    <h2>📋 Derniers retraits</h2>
+    <div id="withdrawals-table">
+      <p style="color:#7f8c8d;text-align:center;padding:20px;">Chargement...</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
+  let commissionChart = null;
+  let methodChart = null;
+
+  function formatPrice(amount) {
+    return amount.toLocaleString() + ' FCFA';
+  }
+
+  async function loadAdminStats() {
+    try {
+      const response = await fetch(`${API_URL}/admin/commissions/stats`);
+      const data = await response.json();
+
+      document.getElementById('stat-commission').textContent = formatPrice(data.totalCommission || 0);
+      document.getElementById('stat-retraits').textContent = data.totalRetraits || 0;
+      document.getElementById('stat-withdrawn').textContent = formatPrice(data.totalWithdrawn || 0);
+      document.getElementById('stat-fees').textContent = formatPrice(data.totalFees || 0);
+
+      // Graphique des commissions
+      if (data.dailyData) {
+        const dates = Object.keys(data.dailyData).sort();
+        const commissions = dates.map(d => data.dailyData[d].commission);
+        const counts = dates.map(d => data.dailyData[d].count);
+
+        const ctx = document.getElementById('commissionChart').getContext('2d');
+        if (commissionChart) commissionChart.destroy();
+        commissionChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: dates.map(d => d.slice(5)),
+            datasets: [
+              {
+                label: 'Commissions (FCFA)',
+                data: commissions,
+                backgroundColor: 'rgba(230, 126, 34, 0.7)',
+                borderColor: '#e67e22',
+                borderWidth: 2,
+                borderRadius: 4,
+                order: 1
+              },
+              {
+                label: 'Nombre de retraits',
+                data: counts,
+                type: 'line',
+                borderColor: '#27ae60',
+                borderWidth: 3,
+                pointBackgroundColor: '#27ae60',
+                pointRadius: 4,
+                tension: 0.3,
+                fill: false,
+                order: 0
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let label = context.dataset.label || '';
+                    let value = context.raw || 0;
+                    if (context.dataset.label.includes('Commissions')) {
+                      return label + ': ' + value.toLocaleString() + ' FCFA';
+                    }
+                    return label + ': ' + value;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+
+      // Graphique par méthode
+      if (data.byMethod) {
+        const methods = Object.keys(data.byMethod);
+        const commissions = methods.map(m => data.byMethod[m].commission);
+        const colors = ['#e67e22', '#f39c12', '#27ae60', '#3498db', '#9b59b6'];
+
+        const ctx2 = document.getElementById('methodChart').getContext('2d');
+        if (methodChart) methodChart.destroy();
+        methodChart = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: methods,
+            datasets: [{
+              data: commissions,
+              backgroundColor: colors.slice(0, methods.length),
+              borderWidth: 2,
+              borderColor: '#fff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10, padding: 8 } },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    let percentage = total > 0 ? Math.round((context.raw / total) * 100) : 0;
+                    return context.label + ': ' + context.raw.toLocaleString() + ' F (' + percentage + '%)';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Tableau des retraits
+      const tableContainer = document.getElementById('withdrawals-table');
+      if (data.withdrawals && data.withdrawals.length > 0) {
+        let html = `
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Vendeur</th>
+                <th>Montant</th>
+                <th>Commission (5%)</th>
+                <th>Net</th>
+                <th>Méthode</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        data.withdrawals.slice(0, 20).forEach(w => {
+          const date = new Date(w.createdAt).toLocaleDateString('fr-FR');
+          const name = w.userId?.name || 'Inconnu';
+          html += `
+            <tr>
+              <td>${date}</td>
+              <td><strong>${name}</strong></td>
+              <td>${formatPrice(w.amount)}</td>
+              <td style="color:#e67e22;font-weight:600;">${formatPrice(w.commissionAmount || 0)}</td>
+              <td style="color:#27ae60;">${formatPrice(w.netAmount || 0)}</td>
+              <td>${w.method || 'N/A'}</td>
+              <td><span class="status ${w.status || 'pending'}">${w.status || 'pending'}</span></td>
+            </tr>
+          `;
+        });
+        html += `</tbody></table>`;
+        if (data.withdrawals.length > 20) {
+          html += `<p style="color:#7f8c8d;font-size:13px;text-align:center;padding-top:12px;">... et ${data.withdrawals.length - 20} autres retraits</p>`;
+        }
+        tableContainer.innerHTML = html;
+      } else {
+        tableContainer.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:20px;">Aucun retrait effectué</p>';
+      }
+
+    } catch (error) {
+      console.error('Erreur chargement stats admin:', error);
+      document.getElementById('withdrawals-table').innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">Erreur chargement des données</p>';
+    }
+  }
+
+  loadAdminStats();
+  setInterval(loadAdminStats, 60000);
+</script>
+</body>
+</html>
