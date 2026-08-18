@@ -175,6 +175,7 @@
       <li onclick="showTab('retrait')"><span class="icon">💰</span> Retraits</li>
       <li onclick="showTab('mikrotik')"><span class="icon">🛜</span> MikroTik</li>
       <li onclick="showTab('gps')"><span class="icon">📍</span> GPS</li>
+      <li onclick="window.location.href='admin.html'"><span class="icon">👑</span> Admin</li>
       <li class="menu-bottom">
         <li onclick="window.location.href='abonnement.html'"><span class="icon">📋</span> Abonnement</li>
         <li onclick="window.location.href='parametres.html'"><span class="icon">⚙️</span> Paramètres</li>
@@ -403,8 +404,7 @@
 <script>
   // =============================================
   // CONFIGURATION
-  // =============================================
-  const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
+  // =============================================  const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
   let USER_ID = localStorage.getItem('userId') || '6a7a76ba6b197186941d4937';
 
   let salesChart = null;

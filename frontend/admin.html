@@ -109,6 +109,24 @@
 </div>
 
 <script>
+  // =============================================
+  // PROTECTION ADMIN - MOT DE PASSE
+  // =============================================
+  const ADMIN_PASSWORD = 'Admin123456';
+
+  if (!sessionStorage.getItem('adminAuth')) {
+    const password = prompt('🔐 Entrez le mot de passe admin :');
+    if (password !== ADMIN_PASSWORD) {
+      alert('❌ Mot de passe incorrect !');
+      window.location.href = 'dashboard.html';
+    } else {
+      sessionStorage.setItem('adminAuth', 'true');
+    }
+  }
+
+  // =============================================
+  // CHARGEMENT DES DONNÉES
+  // =============================================
   const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
   let commissionChart = null;
   let methodChart = null;
