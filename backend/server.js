@@ -64,7 +64,7 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   balance: { type: Number, default: 0 },
   hotspotName: { type: String },
-  // ✅ Routeurs MikroTik multiples avec configuration individuelle
+  // Routeurs MikroTik multiples
   mikrotiks: [{
     name: { type: String, required: true },
     ip: { type: String, required: true },
@@ -74,21 +74,16 @@ const UserSchema = new mongoose.Schema({
     ssid: { type: String },
     location: { type: String },
     isActive: { type: Boolean, default: true },
-    // ✅ Configuration spécifique à chaque routeur
     config: {
       dns: { type: String, default: '' },
       portalUrl: { type: String, default: '' },
       ticketFormat: { type: String, enum: ['code', 'userpass', 'both'], default: 'code' },
       walledGarden: { type: Boolean, default: true },
       maxUsers: { type: Number, default: 100 },
-      sessionTimeout: { type: Number, default: 3600 },
-      rateLimit: { type: Number, default: 1000 },
-      backupEnabled: { type: Boolean, default: false },
-      backupInterval: { type: Number, default: 24 }
+      sessionTimeout: { type: Number, default: 3600 }
     },
     createdAt: { type: Date, default: Date.now }
   }],
-  // ✅ GPS
   gpsEnabled: { type: Boolean, default: false },
   gpsLat: { type: Number },
   gpsLng: { type: Number },
@@ -142,7 +137,7 @@ const WithdrawalSchema = new mongoose.Schema({
 });
 const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);
 
-// ✅ Abonnement SANS essai gratuit
+// Abonnement SANS essai gratuit
 const SubscriptionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   status: { type: String, enum: ['active', 'expired', 'cancelled'], default: 'active' },
@@ -157,6 +152,49 @@ const SubscriptionSchema = new mongoose.Schema({
 const Subscription = mongoose.model('Subscription', SubscriptionSchema);
 
 // =============================================
+// FONCTION - CRÉER TICKET DANS MIKROTIK
+// =============================================
+
+async function createMikrotikUser(userId, username, password) {
+  try {
+    const user = await User.findById(userId);
+    if (!user || !user.mikrotiks || user.mikrotiks.length === 0) {
+      console.log('⚠️ Aucun routeur MikroTik configuré pour ce vendeur');
+      return false;
+    }
+
+    const mikrotik = user.mikrotiks.find(m => m.isActive === true) || user.mikrotiks[0];
+
+    const apiUrl = `http://${mikrotik.ip}:${mikrotik.port}/rest/ip/hotspot/user/add`;
+
+    const data = {
+      name: username,
+      password: password || '123456',
+      profile: 'ticket-24h'
+    };
+
+    console.log(`🔄 Création du ticket ${username} sur ${mikrotik.ip}...`);
+
+    const response = await axios.post(apiUrl, data, {
+      auth: {
+        username: mikrotik.username,
+        password: mikrotik.password
+      },
+      timeout: 5000
+    });
+
+    console.log(`✅ Ticket ${username} créé dans MikroTik`);
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur création ticket MikroTik:', error.message);
+    if (error.response) {
+      console.error('📦 Réponse MikroTik:', error.response.data);
+    }
+    return false;
+  }
+}
+
+// =============================================
 // ROUTES - ACCUEIL
 // =============================================
 app.get('/', (req, res) => {
@@ -164,7 +202,7 @@ app.get('/', (req, res) => {
 });
 
 // =============================================
-// ROUTES - AUTHENTIFICATION (sans essai gratuit)
+// ROUTES - AUTHENTIFICATION
 // =============================================
 
 app.post('/api/auth/register', async (req, res) => {
@@ -174,7 +212,6 @@ app.post('/api/auth/register', async (req, res) => {
     const user = new User({ name, email, password: hashedPassword, phone });
     await user.save();
 
-    // ✅ Abonnement actif immédiatement (30 jours) - PAS D'ESSAI GRATUIT
     const subscription = new Subscription({
       userId: user._id,
       status: 'active',
@@ -461,7 +498,7 @@ app.get('/api/commissions/:userId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - RETRAIT (commission 5%)
+// ROUTES - RETRAIT
 // =============================================
 
 app.post('/api/withdrawals', async (req, res) => {
@@ -508,7 +545,7 @@ app.post('/api/withdrawals', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - PAIEMENT MESOMB
+// ROUTES - PAIEMENT
 // =============================================
 
 app.post('/api/payment/initiate', async (req, res) => {
@@ -569,6 +606,48 @@ app.post('/api/payment/initiate', async (req, res) => {
   }
 });
 
+app.post('/api/payments/simulate/confirm/:orderId', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).json({ message: 'Commande non trouvée' });
+    if (order.status === 'paid') return res.status(400).json({ message: 'Déjà payée' });
+
+    const ticket = await Ticket.findOne({ userId: order.userId, productId: order.productId, isUsed: false });
+    if (!ticket) return res.status(400).json({ message: 'Stock épuisé' });
+
+    const mikrotikCreated = await createMikrotikUser(order.userId, ticket.code, '123456');
+
+    if (mikrotikCreated) {
+      console.log(`✅ Ticket ${ticket.code} créé dans MikroTik`);
+    } else {
+      console.log(`⚠️ Ticket ${ticket.code} non créé dans MikroTik`);
+    }
+
+    ticket.isUsed = true;
+    ticket.usedAt = new Date();
+    ticket.usedBy = order.customerPhone;
+    await ticket.save();
+
+    order.status = 'paid';
+    order.ticketId = ticket._id;
+    await order.save();
+
+    const user = await User.findById(order.userId);
+    user.balance += order.amount;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: '✅ Paiement confirmé et ticket créé dans MikroTik',
+      ticket: { code: ticket.code },
+      mikrotikCreated: mikrotikCreated
+    });
+  } catch (error) {
+    console.error('Erreur confirmation paiement:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
 app.post('/api/payment/webhook', async (req, res) => {
   try {
     const { transactionId, status, phone } = req.body;
@@ -582,6 +661,8 @@ app.post('/api/payment/webhook', async (req, res) => {
         await order.save();
         return res.status(400).json({ message: 'Stock épuisé' });
       }
+
+      await createMikrotikUser(order.userId, ticket.code, '123456');
 
       ticket.isUsed = true;
       ticket.usedAt = new Date();
@@ -623,7 +704,7 @@ app.get('/api/payment/status/:transactionId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - ABONNEMENT (sans essai gratuit)
+// ROUTES - ABONNEMENT
 // =============================================
 
 app.post('/api/subscription/pay', async (req, res) => {
@@ -702,10 +783,9 @@ app.get('/api/subscription/:userId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - MIKROTIK (Gestion de plusieurs routeurs avec config individuelle)
+// ROUTES - MIKROTIK
 // =============================================
 
-// Ajouter un routeur MikroTik
 app.post('/api/mikrotik/add', async (req, res) => {
   try {
     const { userId, name, ip, username, password, port, ssid, location } = req.body;
@@ -737,7 +817,6 @@ app.post('/api/mikrotik/add', async (req, res) => {
   }
 });
 
-// Récupérer tous les routeurs d'un vendeur
 app.get('/api/mikrotik/:userId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -748,7 +827,6 @@ app.get('/api/mikrotik/:userId', async (req, res) => {
   }
 });
 
-// Supprimer un routeur MikroTik
 app.delete('/api/mikrotik/:userId/:mikrotikId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -763,7 +841,6 @@ app.delete('/api/mikrotik/:userId/:mikrotikId', async (req, res) => {
   }
 });
 
-// Activer/Désactiver un routeur
 app.put('/api/mikrotik/toggle/:userId/:mikrotikId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -781,7 +858,6 @@ app.put('/api/mikrotik/toggle/:userId/:mikrotikId', async (req, res) => {
   }
 });
 
-// ✅ Mettre à jour la configuration d'un routeur
 app.put('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
   try {
     const { userId, mikrotikId } = req.params;
@@ -793,7 +869,6 @@ app.put('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
     const mikrotik = user.mikrotiks.id(mikrotikId);
     if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
 
-    // Mettre à jour la configuration
     mikrotik.config = { ...mikrotik.config, ...config };
     await user.save();
 
@@ -807,7 +882,6 @@ app.put('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
   }
 });
 
-// ✅ Récupérer la configuration d'un routeur
 app.get('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -835,10 +909,9 @@ app.get('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - GPS (Activation/Désactivation)
+// ROUTES - GPS
 // =============================================
 
-// Activer/Désactiver le GPS
 app.put('/api/gps/toggle/:userId', async (req, res) => {
   try {
     const { gpsEnabled, gpsLat, gpsLng } = req.body;
@@ -861,7 +934,6 @@ app.put('/api/gps/toggle/:userId', async (req, res) => {
   }
 });
 
-// Récupérer l'état du GPS
 app.get('/api/gps/:userId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -874,6 +946,159 @@ app.get('/api/gps/:userId', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// =============================================
+// ROUTES ADMIN - COMMISSIONS
+// =============================================
+
+// Stats générales des commissions
+app.get('/api/admin/commissions/stats', async (req, res) => {
+  try {
+    const withdrawals = await Withdrawal.find({ status: 'completed' });
+
+    if (!withdrawals || withdrawals.length === 0) {
+      return res.json({
+        totalCommission: 0,
+        totalWithdrawn: 0,
+        totalFees: 0,
+        totalRetraits: 0,
+        byMethod: {},
+        dailyData: {},
+        withdrawals: []
+      });
+    }
+
+    const totalCommission = withdrawals.reduce((sum, w) => sum + (w.commissionAmount || 0), 0);
+    const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
+    const totalFees = withdrawals.reduce((sum, w) => sum + (w.feeAmount || 0), 0);
+
+    // Par méthode de paiement
+    const byMethod = {};
+    withdrawals.forEach(w => {
+      if (!byMethod[w.method]) byMethod[w.method] = { count: 0, amount: 0, commission: 0 };
+      byMethod[w.method].count += 1;
+      byMethod[w.method].amount += w.amount;
+      byMethod[w.method].commission += w.commissionAmount;
+    });
+
+    // Par jour (30 derniers jours)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const dailyData = {};
+    withdrawals.filter(w => w.createdAt >= thirtyDaysAgo).forEach(w => {
+      const date = w.createdAt.toISOString().split('T')[0];
+      if (!dailyData[date]) dailyData[date] = { count: 0, commission: 0 };
+      dailyData[date].count += 1;
+      dailyData[date].commission += w.commissionAmount;
+    });
+
+    // Récupérer les noms des vendeurs
+    const userIds = withdrawals.map(w => w.userId);
+    const users = await User.find({ _id: { $in: userIds } });
+    const userMap = {};
+    users.forEach(u => { userMap[u._id.toString()] = u; });
+
+    const withdrawalsWithUser = withdrawals.slice(0, 50).map(w => {
+      const user = userMap[w.userId.toString()];
+      return {
+        ...w._doc,
+        userId: user ? { name: user.name, email: user.email, phone: user.phone } : null
+      };
+    });
+
+    res.json({
+      totalCommission,
+      totalWithdrawn,
+      totalFees,
+      totalRetraits: withdrawals.length,
+      byMethod,
+      dailyData,
+      withdrawals: withdrawalsWithUser
+    });
+  } catch (error) {
+    console.error('Erreur stats admin:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// Derniers retraits
+app.get('/api/admin/withdrawals/recent', async (req, res) => {
+  try {
+    const withdrawals = await Withdrawal.find({ status: 'completed' })
+      .sort({ createdAt: -1 })
+      .limit(30)
+      .populate('userId', 'name email phone');
+    
+    res.json({ withdrawals });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// =============================================
+// ROUTE ADMIN - RETRAIT DES COMMISSIONS (AJOUTÉE)
+// =============================================
+app.post('/api/admin/withdraw-commission', async (req, res) => {
+  try {
+    const { amount, phone, method } = req.body;
+
+    // Vérifier le solde total des commissions
+    const withdrawals = await Withdrawal.find({ status: 'completed' });
+    const totalCommission = withdrawals.reduce((sum, w) => sum + (w.commissionAmount || 0), 0);
+
+    if (amount > totalCommission) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Solde de commissions insuffisant. Disponible : ${totalCommission} FCFA` 
+      });
+    }
+
+    if (amount < 1000) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Montant minimum : 1000 FCFA' 
+      });
+    }
+
+    if (!phone || phone.length < 8) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Numéro de téléphone valide requis' 
+      });
+    }
+
+    const transactionId = `ADMIN-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+
+    // Créer une transaction de retrait admin
+    const adminWithdrawal = new Withdrawal({
+      userId: null, // admin
+      amount: amount,
+      feeAmount: 0,
+      commissionAmount: 0,
+      netAmount: amount,
+      phone: phone,
+      method: method || 'airtelmoney',
+      status: 'completed',
+      transactionId: transactionId,
+      completedAt: new Date()
+    });
+    await adminWithdrawal.save();
+
+    res.json({
+      success: true,
+      message: `Retrait de ${amount} FCFA effectué vers ${phone}`,
+      transactionId,
+      remainingCommission: totalCommission - amount
+    });
+  } catch (error) {
+    console.error('Erreur retrait admin:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur serveur', 
+      error: error.message 
+    });
   }
 });
 

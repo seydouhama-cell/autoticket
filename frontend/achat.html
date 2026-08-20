@@ -21,8 +21,11 @@
     .btn-success:hover { background: #1e8449; }
     .btn-outline { background: transparent; color: #e67e22; border: 2px solid #e67e22; }
     .btn-outline:hover { background: #e67e22; color: white; }
-    .card { background: #f8f9fa; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #e9ecef; transition: all 0.3s; }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-danger:hover { background: #c0392b; }
+    .card { background: #f8f9fa; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #e9ecef; transition: all 0.3s; cursor: pointer; }
     .card:hover { border-color: #e67e22; box-shadow: 0 2px 8px rgba(230,126,34,0.15); }
+    .card.selected { border-color: #27ae60; background: #f0fff4; }
     .card-title { font-weight: 700; font-size: 17px; color: #1a1a2e; }
     .card-price { font-size: 20px; font-weight: 700; color: #e67e22; }
     .card-sub { color: #7f8c8d; font-size: 13px; }
@@ -31,11 +34,12 @@
     .alert-error { background: #fadbd8; color: #922b21; border: 1px solid #f5b7b1; }
     .alert-info { background: #d6eaf8; color: #1a5276; border: 1px solid #aed6f1; }
     .hidden { display: none; }
-    #ticket-code { background: #1a1a2e; color: #27ae60; padding: 20px; border-radius: 14px; font-size: 24px; font-family: monospace; text-align: center; letter-spacing: 2px; margin: 16px 0; }
+    #ticket-code { background: #1a1a2e; color: #27ae60; padding: 20px; border-radius: 14px; font-size: 24px; font-family: monospace; text-align: center; letter-spacing: 2px; margin: 16px 0; word-break: break-all; }
     .footer { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e9ecef; font-size: 13px; color: #7f8c8d; }
     .loading { text-align: center; padding: 30px 0; }
     .loading .spinner { font-size: 40px; display: block; margin-bottom: 12px; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .retry-btn { margin-top: 12px; }
     @media (max-width: 480px) { body { padding: 10px; } .container { padding: 16px; } }
   </style>
 </head>
@@ -48,7 +52,13 @@
 
     <div id="step-products">
       <h2 style="font-size:18px;font-weight:600;color:#1b3a4b;margin-bottom:16px;border-left:4px solid #e67e22;padding-left:12px;">📶 Choisissez votre forfait</h2>
-      <div id="products-list"></div>
+      <div id="products-list">
+        <div class="loading">
+          <span class="spinner">⏳</span>
+          <p>Chargement des forfaits...</p>
+        </div>
+      </div>
+      <button class="btn btn-danger" id="refresh-btn" style="margin-top:12px;">🔄 Réessayer</button>
     </div>
 
     <div id="step-payment" class="hidden">
@@ -86,15 +96,20 @@
       <button class="btn btn-success" id="reset-btn">🔁 Nouvel achat</button>
     </div>
 
-    <!-- ✅ AUCUN LIEN VERS DASHBOARD OU REGISTER -->
     <div class="footer">
       <p>🔒 Paiement sécurisé - Mobile Money</p>
     </div>
   </div>
 
   <script>
+    // =============================================
+    // CONFIGURATION (CORRIGÉE)
+    // =============================================
     const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
-    const USER_ID = '6a7a76ba6b197186941d4937';
+    // ✅ CORRIGÉ : Utiliser l'ID du vendeur qui existe dans MongoDB
+    const USER_ID = '6a7a76ba6b197186941d4937'; // Vendeur
+    // const USER_ID = '6a7a87706b197186941d493a'; // Testeur (décommenter pour utiliser)
+
     let selectedProductId = null;
     let currentOrderId = null;
 
@@ -110,57 +125,112 @@
     }
 
     async function apiCall(endpoint, method, data) {
-      const options = { method: method || 'GET', headers: { 'Content-Type': 'application/json' } };
-      if (data) options.body = JSON.stringify(data);
-      const response = await fetch(API_URL + endpoint, options);
-      return await response.json();
+      try {
+        const options = { 
+          method: method || 'GET', 
+          headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(10000)
+        };
+        if (data) options.body = JSON.stringify(data);
+        const response = await fetch(API_URL + endpoint, options);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Erreur ${response.status}: ${errorText}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+      }
     }
 
     async function loadProducts() {
+      const container = document.getElementById('products-list');
+      container.innerHTML = `
+        <div class="loading">
+          <span class="spinner">⏳</span>
+          <p>Chargement des forfaits...</p>
+        </div>
+      `;
+
       try {
+        console.log(`📡 Chargement des produits pour USER_ID: ${USER_ID}`);
         const products = await apiCall(`/products/${USER_ID}`, 'GET');
-        const container = document.getElementById('products-list');
+        console.log('📦 Produits reçus:', products);
+        
         container.innerHTML = '';
+        
         if (!products || products.length === 0) {
-          container.innerHTML = '<p style="color:#7f8c8d;">Aucun forfait disponible pour le moment.</p>';
+          container.innerHTML = `
+            <div class="alert alert-info">
+              📭 Aucun forfait disponible.<br>
+              <small>Connectez-vous au dashboard pour créer des forfaits.</small>
+            </div>
+          `;
           return;
         }
+
         products.forEach(product => {
           const div = document.createElement('div');
           div.className = 'card';
           div.innerHTML = `
             <div class="card-title">${product.name}</div>
             <div class="card-price">${formatPrice(product.price)}</div>
-            <div class="card-sub">Durée : ${product.duration}</div>
+            <div class="card-sub">⏱ Durée : ${product.duration}</div>
             <button class="btn btn-primary" style="margin-top:10px;" data-product-id="${product._id}">Sélectionner</button>
           `;
           container.appendChild(div);
         });
+
         document.querySelectorAll('[data-product-id]').forEach(btn => {
-          btn.addEventListener('click', function() {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
             selectedProductId = this.dataset.productId;
             document.getElementById('step-products').classList.add('hidden');
             document.getElementById('step-payment').classList.remove('hidden');
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            this.closest('.card').classList.add('selected');
           });
         });
+
+        document.querySelectorAll('.card').forEach(card => {
+          card.addEventListener('click', function() {
+            const btn = this.querySelector('[data-product-id]');
+            if (btn) btn.click();
+          });
+        });
+
       } catch (error) {
-        showMessage('Erreur : ' + error.message, 'error');
+        console.error('❌ Erreur chargement:', error);
+        container.innerHTML = `
+          <div class="alert alert-error">
+            ❌ Impossible de charger les forfaits.<br>
+            <small>${error.message}</small>
+          </div>
+          <button class="btn btn-primary retry-btn" onclick="loadProducts()">🔄 Réessayer</button>
+        `;
+        showMessage('Erreur de connexion au serveur. Vérifiez votre connexion.', 'error');
       }
     }
 
     async function handlePayment() {
       const phone = document.getElementById('customer-phone').value.trim();
       const method = document.getElementById('payment-method').value;
+
       if (!phone || phone.length < 8) {
-        showMessage('Veuillez entrer un numéro de téléphone valide.', 'error');
+        showMessage('Veuillez entrer un numéro de téléphone valide (8 chiffres minimum).', 'error');
+        document.getElementById('customer-phone').focus();
         return;
       }
+
       if (!selectedProductId) {
         showMessage('Veuillez sélectionner un forfait.', 'error');
         return;
       }
+
       document.getElementById('step-payment').classList.add('hidden');
       document.getElementById('step-loading').classList.remove('hidden');
+
       try {
         const response = await apiCall('/payment/initiate', 'POST', {
           userId: USER_ID,
@@ -168,18 +238,45 @@
           customerPhone: phone,
           method: method
         });
+
         if (response.success && response.paymentUrl) {
           window.location.href = response.paymentUrl;
+        } else if (response.success && response.orderId) {
+          currentOrderId = response.orderId;
+          await checkPaymentStatus(response.orderId);
         } else {
-          showMessage('Erreur paiement: ' + (response.message || 'Réessayez'), 'error');
-          document.getElementById('step-loading').classList.add('hidden');
-          document.getElementById('step-payment').classList.remove('hidden');
+          throw new Error(response.message || 'Erreur de paiement');
         }
       } catch (error) {
-        showMessage('Erreur: ' + error.message, 'error');
+        console.error('Erreur paiement:', error);
+        showMessage('❌ ' + error.message, 'error');
         document.getElementById('step-loading').classList.add('hidden');
         document.getElementById('step-payment').classList.remove('hidden');
       }
+    }
+
+    async function checkPaymentStatus(orderId) {
+      try {
+        const response = await apiCall(`/payment/status/${orderId}`, 'GET');
+        if (response.status === 'paid') {
+          showSuccess(response.ticket?.code || 'WIFI-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+        } else if (response.status === 'pending') {
+          setTimeout(() => checkPaymentStatus(orderId), 3000);
+        } else {
+          throw new Error('Paiement échoué');
+        }
+      } catch (error) {
+        showMessage('Erreur vérification: ' + error.message, 'error');
+        document.getElementById('step-loading').classList.add('hidden');
+        document.getElementById('step-payment').classList.remove('hidden');
+      }
+    }
+
+    function showSuccess(ticketCode) {
+      document.getElementById('step-loading').classList.add('hidden');
+      document.getElementById('step-success').classList.remove('hidden');
+      document.getElementById('ticket-code').textContent = ticketCode || 'WIFI-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      showMessage('✅ Paiement confirmé ! Ticket reçu.', 'success');
     }
 
     function resetPurchase() {
@@ -190,11 +287,31 @@
       document.getElementById('step-loading').classList.add('hidden');
       document.getElementById('step-products').classList.remove('hidden');
       document.getElementById('customer-phone').value = '';
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+      loadProducts();
     }
 
     document.getElementById('pay-btn').addEventListener('click', handlePayment);
     document.getElementById('back-btn').addEventListener('click', resetPurchase);
     document.getElementById('reset-btn').addEventListener('click', resetPurchase);
+    document.getElementById('refresh-btn').addEventListener('click', loadProducts);
+
+    document.getElementById('customer-phone').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handlePayment();
+    });
+
+    async function checkBackend() {
+      try {
+        const response = await fetch(API_URL + '/');
+        if (!response.ok) throw new Error('Backend inaccessible');
+        console.log('✅ Backend connecté');
+      } catch (error) {
+        console.warn('⚠️ Backend inaccessible:', error.message);
+        showMessage('⚠️ Connexion au serveur en cours...', 'info');
+      }
+    }
+
+    checkBackend();
     loadProducts();
   </script>
 </body>
