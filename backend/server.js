@@ -21,9 +21,13 @@ const PORT = 3000;
 // =============================================
 const MONGODB_URI = 'mongodb+srv://seydouhama_db_user:0vhZGIf4XNpcazGp@cluster0.bvwootp.mongodb.net/autoticket';
 
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Connecté à MongoDB'))
-  .catch(err => console.log('❌ Erreur MongoDB:', err.message));
+mongoose.connect(MONGODB_URI, {
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 30000
+})
+.then(() => console.log('✅ Connecté à MongoDB Atlas'))
+.catch(err => console.log('❌ Erreur MongoDB:', err.message));
 
 app.use(cors());
 app.use(express.json());
@@ -200,7 +204,6 @@ async function createMikrotikUser(userId, username, password) {
 app.get('/', (req, res) => {
   res.json({ message: '🚀 AutoTicket avec MeSomb, import PDF, MikroTik multiple et GPS !' });
 });
-
 // =============================================
 // ROUTES - AUTHENTIFICATION
 // =============================================
@@ -227,6 +230,7 @@ app.post('/api/auth/register', async (req, res) => {
       user: { id: user._id, name, email, phone, balance: user.balance }
     });
   } catch (error) {
+    console.error('Erreur register:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
@@ -234,71 +238,36 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log(`🔍 Tentative de connexion pour: ${email}`);
+
     const user = await User.findOne({ email });
+    
+    // ✅ VÉRIFICATION : si l'utilisateur n'existe PAS
     if (!user) {
+      console.log(`❌ Utilisateur non trouvé: ${email}`);
       return res.status(401).json({ message: 'Identifiants incorrects' });
     }
+
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
+      console.log(`❌ Mot de passe incorrect pour: ${email}`);
       return res.status(401).json({ message: 'Identifiants incorrects' });
     }
+
+    console.log(`✅ Connexion réussie pour: ${email}`);
     res.json({
       message: 'Connexion réussie !',
-      user: { id: user._id, name: user.name, email, phone: user.phone, balance: user.balance }
+      user: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        phone: user.phone, 
+        balance: user.balance || 0 
+      }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur' });
-  }
-});
-
-// =============================================
-// ROUTES - FORFAITS
-// =============================================
-
-app.get('/api/products/:userId', async (req, res) => {
-  try {
-    const products = await Product.find({ userId: req.params.userId, isActive: true });
-    res.json(products);
-  } catch (error) {
+    console.error('❌ Erreur login:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-app.post('/api/products', async (req, res) => {
-  try {
-    const { userId, name, price, duration } = req.body;
-    const product = new Product({ userId, name, price, duration });
-    await product.save();
-    res.status(201).json(product);
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur' });
-  }
-});
-
-app.delete('/api/products/:id', async (req, res) => {
-  try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur' });
-  }
-});
-
-// =============================================
-// ROUTES - TICKETS
-// =============================================
-
-app.post('/api/tickets/bulk', async (req, res) => {
-  try {
-    const { userId, codes, productId } = req.body;
-    if (!codes || codes.length === 0) {
-      return res.status(400).json({ message: 'Aucun code' });
-    }
-    const tickets = codes.map(code => ({ userId, code: code.trim(), productId }));
-    const inserted = await Ticket.insertMany(tickets);
-    res.json({ message: `${inserted.length} tickets importés`, tickets: inserted });
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur' });
   }
 });
 
