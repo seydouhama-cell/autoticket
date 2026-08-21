@@ -19,7 +19,7 @@ const PORT = 3000;
 // =============================================
 // CONNEXION MONGODB
 // =============================================
-const MONGODB_URI = 'mongodb+srv://seydouhama_db_user:0vhZGIf4XNpcazGp@cluster0.bvwootp.mongodb.net/autoticket';
+const MONGODB_URI = 'mongodb+srv://seydouhama_db_user:whZGI1f4XNpcaZgP@cluster0.bvwootp.mongodb.net/autoticket';
 
 mongoose.connect(MONGODB_URI, {
   serverSelectionTimeoutMS: 30000,
