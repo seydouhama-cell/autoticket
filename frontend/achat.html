@@ -56,6 +56,7 @@
         <div class="loading">
           <span class="spinner">⏳</span>
           <p>Chargement des forfaits...</p>
+          <p style="font-size:13px;color:#7f8c8d;">Le serveur peut mettre 30 secondes à répondre.</p>
         </div>
       </div>
       <button class="btn btn-danger" id="refresh-btn" style="margin-top:12px;">🔄 Réessayer</button>
@@ -103,12 +104,10 @@
 
   <script>
     // =============================================
-    // CONFIGURATION (CORRIGÉE)
+    // CONFIGURATION - CORRIGÉE POUR GARBA
     // =============================================
     const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
-    // ✅ CORRIGÉ : Utiliser l'ID du vendeur qui existe dans MongoDB
-    const USER_ID = '6a7a76ba6b197186941d4937'; // Vendeur
-    // const USER_ID = '6a7a87706b197186941d493a'; // Testeur (décommenter pour utiliser)
+    const USER_ID = '6a7bb70e141903b3a25d9366'; // garba
 
     let selectedProductId = null;
     let currentOrderId = null;
@@ -117,22 +116,28 @@
       const alertDiv = document.getElementById('alert');
       alertDiv.className = `alert alert-${type}`;
       alertDiv.textContent = message;
-      setTimeout(() => alertDiv.innerHTML = '', 5000);
+      setTimeout(() => alertDiv.innerHTML = '', 8000);
     }
 
     function formatPrice(amount) {
       return amount.toLocaleString() + ' FCFA';
     }
 
+    // =============================================
+    // API CALL AVEC TIMEOUT 30 SECONDES
+    // =============================================
     async function apiCall(endpoint, method, data) {
       try {
         const options = { 
           method: method || 'GET', 
           headers: { 'Content-Type': 'application/json' },
-          signal: AbortSignal.timeout(10000)
+          signal: AbortSignal.timeout(30000) // 30 secondes
         };
         if (data) options.body = JSON.stringify(data);
+        
+        console.log(`📡 Appel API: ${API_URL}${endpoint}`);
         const response = await fetch(API_URL + endpoint, options);
+        
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`Erreur ${response.status}: ${errorText}`);
@@ -144,12 +149,16 @@
       }
     }
 
+    // =============================================
+    // CHARGER LES PRODUITS
+    // =============================================
     async function loadProducts() {
       const container = document.getElementById('products-list');
       container.innerHTML = `
         <div class="loading">
           <span class="spinner">⏳</span>
           <p>Chargement des forfaits...</p>
+          <p style="font-size:13px;color:#7f8c8d;">Le serveur peut mettre 30 secondes à répondre.</p>
         </div>
       `;
 
@@ -213,6 +222,9 @@
       }
     }
 
+    // =============================================
+    // PAIEMENT
+    // =============================================
     async function handlePayment() {
       const phone = document.getElementById('customer-phone').value.trim();
       const method = document.getElementById('payment-method').value;
@@ -291,6 +303,25 @@
       loadProducts();
     }
 
+    // =============================================
+    // VÉRIFIER LE BACKEND
+    // =============================================
+    async function checkBackend() {
+      try {
+        console.log('🔍 Vérification du backend...');
+        const response = await fetch(API_URL + '/', { signal: AbortSignal.timeout(10000) });
+        if (!response.ok) throw new Error('Backend inaccessible');
+        console.log('✅ Backend connecté');
+        showMessage('✅ Connexion au serveur établie', 'success');
+      } catch (error) {
+        console.warn('⚠️ Backend lent ou inaccessible:', error.message);
+        showMessage('⏳ Connexion au serveur en cours... Le premier chargement peut prendre 30 secondes.', 'info');
+      }
+    }
+
+    // =============================================
+    // ÉVÉNEMENTS
+    // =============================================
     document.getElementById('pay-btn').addEventListener('click', handlePayment);
     document.getElementById('back-btn').addEventListener('click', resetPurchase);
     document.getElementById('reset-btn').addEventListener('click', resetPurchase);
@@ -300,17 +331,9 @@
       if (e.key === 'Enter') handlePayment();
     });
 
-    async function checkBackend() {
-      try {
-        const response = await fetch(API_URL + '/');
-        if (!response.ok) throw new Error('Backend inaccessible');
-        console.log('✅ Backend connecté');
-      } catch (error) {
-        console.warn('⚠️ Backend inaccessible:', error.message);
-        showMessage('⚠️ Connexion au serveur en cours...', 'info');
-      }
-    }
-
+    // =============================================
+    // CHARGEMENT INITIAL
+    // =============================================
     checkBackend();
     loadProducts();
   </script>
