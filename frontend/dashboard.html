@@ -22,15 +22,16 @@
       left: 0;
       bottom: 0;
       overflow-y: auto;
+      z-index: 1000;
     }
     .sidebar .logo { font-size: 22px; font-weight: 700; color: #e67e22; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     .sidebar .logo span { color: white; }
     .sidebar .user-info { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin: 16px 0 24px 0; text-align: center; }
     .sidebar .user-info .avatar { font-size: 40px; display: block; margin-bottom: 4px; }
     .sidebar .user-info .name { font-weight: 700; font-size: 16px; color: white; }
-    .sidebar .user-info .email { font-size: 12px; color: #7f8c8d; }
+    .sidebar .user-info .email { font-size: 12px; color: #7f8c8d; word-break: break-all; }
     .sidebar .menu { list-style: none; flex: 1; }
-    .sidebar .menu li { padding: 12px 16px; border-radius: 10px; margin-bottom: 4px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #b0b8c4; }
+    .sidebar .menu li { padding: 10px 14px; border-radius: 10px; margin-bottom: 2px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #b0b8c4; }
     .sidebar .menu li:hover { background: rgba(255,255,255,0.08); color: white; }
     .sidebar .menu li.active { background: #e67e22; color: white; }
     .sidebar .menu li .icon { font-size: 18px; width: 24px; text-align: center; }
@@ -43,7 +44,6 @@
     .main-header h1 { font-size: 24px; color: #0d1b2a; }
     .main-header .badge { padding: 4px 14px; border-radius: 30px; font-size: 12px; font-weight: 600; background: #27ae60; color: white; }
 
-    /* ===== ZONE SELECTOR ===== */
     .zone-selector {
       background: white;
       border-radius: 16px;
@@ -67,20 +67,8 @@
       cursor: pointer;
     }
     .zone-selector select:focus { border-color: #e67e22; outline: none; }
-    .zone-selector .active-zone {
-      font-weight: 600;
-      color: #e67e22;
-    }
-    .zone-selector .btn-zone {
-      background: #e67e22;
-      color: white;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 30px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .zone-selector .btn-zone:hover { background: #d35400; }
+    .zone-selector .active-zone { font-weight: 600; color: #e67e22; }
+    .zone-selector .btn-zone { background: #e67e22; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; }
 
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
     .stat-card { background: white; padding: 16px 20px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e9ecef; }
@@ -91,8 +79,20 @@
     .stat-card .value.red { color: #e74c3c; }
     .stat-card .sub { font-size: 12px; color: #95a5a6; margin-top: 2px; }
 
+    .balance-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .balance-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; }
+    .balance-card .label { font-size: 13px; color: #7f8c8d; }
+    .balance-card .value { font-size: 28px; font-weight: 700; color: #e67e22; }
+    .balance-card .value.green { color: #27ae60; }
+    .balance-card .value.red { color: #e74c3c; }
+    .balance-card .sub { font-size: 12px; color: #95a5a6; margin-top: 4px; }
+    .balance-card .btn { margin-top: 12px; background: #27ae60; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; }
+    .balance-card .btn:hover { background: #1e8449; }
+    .balance-card.commission { grid-column: span 2; background: #fef9f0; border: 2px solid #f7dc6f; }
+    .balance-card.commission .value { font-size: 24px; }
+
     .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; margin-bottom: 24px; overflow-x: auto; }
-    .table-wrap h3 { font-size: 16px; color: #0d1b2a; margin-bottom: 12px; }
+    .table-wrap h3 { font-size: 16px; color: #0d1b2a; margin-bottom: 12px; border-left: 4px solid #e67e22; padding-left: 12px; }
     .table-wrap table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .table-wrap th { text-align: left; padding: 10px 12px; background: #f8f9fa; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e9ecef; }
     .table-wrap td { padding: 10px 12px; border-bottom: 1px solid #f0f2f5; }
@@ -102,21 +102,9 @@
     .table-wrap .status.inactive { background: #fadbd8; color: #922b21; }
     .table-wrap .status.warning { background: #fef9e7; color: #b7950b; }
 
-    .balance-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-    .balance-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; }
-    .balance-card .label { font-size: 13px; color: #7f8c8d; }
-    .balance-card .value { font-size: 28px; font-weight: 700; color: #e67e22; }
-    .balance-card .value.green { color: #27ae60; }
-    .balance-card .value.red { color: #e74c3c; }
-    .balance-card .sub { font-size: 12px; color: #95a5a6; margin-top: 4px; }
-    .balance-card .btn { margin-top: 12px; background: #27ae60; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; }
-
-    .balance-card.commission { grid-column: span 2; background: #fef9f0; border: 2px solid #f7dc6f; }
-    .balance-card.commission .value { font-size: 24px; }
-
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-weight: 600; font-size: 13px; color: #2c3e50; margin-bottom: 4px; }
-    .form-group input, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #e0e4e8; border-radius: 12px; font-size: 14px; background: #fafbfc; transition: 0.3s; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 2px solid #e0e4e8; border-radius: 12px; font-size: 14px; background: #fafbfc; transition: 0.3s; }
     .form-group input:focus, .form-group select:focus { border-color: #e67e22; outline: none; background: white; }
 
     .btn { padding: 10px 20px; border: none; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%; }
@@ -129,6 +117,23 @@
     .btn-sm { width: auto; padding: 4px 14px; font-size: 12px; border-radius: 20px; }
     .card { background: #f8f9fa; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid #e9ecef; }
 
+    .qr-display { text-align: center; padding: 20px; }
+    .qr-display img { max-width: 200px; border: 1px solid #e9ecef; border-radius: 12px; padding: 10px; background: white; }
+
+    .faq-item { padding: 12px 0; border-bottom: 1px solid #e9ecef; }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-item .question { font-weight: 600; color: #0d1b2a; }
+    .faq-item .answer { color: #7f8c8d; font-size: 14px; margin-top: 4px; }
+
+    .guide-step { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #e9ecef; align-items: flex-start; }
+    .guide-step:last-child { border-bottom: none; }
+    .guide-step .number { font-size: 24px; font-weight: 700; color: #e67e22; min-width: 40px; }
+    .guide-step .content { flex: 1; }
+    .guide-step .content h4 { color: #0d1b2a; margin-bottom: 4px; }
+    .guide-step .content p { color: #7f8c8d; font-size: 14px; }
+
+    .param-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
     @media (max-width: 768px) {
       .sidebar { width: 200px; padding: 16px 12px; }
       .main { margin-left: 200px; padding: 16px; }
@@ -136,6 +141,7 @@
       .balance-section { grid-template-columns: 1fr; }
       .balance-card.commission { grid-column: span 1; }
       .zone-selector { flex-direction: column; align-items: stretch; text-align: center; }
+      .param-row { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .sidebar { width: 100%; position: relative; height: auto; flex-direction: row; flex-wrap: wrap; padding: 12px 16px; gap: 8px; }
@@ -154,7 +160,7 @@
 
 <div class="app">
 
-  <!-- SIDEBAR -->
+  <!-- ===== SIDEBAR ===== -->
   <div class="sidebar">
     <div class="logo">🛜 Auto<span>Ticket</span></div>
     <div class="user-info">
@@ -164,9 +170,14 @@
     </div>
     <ul class="menu">
       <li class="active" onclick="showTab('overview')"><span class="icon">📊</span> Vue d'ensemble</li>
+      <li onclick="showTab('affiche-qr')"><span class="icon">🖼️</span> Mon affiche QR</li>
+      <li onclick="showTab('guide')"><span class="icon">📖</span> Guide</li>
+      <li onclick="showTab('faq')"><span class="icon">❓</span> FAQ & aide</li>
+      <li onclick="showTab('ventes')"><span class="icon">📈</span> Ventes</li>
       <li onclick="showTab('forfaits')"><span class="icon">📦</span> Forfaits</li>
       <li onclick="showTab('tickets')"><span class="icon">🎫</span> Tickets</li>
       <li onclick="showTab('retrait')"><span class="icon">💰</span> Retraits</li>
+      <li onclick="showTab('parametres')"><span class="icon">⚙️</span> Paramètres</li>
       <li onclick="window.location.href='admin.html'"><span class="icon">👑</span> Admin</li>
       <li class="menu-bottom">
         <li onclick="window.location.href='abonnement.html'"><span class="icon">📋</span> Abonnement</li>
@@ -175,7 +186,7 @@
     </ul>
   </div>
 
-  <!-- MAIN -->
+  <!-- ===== MAIN ===== -->
   <div class="main">
 
     <div class="main-header">
@@ -197,15 +208,15 @@
       </div>
     </div>
 
-    <!-- STATISTIQUES -->
-    <div class="stats-grid">
+    <!-- ===== STATS ===== -->
+    <div class="stats-grid" id="stats-grid">
       <div class="stat-card"><div class="label">💰 Solde global</div><div class="value orange" id="stat-balance">0 FCFA</div><div class="sub">Disponible</div></div>
       <div class="stat-card"><div class="label">🎫 Tickets disponibles</div><div class="value" id="stat-tickets">0</div><div class="sub">Pour cette zone</div></div>
       <div class="stat-card"><div class="label">📦 Forfaits actifs</div><div class="value green" id="stat-products">0</div><div class="sub">Disponibles</div></div>
       <div class="stat-card"><div class="label">📈 Revenus totaux</div><div class="value" id="stat-revenue">0 FCFA</div><div class="sub">Depuis le début</div></div>
     </div>
 
-    <!-- SOLDE ET ABONNEMENT -->
+    <!-- ===== BALANCE ===== -->
     <div class="balance-section">
       <div class="balance-card">
         <div class="label">💰 Solde global</div>
@@ -235,13 +246,80 @@
       </div>
     </div>
 
-    <!-- VUE D'ENSEMBLE -->
+    <!-- ===== TAB - VUE D'ENSEMBLE ===== -->
     <div class="table-wrap" id="tab-overview">
       <h3>📋 Forfaits actifs</h3>
       <div id="products-table-container"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait</p></div>
     </div>
 
-    <!-- FORFAITS -->
+    <!-- ===== TAB - AFFICHE QR ===== -->
+    <div class="table-wrap" id="tab-affiche-qr" style="display:none;">
+      <h3>🖼️ Mon affiche QR</h3>
+      <p style="color:#7f8c8d;font-size:14px;margin-bottom:12px;">Téléchargez ou imprimez cette affiche pour que vos clients puissent scanner le QR code et acheter un ticket.</p>
+      <div class="qr-display">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://autoticket-pi.vercel.app/achat.html&size=200x200" alt="QR Code">
+        <p style="margin-top:8px;font-size:13px;color:#7f8c8d;">Scannez pour acheter un ticket</p>
+        <button class="btn btn-primary" style="max-width:200px;margin:12px auto;" onclick="window.print()">🖨️ Imprimer</button>
+      </div>
+    </div>
+
+    <!-- ===== TAB - GUIDE ===== -->
+    <div class="table-wrap" id="tab-guide" style="display:none;">
+      <h3>📖 Guide de démarrage</h3>
+      <div class="guide-step">
+        <div class="number">1</div>
+        <div class="content">
+          <h4>Créez votre compte</h4>
+          <p>Inscrivez-vous sur AutoTicket avec votre numéro Mobile Money.</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="number">2</div>
+        <div class="content">
+          <h4>Configurez votre zone WiFi</h4>
+          <p>Ajoutez votre routeur MikroTik et vos forfaits (24h, 7 jours, etc.).</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="number">3</div>
+        <div class="content">
+          <h4>Importez vos tickets</h4>
+          <p>Importez un fichier PDF de tickets ou ajoutez-les manuellement.</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="number">4</div>
+        <div class="content">
+          <h4>Partagez votre lien d'achat</h4>
+          <p>Partagez le lien de votre boutique avec vos clients.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB - FAQ ===== -->
+    <div class="table-wrap" id="tab-faq" style="display:none;">
+      <h3>❓ FAQ & aide</h3>
+      <div class="faq-item">
+        <div class="question">Comment acheter un ticket ?</div>
+        <div class="answer">Cliquez sur "Acheter", choisissez votre forfait, entrez votre numéro Mobile Money et confirmez le paiement.</div>
+      </div>
+      <div class="faq-item">
+        <div class="question">Comment utiliser mon ticket ?</div>
+        <div class="answer">Saisissez le code reçu sur le portail captif du WiFi ou connectez-vous au réseau avec le code.</div>
+      </div>
+      <div class="faq-item">
+        <div class="question">Que faire en cas de problème ?</div>
+        <div class="answer">Contactez le support via le formulaire de contact ou par email à support@autoticket.com</div>
+      </div>
+    </div>
+
+    <!-- ===== TAB - VENTES ===== -->
+    <div class="table-wrap" id="tab-ventes" style="display:none;">
+      <h3>📈 Historique des ventes</h3>
+      <div id="ventes-list"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucune vente</p></div>
+    </div>
+
+    <!-- ===== TAB - FORFAITS ===== -->
     <div class="table-wrap" id="tab-forfaits" style="display:none;">
       <h3>📦 Gérer mes forfaits</h3>
       <div id="products-list"></div>
@@ -252,19 +330,32 @@
       <button class="btn btn-primary" id="add-product-btn">➕ Ajouter</button>
     </div>
 
-    <!-- TICKETS -->
+    <!-- ===== TAB - TICKETS ===== -->
     <div class="table-wrap" id="tab-tickets" style="display:none;">
       <h3>🎫 Tickets de la zone</h3>
       <div id="tickets-list"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p></div>
     </div>
 
-    <!-- RETRAIT -->
+    <!-- ===== TAB - RETRAIT ===== -->
     <div class="table-wrap" id="tab-retrait" style="display:none;">
       <h3>💰 Retirer mes fonds</h3>
       <p style="color:#7f8c8d;font-size:13px;margin-bottom:12px;">Commission de 5% prélevée.</p>
       <div class="form-group"><label>Montant (FCFA)</label><input type="number" id="withdraw-amount" placeholder="1000 minimum"></div>
       <div class="form-group"><label>Numéro Mobile Money</label><input type="tel" id="withdraw-phone" placeholder="98765432"></div>
       <button class="btn btn-success" id="withdraw-btn">📤 Demander le retrait</button>
+    </div>
+
+    <!-- ===== TAB - PARAMÈTRES ===== -->
+    <div class="table-wrap" id="tab-parametres" style="display:none;">
+      <h3>⚙️ Paramètres de la zone</h3>
+      <p style="color:#7f8c8d;font-size:14px;margin-bottom:12px;">Gérez les informations publiques et techniques de votre zone WiFi.</p>
+      <div class="param-row">
+        <div class="form-group"><label>Nom de la zone</label><input type="text" id="zone-name" placeholder="ZAKOKI WIFI"></div>
+        <div class="form-group"><label>Ville</label><input type="text" id="zone-city" placeholder="MARADI"></div>
+      </div>
+      <div class="form-group"><label>SSID (nom du réseau WiFi)</label><input type="text" id="zone-ssid" placeholder="ZAKOKI WIFI"></div>
+      <div class="form-group"><label>Lien public de votre zone</label><input type="text" id="zone-url" value="https://autoticket-pi.vercel.app/achat.html" readonly style="background:#f0f2f5;"></div>
+      <button class="btn btn-primary" onclick="saveZoneSettings()">💾 Enregistrer</button>
     </div>
 
   </div>
@@ -311,18 +402,15 @@
         select.appendChild(opt);
       });
 
-      // Si une zone est active, afficher son nom
       if (activeZoneId) {
         const activeZone = zones.find(z => z._id === activeZoneId);
         document.getElementById('active-zone-name').textContent = activeZone ? activeZone.name : 'Aucune';
       } else if (zones.length > 0) {
-        // Sélectionner la première zone par défaut
         activeZoneId = zones[0]._id;
         localStorage.setItem('activeZoneId', activeZoneId);
         document.getElementById('active-zone-name').textContent = zones[0].name;
         select.value = zones[0]._id;
       }
-      
       return zones;
     } catch (error) {
       console.error('Erreur chargement zones:', error);
@@ -335,11 +423,8 @@
     const select = document.getElementById('zone-select');
     activeZoneId = select.value;
     localStorage.setItem('activeZoneId', activeZoneId);
-    
     const selectedText = select.options[select.selectedIndex]?.text || 'Aucune';
     document.getElementById('active-zone-name').textContent = selectedText.split(' - ')[0] || 'Aucune';
-    
-    // Recharger les données
     loadTickets();
     loadStats();
     loadProducts();
@@ -394,6 +479,30 @@
   }
 
   // =============================================
+  // VENTES
+  // =============================================
+  async function loadVentes() {
+    try {
+      const data = await apiCall(`/stats/${USER_ID}`, 'GET');
+      const container = document.getElementById('ventes-list');
+      if (data.total && data.total.count > 0) {
+        container.innerHTML = `
+          <table>
+            <thead><tr><th>Total ventes</th><th>Revenu total</th></tr></thead>
+            <tbody>
+              <tr><td><strong>${data.total.count}</strong> tickets</td><td><strong>${formatPrice(data.total.revenue)}</strong></td></tr>
+            </tbody>
+          </table>
+        `;
+      } else {
+        container.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucune vente pour le moment</p>';
+      }
+    } catch (error) {
+      console.error('Erreur ventes:', error);
+    }
+  }
+
+  // =============================================
   // STATS
   // =============================================
   async function loadStats() {
@@ -402,7 +511,6 @@
       document.getElementById('stat-balance').textContent = formatPrice(stats.balance || 0);
       document.getElementById('balance-display').textContent = formatPrice(stats.balance || 0);
       
-      // Tickets disponibles pour la zone active
       if (activeZoneId) {
         const ticketsData = await apiCall(`/tickets/${USER_ID}/${activeZoneId}`, 'GET');
         document.getElementById('stat-tickets').textContent = ticketsData.total || 0;
@@ -414,6 +522,46 @@
       document.getElementById('stat-revenue').textContent = formatPrice(stats.total?.revenue || 0);
     } catch (error) {
       console.error('Erreur stats:', error);
+    }
+  }
+
+  // =============================================
+  // ABONNEMENT
+  // =============================================
+  async function loadSubscription() {
+    try {
+      const sub = await apiCall(`/subscription/${USER_ID}`, 'GET');
+      const badge = document.getElementById('status-badge');
+      const statusText = document.getElementById('sub-status-text');
+      const daysText = document.getElementById('sub-days-text');
+      if (sub.status === 'active') {
+        badge.textContent = '✅ Abonnement actif';
+        badge.style.background = '#27ae60';
+        statusText.textContent = '✅ Actif';
+        statusText.className = 'value green';
+        daysText.textContent = `Prochain renouvellement : ${sub.daysLeft || 0} jours`;
+      } else {
+        badge.textContent = '⛔ Expiré';
+        badge.style.background = '#e74c3c';
+        statusText.textContent = '⛔ Expiré';
+        statusText.className = 'value red';
+        daysText.textContent = 'Veuillez renouveler';
+      }
+    } catch (error) {
+      console.error('Erreur abonnement:', error);
+    }
+  }
+
+  // =============================================
+  // COMMISSIONS
+  // =============================================
+  async function loadCommissions() {
+    try {
+      const data = await apiCall(`/commissions/${USER_ID}`, 'GET');
+      document.getElementById('total-commission').textContent = formatPrice(data.totalCommission || 0);
+      document.getElementById('withdrawal-count').textContent = data.count || 0;
+    } catch (error) {
+      console.error('Erreur commissions:', error);
     }
   }
 
@@ -488,8 +636,19 @@
       document.getElementById('withdraw-amount').value = '';
       document.getElementById('withdraw-phone').value = '';
       loadStats();
+      loadCommissions();
     } catch (error) { alert('Erreur: ' + error.message); }
   };
+
+  // =============================================
+  // PARAMÈTRES
+  // =============================================
+  function saveZoneSettings() {
+    const name = document.getElementById('zone-name').value.trim();
+    const city = document.getElementById('zone-city').value.trim();
+    const ssid = document.getElementById('zone-ssid').value.trim();
+    alert(`✅ Paramètres enregistrés !\nNom: ${name}\nVille: ${city}\nSSID: ${ssid}`);
+  }
 
   // =============================================
   // NAVIGATION
@@ -503,11 +662,20 @@
     if (menuItem) menuItem.classList.add('active');
     const titles = {
       'overview': '📊 Vue d\'ensemble',
+      'affiche-qr': '🖼️ Mon affiche QR',
+      'guide': '📖 Guide',
+      'faq': '❓ FAQ & aide',
+      'ventes': '📈 Ventes',
       'forfaits': '📦 Gestion des forfaits',
       'tickets': '🎫 Gestion des tickets',
-      'retrait': '💰 Retraits'
+      'retrait': '💰 Retraits',
+      'parametres': '⚙️ Paramètres'
     };
     document.getElementById('page-title').textContent = titles[tab] || '📊 Dashboard';
+    
+    // Charger les données spécifiques
+    if (tab === 'ventes') loadVentes();
+    if (tab === 'tickets') loadTickets();
   }
 
   function showDefaultTab() {
@@ -536,6 +704,9 @@
     await loadStats();
     await loadProducts();
     await loadTickets();
+    await loadSubscription();
+    await loadCommissions();
+    await loadVentes();
     showDefaultTab();
   }
   init();
