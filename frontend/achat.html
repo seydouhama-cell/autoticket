@@ -40,7 +40,15 @@
     .loading .spinner { font-size: 40px; display: block; margin-bottom: 12px; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .retry-btn { margin-top: 12px; }
-    @media (max-width: 480px) { body { padding: 10px; } .container { padding: 16px; } }
+    .payment-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .payment-buttons .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+    .payment-buttons .btn:hover { transform: scale(1.02); opacity: 0.9; }
+    .btn-airtel { background: #e67e22; }
+    .btn-orange { background: #f39c12; }
+    .btn-moov { background: #8e44ad; }
+    .btn-amanata { background: #2ecc71; }
+    .btn-mynita { background: #3498db; grid-column: span 2; }
+    @media (max-width: 480px) { body { padding: 10px; } .container { padding: 16px; } .payment-buttons { grid-template-columns: 1fr 1fr; } .btn-mynita { grid-column: span 2; } }
   </style>
 </head>
 <body>
@@ -50,6 +58,7 @@
 
     <div id="alert"></div>
 
+    <!-- ÉTAPE 1 : Choix du forfait -->
     <div id="step-products">
       <h2 style="font-size:18px;font-weight:600;color:#1b3a4b;margin-bottom:16px;border-left:4px solid #e67e22;padding-left:12px;">📶 Choisissez votre forfait</h2>
       <div id="products-list">
@@ -62,25 +71,28 @@
       <button class="btn btn-danger" id="refresh-btn" style="margin-top:12px;">🔄 Réessayer</button>
     </div>
 
+    <!-- ÉTAPE 2 : Paiement -->
     <div id="step-payment" class="hidden">
       <h2 style="font-size:18px;font-weight:600;color:#1b3a4b;margin-bottom:16px;border-left:4px solid #e67e22;padding-left:12px;">💳 Paiement</h2>
+      
       <div class="form-group">
-        <label>Numéro Mobile Money</label>
-        <input type="tel" id="customer-phone" placeholder="Ex: 98765432" required>
-        <small style="color:#7f8c8d;">Numéro Airtel Money, Orange Money ou Moov Flooz</small>
+        <label>Numéro de téléphone</label>
+        <input type="tel" id="customer-phone" placeholder="Ex: 96724257" required>
+        <small style="color:#7f8c8d;">Entrez votre numéro Mobile Money</small>
       </div>
-      <div class="form-group">
-        <label>Moyen de paiement</label>
-        <select id="payment-method">
-          <option value="airtelmoney">Airtel Money</option>
-          <option value="orangemoney">Orange Money</option>
-          <option value="moov">Moov Flooz</option>
-        </select>
+
+      <div class="payment-buttons">
+        <button class="btn btn-airtel" onclick="initiatePayment('airtelmoney')">📱 Airtel Money</button>
+        <button class="btn btn-orange" onclick="initiatePayment('orangemoney')">📱 Orange Money</button>
+        <button class="btn btn-moov" onclick="initiatePayment('moov')">📱 Moov Flooz</button>
+        <button class="btn btn-amanata" onclick="initiatePayment('amanata')">📱 AmanaTa</button>
+        <button class="btn btn-mynita" onclick="initiatePayment('myNita')">📱 MyNita</button>
       </div>
-      <button class="btn btn-primary" id="pay-btn">💰 Payer maintenant</button>
+
       <button class="btn btn-outline" id="back-btn" style="margin-top:8px;">← Retour</button>
     </div>
 
+    <!-- ÉTAPE 3 : Chargement -->
     <div id="step-loading" class="hidden">
       <div class="loading">
         <span class="spinner">⏳</span>
@@ -89,6 +101,7 @@
       </div>
     </div>
 
+    <!-- ÉTAPE 4 : Succès -->
     <div id="step-success" class="hidden" style="text-align:center;">
       <h2 style="font-size:18px;font-weight:600;color:#1b3a4b;margin-bottom:8px;">✅ Ticket reçu !</h2>
       <p style="font-size:14px;color:#7f8c8d;">Voici votre code d'accès :</p>
@@ -104,7 +117,7 @@
 
   <script>
     // =============================================
-    // CONFIGURATION - CORRIGÉE POUR GARBA
+    // CONFIGURATION
     // =============================================
     const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
     const USER_ID = '6a7bb70e141903b3a25d9366'; // garba
@@ -131,7 +144,7 @@
         const options = { 
           method: method || 'GET', 
           headers: { 'Content-Type': 'application/json' },
-          signal: AbortSignal.timeout(30000) // 30 secondes
+          signal: AbortSignal.timeout(30000)
         };
         if (data) options.body = JSON.stringify(data);
         
@@ -223,12 +236,12 @@
     }
 
     // =============================================
-    // PAIEMENT
+    // PAIEMENT AVEC I-PAY / MESOMB
     // =============================================
-    async function handlePayment() {
-      const phone = document.getElementById('customer-phone').value.trim();
-      const method = document.getElementById('payment-method').value;
 
+    async function initiatePayment(paymentType) {
+      const phone = document.getElementById('customer-phone').value.trim();
+      
       if (!phone || phone.length < 8) {
         showMessage('Veuillez entrer un numéro de téléphone valide (8 chiffres minimum).', 'error');
         document.getElementById('customer-phone').focus();
@@ -244,20 +257,30 @@
       document.getElementById('step-loading').classList.remove('hidden');
 
       try {
-        const response = await apiCall('/payment/initiate', 'POST', {
+        let endpoint = '/payment/initiate';
+        let payload = {
           userId: USER_ID,
           productId: selectedProductId,
           customerPhone: phone,
-          method: method
-        });
+          method: paymentType
+        };
 
-        if (response.success && response.paymentUrl) {
-          window.location.href = response.paymentUrl;
-        } else if (response.success && response.orderId) {
-          currentOrderId = response.orderId;
-          await checkPaymentStatus(response.orderId);
+        if (paymentType === 'amanata' || paymentType === 'myNita') {
+          endpoint = '/payment/ipay/initiate';
+          payload = {
+            userId: USER_ID,
+            productId: selectedProductId,
+            customerPhone: phone,
+            paymentType: paymentType
+          };
+        }
+
+        const response = await apiCall(endpoint, 'POST', payload);
+
+        if (response.success) {
+          showSuccess(response.ticket.code);
         } else {
-          throw new Error(response.message || 'Erreur de paiement');
+          throw new Error(response.message || 'Paiement échoué');
         }
       } catch (error) {
         console.error('Erreur paiement:', error);
@@ -267,20 +290,19 @@
       }
     }
 
-    async function checkPaymentStatus(orderId) {
+    // =============================================
+    // VÉRIFIER LE BACKEND
+    // =============================================
+    async function checkBackend() {
       try {
-        const response = await apiCall(`/payment/status/${orderId}`, 'GET');
-        if (response.status === 'paid') {
-          showSuccess(response.ticket?.code || 'WIFI-' + Math.random().toString(36).substring(2, 8).toUpperCase());
-        } else if (response.status === 'pending') {
-          setTimeout(() => checkPaymentStatus(orderId), 3000);
-        } else {
-          throw new Error('Paiement échoué');
-        }
+        console.log('🔍 Vérification du backend...');
+        const response = await fetch(API_URL + '/', { signal: AbortSignal.timeout(10000) });
+        if (!response.ok) throw new Error('Backend inaccessible');
+        console.log('✅ Backend connecté');
+        showMessage('✅ Connexion au serveur établie', 'success');
       } catch (error) {
-        showMessage('Erreur vérification: ' + error.message, 'error');
-        document.getElementById('step-loading').classList.add('hidden');
-        document.getElementById('step-payment').classList.remove('hidden');
+        console.warn('⚠️ Backend lent ou inaccessible:', error.message);
+        showMessage('⏳ Connexion au serveur en cours... Le premier chargement peut prendre 30 secondes.', 'info');
       }
     }
 
@@ -304,31 +326,16 @@
     }
 
     // =============================================
-    // VÉRIFIER LE BACKEND
-    // =============================================
-    async function checkBackend() {
-      try {
-        console.log('🔍 Vérification du backend...');
-        const response = await fetch(API_URL + '/', { signal: AbortSignal.timeout(10000) });
-        if (!response.ok) throw new Error('Backend inaccessible');
-        console.log('✅ Backend connecté');
-        showMessage('✅ Connexion au serveur établie', 'success');
-      } catch (error) {
-        console.warn('⚠️ Backend lent ou inaccessible:', error.message);
-        showMessage('⏳ Connexion au serveur en cours... Le premier chargement peut prendre 30 secondes.', 'info');
-      }
-    }
-
-    // =============================================
     // ÉVÉNEMENTS
     // =============================================
-    document.getElementById('pay-btn').addEventListener('click', handlePayment);
     document.getElementById('back-btn').addEventListener('click', resetPurchase);
     document.getElementById('reset-btn').addEventListener('click', resetPurchase);
     document.getElementById('refresh-btn').addEventListener('click', loadProducts);
 
     document.getElementById('customer-phone').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') handlePayment();
+      if (e.key === 'Enter') {
+        // Si un paiement est en cours, ne rien faire
+      }
     });
 
     // =============================================
