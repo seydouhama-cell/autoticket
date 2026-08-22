@@ -43,6 +43,45 @@
     .main-header h1 { font-size: 24px; color: #0d1b2a; }
     .main-header .badge { padding: 4px 14px; border-radius: 30px; font-size: 12px; font-weight: 600; background: #27ae60; color: white; }
 
+    /* ===== ZONE SELECTOR ===== */
+    .zone-selector {
+      background: white;
+      border-radius: 16px;
+      padding: 16px 20px;
+      border: 1px solid #e9ecef;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .zone-selector .label { font-size: 14px; font-weight: 600; color: #2c3e50; }
+    .zone-selector select {
+      padding: 10px 16px;
+      border: 2px solid #e0e4e8;
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fafbfc;
+      min-width: 200px;
+      cursor: pointer;
+    }
+    .zone-selector select:focus { border-color: #e67e22; outline: none; }
+    .zone-selector .active-zone {
+      font-weight: 600;
+      color: #e67e22;
+    }
+    .zone-selector .btn-zone {
+      background: #e67e22;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .zone-selector .btn-zone:hover { background: #d35400; }
+
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
     .stat-card { background: white; padding: 16px 20px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e9ecef; }
     .stat-card .label { font-size: 13px; color: #7f8c8d; }
@@ -52,15 +91,7 @@
     .stat-card .value.red { color: #e74c3c; }
     .stat-card .sub { font-size: 12px; color: #95a5a6; margin-top: 2px; }
 
-    .alert-box { background: #fef9f0; border: 1px solid #f7dc6f; border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .alert-box.hidden { display: none; }
-    .alert-box .icon { font-size: 24px; }
-    .alert-box .text { flex: 1; font-size: 14px; color: #2c3e50; }
-    .alert-box .text strong { color: #e67e22; }
-    .alert-box .btn { background: #e67e22; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-    .alert-box .btn:hover { background: #d35400; }
-
-    .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; margin-bottom: 24px; }
+    .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; margin-bottom: 24px; overflow-x: auto; }
     .table-wrap h3 { font-size: 16px; color: #0d1b2a; margin-bottom: 12px; }
     .table-wrap table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .table-wrap th { text-align: left; padding: 10px 12px; background: #f8f9fa; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e9ecef; }
@@ -78,21 +109,15 @@
     .balance-card .value.green { color: #27ae60; }
     .balance-card .value.red { color: #e74c3c; }
     .balance-card .sub { font-size: 12px; color: #95a5a6; margin-top: 4px; }
-    .balance-card .btn { margin-top: 12px; background: #27ae60; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-    .balance-card .btn:hover { background: #1e8449; }
+    .balance-card .btn { margin-top: 12px; background: #27ae60; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; }
 
     .balance-card.commission { grid-column: span 2; background: #fef9f0; border: 2px solid #f7dc6f; }
     .balance-card.commission .value { font-size: 24px; }
 
-    .stats-avancees { margin-top: 24px; }
-    .periode-btn { transition: all 0.3s; }
-    .periode-btn:hover { transform: scale(1.05); }
-
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-weight: 600; font-size: 13px; color: #2c3e50; margin-bottom: 4px; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 2px solid #e0e4e8; border-radius: 12px; font-size: 14px; background: #fafbfc; transition: 0.3s; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #e67e22; outline: none; background: white; box-shadow: 0 0 0 4px rgba(230,126,34,0.15); }
-    .form-group textarea { min-height: 80px; font-family: 'Courier New', monospace; }
+    .form-group input, .form-group select { width: 100%; padding: 10px 14px; border: 2px solid #e0e4e8; border-radius: 12px; font-size: 14px; background: #fafbfc; transition: 0.3s; }
+    .form-group input:focus, .form-group select:focus { border-color: #e67e22; outline: none; background: white; }
 
     .btn { padding: 10px 20px; border: none; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%; }
     .btn-primary { background: linear-gradient(135deg, #e67e22, #d35400); color: white; }
@@ -100,28 +125,9 @@
     .btn-success { background: linear-gradient(135deg, #27ae60, #1e8449); color: white; }
     .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(39,174,96,0.4); }
     .btn-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }
-    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(231,76,60,0.4); }
     .btn-secondary { background: #2c3e50; color: white; }
-    .btn-secondary:hover { background: #1a252f; }
     .btn-sm { width: auto; padding: 4px 14px; font-size: 12px; border-radius: 20px; }
     .card { background: #f8f9fa; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid #e9ecef; }
-
-    .pdf-zone { border: 2px dashed #e0e4e8; border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 16px; background: #fafbfc; }
-    .pdf-zone .icon { font-size: 48px; }
-    .pdf-zone .title { font-size: 16px; font-weight: 600; color: #2c3e50; }
-    .pdf-zone .sub { font-size: 13px; color: #7f8c8d; }
-    .pdf-zone .dropzone { border: 2px dashed #bdc3c7; border-radius: 12px; padding: 20px; background: white; margin: 12px 0; cursor: pointer; }
-    .pdf-zone .dropzone:hover { border-color: #e67e22; }
-    .pdf-preview { display: none; text-align: left; background: #f8f9fa; padding: 16px; border-radius: 12px; margin-top: 12px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 13px; border: 1px solid #e9ecef; }
-    .pdf-preview .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .pdf-preview .header .count { background: #e67e22; color: white; padding: 2px 12px; border-radius: 30px; font-size: 12px; }
-    .pdf-preview .code-item { display: flex; justify-content: space-between; padding: 4px 8px; border-bottom: 1px solid #e9ecef; }
-    .pdf-preview .code-item .valid { color: #27ae60; }
-    .pdf-preview .code-item .invalid { color: #e74c3c; }
-    .pdf-info { margin-top: 12px; font-size: 12px; color: #7f8c8d; background: #fef9f0; padding: 10px; border-radius: 8px; border: 1px solid #f7dc6f; }
-
-    .stock-table td:first-child { font-weight: 600; }
-    .stock-table .count { font-size: 20px; font-weight: 700; text-align: center; }
 
     @media (max-width: 768px) {
       .sidebar { width: 200px; padding: 16px 12px; }
@@ -129,11 +135,8 @@
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .balance-section { grid-template-columns: 1fr; }
       .balance-card.commission { grid-column: span 1; }
-      .stats-avancees > div { grid-template-columns: 1fr !important; }
-      .stats-avancees > div:last-child { grid-template-columns: 1fr 1fr; }
-      .pdf-zone { padding: 20px; }
+      .zone-selector { flex-direction: column; align-items: stretch; text-align: center; }
     }
-
     @media (max-width: 480px) {
       .sidebar { width: 100%; position: relative; height: auto; flex-direction: row; flex-wrap: wrap; padding: 12px 16px; gap: 8px; }
       .sidebar .logo { font-size: 18px; }
@@ -143,12 +146,7 @@
       .sidebar .menu-bottom { border: none; padding: 0; margin: 0; }
       .main { margin-left: 0; padding: 16px; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
-      .alert-box { flex-direction: column; text-align: center; }
-      .stats-avancees > div:last-child { grid-template-columns: 1fr; }
-      .periode-btn { font-size: 12px; padding: 4px 12px; }
-      .pdf-zone { padding: 16px; }
-      .pdf-zone .dropzone { padding: 14px; }
-      .pdf-zone .btn { width: 100%; }
+      .zone-selector { flex-direction: column; }
     }
   </style>
 </head>
@@ -156,7 +154,7 @@
 
 <div class="app">
 
-  <!-- ========== SIDEBAR ========== -->
+  <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="logo">🛜 Auto<span>Ticket</span></div>
     <div class="user-info">
@@ -166,25 +164,18 @@
     </div>
     <ul class="menu">
       <li class="active" onclick="showTab('overview')"><span class="icon">📊</span> Vue d'ensemble</li>
-      <li onclick="window.location.href='affiche-qr.html'"><span class="icon">🖼️</span> Mon affiche QR</li>
-      <li onclick="window.location.href='guide.html'"><span class="icon">📖</span> Guide</li>
-      <li onclick="window.location.href='faq.html'"><span class="icon">❓</span> FAQ</li>
-      <li onclick="window.location.href='ventes.html'"><span class="icon">📈</span> Ventes</li>
       <li onclick="showTab('forfaits')"><span class="icon">📦</span> Forfaits</li>
       <li onclick="showTab('tickets')"><span class="icon">🎫</span> Tickets</li>
       <li onclick="showTab('retrait')"><span class="icon">💰</span> Retraits</li>
-      <li onclick="showTab('mikrotik')"><span class="icon">🛜</span> MikroTik</li>
-      <li onclick="showTab('gps')"><span class="icon">📍</span> GPS</li>
       <li onclick="window.location.href='admin.html'"><span class="icon">👑</span> Admin</li>
       <li class="menu-bottom">
         <li onclick="window.location.href='abonnement.html'"><span class="icon">📋</span> Abonnement</li>
-        <li onclick="window.location.href='parametres.html'"><span class="icon">⚙️</span> Paramètres</li>
         <li class="logout" onclick="logout()"><span class="icon">🚪</span> Déconnexion</li>
       </li>
     </ul>
   </div>
 
-  <!-- ========== MAIN ========== -->
+  <!-- MAIN -->
   <div class="main">
 
     <div class="main-header">
@@ -192,15 +183,29 @@
       <span class="badge" id="status-badge">✅ Abonnement actif</span>
     </div>
 
-    <!-- ========== STATISTIQUES DE BASE ========== -->
+    <!-- ===== ZONE SELECTOR ===== -->
+    <div class="zone-selector" id="zone-selector">
+      <div>
+        <span class="label">📍 Zone WiFi active</span>
+        <span class="active-zone" id="active-zone-name">Chargement...</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <select id="zone-select" onchange="changeZone()">
+          <option value="">Chargement...</option>
+        </select>
+        <button class="btn-zone" onclick="refreshZone()">🔄</button>
+      </div>
+    </div>
+
+    <!-- STATISTIQUES -->
     <div class="stats-grid">
       <div class="stat-card"><div class="label">💰 Solde global</div><div class="value orange" id="stat-balance">0 FCFA</div><div class="sub">Disponible</div></div>
-      <div class="stat-card"><div class="label">🎫 Tickets vendus</div><div class="value" id="stat-tickets">0</div><div class="sub">Total</div></div>
+      <div class="stat-card"><div class="label">🎫 Tickets disponibles</div><div class="value" id="stat-tickets">0</div><div class="sub">Pour cette zone</div></div>
       <div class="stat-card"><div class="label">📦 Forfaits actifs</div><div class="value green" id="stat-products">0</div><div class="sub">Disponibles</div></div>
       <div class="stat-card"><div class="label">📈 Revenus totaux</div><div class="value" id="stat-revenue">0 FCFA</div><div class="sub">Depuis le début</div></div>
     </div>
 
-    <!-- ========== SOLDE ET ABONNEMENT ========== -->
+    <!-- SOLDE ET ABONNEMENT -->
     <div class="balance-section">
       <div class="balance-card">
         <div class="label">💰 Solde global</div>
@@ -230,57 +235,13 @@
       </div>
     </div>
 
-    <!-- ========== STATISTIQUES AVANCÉES ========== -->
-    <div class="stats-avancees">
-      <h2 style="margin-bottom:16px;font-size:18px;color:#0d1b2a;border-left:4px solid #e67e22;padding-left:12px;">📈 Évolution des ventes</h2>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
-        <button class="btn btn-sm periode-btn active" data-period="7" style="width:auto;background:#e67e22;color:white;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">7 jours</button>
-        <button class="btn btn-sm periode-btn" data-period="30" style="width:auto;background:#f0f2f5;color:#2c3e50;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">30 jours</button>
-        <button class="btn btn-sm periode-btn" data-period="90" style="width:auto;background:#f0f2f5;color:#2c3e50;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;font-weight:600;">90 jours</button>
-      </div>
-
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;">
-        <div style="background:white;border-radius:14px;padding:20px;border:1px solid #e9ecef;">
-          <canvas id="salesChart" height="200"></canvas>
-        </div>
-        <div style="background:white;border-radius:14px;padding:20px;border:1px solid #e9ecef;">
-          <h3 style="font-size:14px;color:#7f8c8d;margin-bottom:12px;">📊 Répartition par forfait</h3>
-          <canvas id="productsChart" height="180"></canvas>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
-          <div style="font-size:13px;color:#7f8c8d;">📈 Meilleure vente</div>
-          <div style="font-size:18px;font-weight:700;color:#e67e22;" id="best-day">-</div>
-          <div style="font-size:12px;color:#95a5a6;">Jour</div>
-        </div>
-        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
-          <div style="font-size:13px;color:#7f8c8d;">📊 Total ventes</div>
-          <div style="font-size:18px;font-weight:700;color:#1a1a2e;" id="total-sales">0</div>
-          <div style="font-size:12px;color:#95a5a6;">Tickets vendus</div>
-        </div>
-        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
-          <div style="font-size:13px;color:#7f8c8d;">💰 Revenu moyen</div>
-          <div style="font-size:18px;font-weight:700;color:#27ae60;" id="avg-revenue">0 F</div>
-          <div style="font-size:12px;color:#95a5a6;">Par jour</div>
-        </div>
-        <div style="background:white;border-radius:12px;padding:14px;text-align:center;border:1px solid #e9ecef;">
-          <div style="font-size:13px;color:#7f8c8d;">📆 Période</div>
-          <div style="font-size:18px;font-weight:700;color:#0d1b2a;" id="period-days">7</div>
-          <div style="font-size:12px;color:#95a5a6;">Derniers jours</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========== VUE D'ENSEMBLE ========== -->
+    <!-- VUE D'ENSEMBLE -->
     <div class="table-wrap" id="tab-overview">
       <h3>📋 Forfaits actifs</h3>
       <div id="products-table-container"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait</p></div>
     </div>
 
-    <!-- ========== FORFAITS AVEC STOCK ========== -->
+    <!-- FORFAITS -->
     <div class="table-wrap" id="tab-forfaits" style="display:none;">
       <h3>📦 Gérer mes forfaits</h3>
       <div id="products-list"></div>
@@ -289,66 +250,15 @@
       <div class="form-group"><label>Prix (FCFA)</label><input type="number" id="product-price" placeholder="100"></div>
       <div class="form-group"><label>Durée</label><input type="text" id="product-duration" placeholder="24 heures..."></div>
       <button class="btn btn-primary" id="add-product-btn">➕ Ajouter</button>
-
-      <!-- STOCK PAR FORFAIT -->
-      <div style="margin-top: 20px; border-top: 1px solid #e9ecef; padding-top: 16px;">
-        <h3>📊 Stock par forfait</h3>
-        <div id="stock-by-product">
-          <p style="color:#7f8c8d;text-align:center;padding:16px;">Chargement...</p>
-        </div>
-      </div>
     </div>
 
-    <!-- ========== TICKETS AVEC IMPORT PDF ========== -->
+    <!-- TICKETS -->
     <div class="table-wrap" id="tab-tickets" style="display:none;">
-      <h3>🎫 Importer des tickets</h3>
-
-      <div class="pdf-zone">
-        <div class="icon">📄</div>
-        <div class="title">Importez votre PDF MikroTik / Mikhmon</div>
-        <div class="sub">Glissez le fichier exporté ou sélectionnez-le</div>
-
-        <div class="dropzone" id="dropzone">
-          <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;">
-          <span style="color: #7f8c8d; font-size: 14px;">📂 Cliquez pour sélectionner un fichier PDF</span>
-        </div>
-
-        <div class="pdf-preview" id="pdf-preview">
-          <div class="header">
-            <span style="font-weight: 600; color: #27ae60;">✅ Codes détectés</span>
-            <span class="count" id="codes-count">0</span>
-          </div>
-          <div id="codes-list"></div>
-        </div>
-
-        <div style="display: flex; gap: 12px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
-          <button class="btn btn-secondary" id="preview-pdf-btn" style="width: auto; padding: 8px 24px; font-size: 14px;">👁️ Prévisualiser</button>
-          <button class="btn btn-success" id="import-pdf-btn" style="width: auto; padding: 8px 24px; font-size: 14px;">📥 Importer PDF</button>
-          <button class="btn btn-secondary" id="clear-pdf-btn" style="width: auto; padding: 8px 24px; font-size: 14px; background: #e74c3c;">🗑️ Effacer</button>
-        </div>
-
-        <div class="pdf-info">
-          ⚡ Petit lot de test recommandé avant l'importation complète.
-        </div>
-      </div>
-
-      <div style="margin-top: 12px;">
-        <div class="form-group">
-          <label>Forfait associé</label>
-          <select id="ticket-product-select" style="width:100%;padding:10px;border:2px solid #e0e4e8;border-radius:12px;font-size:14px;background:#fafbfc;">
-            <option value="">Sélectionner un forfait</option>
-          </select>
-        </div>
-      </div>
-
-      <hr style="margin:16px 0;border:none;border-top:1px solid #e9ecef;">
-      <h4>📋 Tickets disponibles</h4>
-      <div id="tickets-list" style="max-height:200px;overflow-y:auto;background:#f8f9fa;border-radius:10px;padding:8px;">
-        <p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p>
-      </div>
+      <h3>🎫 Tickets de la zone</h3>
+      <div id="tickets-list"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p></div>
     </div>
 
-    <!-- ========== RETRAIT ========== -->
+    <!-- RETRAIT -->
     <div class="table-wrap" id="tab-retrait" style="display:none;">
       <h3>💰 Retirer mes fonds</h3>
       <p style="color:#7f8c8d;font-size:13px;margin-bottom:12px;">Commission de 5% prélevée.</p>
@@ -357,85 +267,229 @@
       <button class="btn btn-success" id="withdraw-btn">📤 Demander le retrait</button>
     </div>
 
-    <!-- ========== MIKROTIK ========== -->
-    <div class="table-wrap" id="tab-mikrotik" style="display:none;">
-      <h3>🛜 Gérer mes routeurs MikroTik</h3>
-
-      <div style="background:#f8f9fa;padding:16px;border-radius:12px;margin-bottom:16px;">
-        <h4>➕ Ajouter un routeur</h4>
-        <div class="form-group"><label>Nom</label><input type="text" id="mt-name" placeholder="Ex: Routeur Gare"></div>
-        <div class="form-group"><label>IP</label><input type="text" id="mt-ip" placeholder="192.168.1.1"></div>
-        <div class="form-group"><label>Utilisateur</label><input type="text" id="mt-username" placeholder="admin"></div>
-        <div class="form-group"><label>Mot de passe</label><input type="password" id="mt-password" placeholder="********"></div>
-        <div class="form-group"><label>Port</label><input type="number" id="mt-port" value="8728"></div>
-        <div class="form-group"><label>SSID</label><input type="text" id="mt-ssid" placeholder="Mon WiFi"></div>
-        <div class="form-group"><label>Emplacement</label><input type="text" id="mt-location" placeholder="Niamey, Niger"></div>
-        <button class="btn btn-primary" id="add-mt-btn">➕ Ajouter le routeur</button>
-      </div>
-
-      <h4>📋 Mes routeurs</h4>
-      <div id="mikrotik-list"><p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun routeur configuré</p></div>
-    </div>
-
-    <!-- ========== GPS ========== -->
-    <div class="table-wrap" id="tab-gps" style="display:none;">
-      <h3>📍 Géolocalisation</h3>
-
-      <div class="gps-toggle" style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:#f8f9fa;border-radius:12px;">
-        <div>
-          <div class="status" id="gps-status-text" style="font-weight:600;font-size:16px;">📍 GPS Désactivé</div>
-          <div style="font-size:13px;color:#7f8c8d;" id="gps-coords">Lat: -- | Lng: --</div>
-        </div>
-        <button class="toggle-btn off" id="gps-toggle-btn" style="width:auto;padding:8px 24px;border:none;border-radius:30px;font-weight:600;cursor:pointer;background:#e74c3c;color:white;">Activer</button>
-      </div>
-
-      <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="form-group"><label>Latitude</label><input type="text" id="gps-lat" placeholder="13.5116"></div>
-        <div class="form-group"><label>Longitude</label><input type="text" id="gps-lng" placeholder="2.1254"></div>
-      </div>
-      <button class="btn btn-success" id="gps-save-btn">💾 Enregistrer</button>
-      <button class="btn btn-secondary" id="gps-detect-btn" style="margin-top:8px;">📍 Détecter ma position</button>
-    </div>
-
   </div>
 </div>
 
 <!-- ========== JAVASCRIPT ========== -->
 <script>
   // =============================================
-  // CONFIGURATION (CORRIGÉE)
+  // CONFIGURATION
   // =============================================
   const API_URL = 'https://autoticket-backend-ktsj.onrender.com/api';
-  let USER_ID = localStorage.getItem('userId') || '6a7a76ba6b197186941d4937';
+  const USER_ID = localStorage.getItem('userId') || '6a7bb70e141903b3a25d9366';
+  let activeZoneId = localStorage.getItem('activeZoneId') || '';
 
-  let salesChart = null;
-  let productsChart = null;
-  let currentPeriod = 7;
-
-  // =============================================
-  // FONCTIONS UTILITAIRES
-  // =============================================
   function formatPrice(amount) { return amount.toLocaleString() + ' FCFA'; }
 
   async function apiCall(endpoint, method, data) {
     try {
-      const options = { 
-        method: method || 'GET', 
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(10000)
-      };
+      const options = { method: method || 'GET', headers: { 'Content-Type': 'application/json' } };
       if (data) options.body = JSON.stringify(data);
       const response = await fetch(API_URL + endpoint, options);
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erreur ${response.status}: ${errorText}`);
-      }
+      if (!response.ok) throw new Error(`Erreur ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error('API Error:', error);
       throw error;
     }
   }
+
+  // =============================================
+  // ZONES
+  // =============================================
+  async function loadZones() {
+    try {
+      const zones = await apiCall(`/mikrotik/${USER_ID}`, 'GET');
+      const select = document.getElementById('zone-select');
+      select.innerHTML = '<option value="">Sélectionner une zone</option>';
+      
+      zones.forEach(zone => {
+        const opt = document.createElement('option');
+        opt.value = zone._id;
+        opt.textContent = `${zone.name} - ${zone.location || 'N/A'}`;
+        if (zone._id === activeZoneId) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      // Si une zone est active, afficher son nom
+      if (activeZoneId) {
+        const activeZone = zones.find(z => z._id === activeZoneId);
+        document.getElementById('active-zone-name').textContent = activeZone ? activeZone.name : 'Aucune';
+      } else if (zones.length > 0) {
+        // Sélectionner la première zone par défaut
+        activeZoneId = zones[0]._id;
+        localStorage.setItem('activeZoneId', activeZoneId);
+        document.getElementById('active-zone-name').textContent = zones[0].name;
+        select.value = zones[0]._id;
+      }
+      
+      return zones;
+    } catch (error) {
+      console.error('Erreur chargement zones:', error);
+      document.getElementById('active-zone-name').textContent = '⚠️ Erreur';
+      return [];
+    }
+  }
+
+  function changeZone() {
+    const select = document.getElementById('zone-select');
+    activeZoneId = select.value;
+    localStorage.setItem('activeZoneId', activeZoneId);
+    
+    const selectedText = select.options[select.selectedIndex]?.text || 'Aucune';
+    document.getElementById('active-zone-name').textContent = selectedText.split(' - ')[0] || 'Aucune';
+    
+    // Recharger les données
+    loadTickets();
+    loadStats();
+    loadProducts();
+  }
+
+  function refreshZone() {
+    loadZones().then(() => {
+      if (activeZoneId) {
+        const select = document.getElementById('zone-select');
+        select.value = activeZoneId;
+        const text = select.options[select.selectedIndex]?.text || 'Aucune';
+        document.getElementById('active-zone-name').textContent = text.split(' - ')[0] || 'Aucune';
+      }
+      loadTickets();
+      loadStats();
+      loadProducts();
+    });
+  }
+
+  // =============================================
+  // TICKETS PAR ZONE
+  // =============================================
+  async function loadTickets() {
+    try {
+      const endpoint = activeZoneId ? `/tickets/${USER_ID}/${activeZoneId}` : `/tickets/${USER_ID}`;
+      const data = await apiCall(endpoint, 'GET');
+      const container = document.getElementById('tickets-list');
+      container.innerHTML = '';
+      
+      if (!data.tickets || data.tickets.length === 0) {
+        container.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket pour cette zone</p>';
+        return;
+      }
+      
+      const table = document.createElement('table');
+      table.innerHTML = `
+        <thead><tr><th>Code</th><th>Statut</th></tr></thead>
+        <tbody>
+          ${data.tickets.map(t => `
+            <tr>
+              <td><strong>${t.code}</strong></td>
+              <td><span class="status active">Disponible</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      `;
+      container.appendChild(table);
+    } catch (error) {
+      console.error('Erreur tickets:', error);
+      document.getElementById('tickets-list').innerHTML = '<p style="color:#e74c3c;text-align:center;padding:16px;">Erreur chargement</p>';
+    }
+  }
+
+  // =============================================
+  // STATS
+  // =============================================
+  async function loadStats() {
+    try {
+      const stats = await apiCall(`/stats/${USER_ID}`, 'GET');
+      document.getElementById('stat-balance').textContent = formatPrice(stats.balance || 0);
+      document.getElementById('balance-display').textContent = formatPrice(stats.balance || 0);
+      
+      // Tickets disponibles pour la zone active
+      if (activeZoneId) {
+        const ticketsData = await apiCall(`/tickets/${USER_ID}/${activeZoneId}`, 'GET');
+        document.getElementById('stat-tickets').textContent = ticketsData.total || 0;
+      } else {
+        document.getElementById('stat-tickets').textContent = stats.availableTickets || 0;
+      }
+      
+      document.getElementById('stat-products').textContent = stats.total?.count || 0;
+      document.getElementById('stat-revenue').textContent = formatPrice(stats.total?.revenue || 0);
+    } catch (error) {
+      console.error('Erreur stats:', error);
+    }
+  }
+
+  // =============================================
+  // FORFAITS
+  // =============================================
+  async function loadProducts() {
+    try {
+      const products = await apiCall(`/products/${USER_ID}`, 'GET');
+      const container = document.getElementById('products-list');
+      const tableContainer = document.getElementById('products-table-container');
+      container.innerHTML = '';
+      tableContainer.innerHTML = '';
+      
+      if (!products || products.length === 0) {
+        container.innerHTML = '<p style="color:#7f8c8d;">Aucun forfait.</p>';
+        tableContainer.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait</p>';
+        return;
+      }
+      
+      let html = `<table><thead><tr><th>Nom</th><th>Prix</th><th>Durée</th><th>Statut</th></tr></thead><tbody>`;
+      products.forEach(p => { html += `<tr><td><strong>${p.name}</strong></td><td>${formatPrice(p.price)}</td><td>${p.duration}</td><td><span class="status active">Actif</span></td></tr>`; });
+      html += `</tbody></table>`;
+      tableContainer.innerHTML = html;
+      
+      products.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;"><div><strong>${p.name}</strong> - ${formatPrice(p.price)}<div style="font-size:12px;color:#7f8c8d;">${p.duration}</div></div><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p._id}')">🗑️</button></div>`;
+        container.appendChild(div);
+      });
+    } catch (error) {
+      console.error('Erreur forfaits:', error);
+    }
+  }
+
+  document.getElementById('add-product-btn').onclick = async function() {
+    const name = document.getElementById('product-name').value.trim();
+    const price = parseInt(document.getElementById('product-price').value);
+    const duration = document.getElementById('product-duration').value.trim();
+    if (!name || !price || !duration) { alert('Veuillez remplir tous les champs.'); return; }
+    try {
+      await apiCall('/products', 'POST', { userId: USER_ID, name, price, duration });
+      document.getElementById('product-name').value = '';
+      document.getElementById('product-price').value = '';
+      document.getElementById('product-duration').value = '';
+      loadProducts();
+      loadStats();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
+
+  async function deleteProduct(productId) {
+    if (!confirm('Supprimer ce forfait ?')) return;
+    try {
+      await apiCall(`/products/${productId}`, 'DELETE');
+      loadProducts();
+      loadStats();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  }
+
+  // =============================================
+  // RETRAIT
+  // =============================================
+  document.getElementById('withdraw-btn').onclick = async function() {
+    const amount = parseInt(document.getElementById('withdraw-amount').value);
+    const phone = document.getElementById('withdraw-phone').value.trim();
+    if (!amount || amount < 1000) { alert('Montant minimum : 1000 FCFA.'); return; }
+    if (!phone || phone.length < 8) { alert('Numéro valide requis.'); return; }
+    try {
+      const result = await apiCall('/withdrawals', 'POST', { userId: USER_ID, amount, phone, method: 'airtelmoney' });
+      alert(`✅ Retrait de ${formatPrice(amount)} demandé !`);
+      document.getElementById('withdraw-amount').value = '';
+      document.getElementById('withdraw-phone').value = '';
+      loadStats();
+    } catch (error) { alert('Erreur: ' + error.message); }
+  };
 
   // =============================================
   // NAVIGATION
@@ -451,9 +505,7 @@
       'overview': '📊 Vue d\'ensemble',
       'forfaits': '📦 Gestion des forfaits',
       'tickets': '🎫 Gestion des tickets',
-      'retrait': '💰 Retraits',
-      'mikrotik': '🛜 MikroTik',
-      'gps': '📍 GPS'
+      'retrait': '💰 Retraits'
     };
     document.getElementById('page-title').textContent = titles[tab] || '📊 Dashboard';
   }
@@ -469,617 +521,9 @@
     localStorage.removeItem('userId');
     localStorage.removeItem('userName');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('activeZoneId');
     window.location.href = 'register.html';
   }
-
-  // =============================================
-  // GRAPHIQUES
-  // =============================================
-  function initSalesChart(data) {
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    if (salesChart) { salesChart.destroy(); }
-
-    salesChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: data.labels || [],
-        datasets: [
-          {
-            label: 'Ventes (tickets)',
-            data: data.sales || [],
-            backgroundColor: 'rgba(230, 126, 34, 0.7)',
-            borderColor: '#e67e22',
-            borderWidth: 2,
-            borderRadius: 4,
-            order: 1
-          },
-          {
-            label: 'Revenus (FCFA)',
-            data: data.revenues || [],
-            type: 'line',
-            backgroundColor: 'rgba(39, 174, 96, 0.1)',
-            borderColor: '#27ae60',
-            borderWidth: 3,
-            pointBackgroundColor: '#27ae60',
-            pointRadius: 4,
-            tension: 0.3,
-            fill: true,
-            order: 0
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                let label = context.dataset.label || '';
-                let value = context.raw || 0;
-                if (context.dataset.label.includes('Revenus')) {
-                  return label + ': ' + value.toLocaleString() + ' FCFA';
-                }
-                return label + ': ' + value;
-              }
-            }
-          }
-        },
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-          x: { grid: { display: false } }
-        }
-      }
-    });
-  }
-
-  function initProductsChart(products) {
-    const ctx = document.getElementById('productsChart').getContext('2d');
-    if (productsChart) { productsChart.destroy(); }
-
-    if (!products || products.length === 0) {
-      products = [{ name: 'Aucune vente', count: 1 }];
-    }
-
-    const colors = ['#e67e22', '#f39c12', '#27ae60', '#3498db', '#9b59b6', '#1abc9c', '#e74c3c', '#2ecc71'];
-
-    productsChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: products.map(p => p.name),
-        datasets: [{
-          data: products.map(p => p.count),
-          backgroundColor: colors.slice(0, products.length),
-          borderWidth: 2,
-          borderColor: '#fff'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10, padding: 8 } },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                let percentage = total > 0 ? Math.round((context.raw / total) * 100) : 0;
-                return context.label + ': ' + context.raw + ' (' + percentage + '%)';
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-
-  // =============================================
-  // STATISTIQUES AVANCÉES
-  // =============================================
-  async function loadAdvancedStats(period = 7) {
-    currentPeriod = period;
-    try {
-      const data = await apiCall(`/stats/advanced/${USER_ID}/${period}`, 'GET');
-      initSalesChart(data);
-      initProductsChart(data.products || []);
-      document.getElementById('total-sales').textContent = data.summary?.totalSales || 0;
-      document.getElementById('avg-revenue').textContent = (data.summary?.avgRevenue || 0).toLocaleString() + ' F';
-      document.getElementById('best-day').textContent = data.summary?.bestDay || '-';
-      document.getElementById('period-days').textContent = period;
-    } catch (error) {
-      console.error('Erreur chargement stats avancées:', error);
-    }
-  }
-
-  // =============================================
-  // ABONNEMENT
-  // =============================================
-  async function loadSubscriptionStatus() {
-    try {
-      const sub = await apiCall(`/subscription/${USER_ID}`, 'GET');
-      const badge = document.getElementById('status-badge');
-      const statusText = document.getElementById('sub-status-text');
-      const daysText = document.getElementById('sub-days-text');
-      if (sub.status === 'active') {
-        badge.textContent = '✅ Abonnement actif';
-        badge.className = 'badge';
-        statusText.textContent = '✅ Actif';
-        statusText.className = 'value green';
-        daysText.textContent = `Prochain renouvellement : ${sub.daysLeft || 0} jours`;
-      } else {
-        badge.textContent = '⛔ Expiré';
-        badge.className = 'badge';
-        badge.style.background = '#e74c3c';
-        statusText.textContent = '⛔ Expiré';
-        statusText.className = 'value red';
-        daysText.textContent = 'Veuillez renouveler';
-      }
-    } catch (error) { console.error('Erreur abonnement:', error); }
-  }
-
-  // =============================================
-  // STATS
-  // =============================================
-  async function loadStats() {
-    try {
-      const stats = await apiCall(`/stats/${USER_ID}`, 'GET');
-      document.getElementById('stat-balance').textContent = formatPrice(stats.balance || 0);
-      document.getElementById('balance-display').textContent = formatPrice(stats.balance || 0);
-      document.getElementById('stat-tickets').textContent = stats.availableTickets || 0;
-      document.getElementById('stat-products').textContent = stats.total?.count || 0;
-      document.getElementById('stat-revenue').textContent = formatPrice(stats.total?.revenue || 0);
-    } catch (error) { console.error('Erreur stats:', error); }
-  }
-
-  async function loadCommissions() {
-    try {
-      const data = await apiCall(`/commissions/${USER_ID}`, 'GET');
-      document.getElementById('total-commission').textContent = formatPrice(data.totalCommission || 0);
-      document.getElementById('withdrawal-count').textContent = data.count || 0;
-    } catch (error) { console.error('Erreur commissions:', error); }
-  }
-
-  // =============================================
-  // STOCK PAR FORFAIT
-  // =============================================
-  async function loadStockByProduct() {
-    try {
-      const products = await apiCall(`/products/${USER_ID}`, 'GET');
-      if (!products || products.length === 0) {
-        document.getElementById('stock-by-product').innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait créé.</p>';
-        return;
-      }
-
-      const ticketsData = await apiCall(`/tickets/${USER_ID}`, 'GET');
-      const tickets = ticketsData.tickets || [];
-
-      let html = `
-        <table class="stock-table">
-          <thead>
-            <tr>
-              <th>Forfait</th>
-              <th>Prix</th>
-              <th>Durée</th>
-              <th style="text-align:center;">Tickets disponibles</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      products.forEach(product => {
-        const available = tickets.filter(t => t.productId === product._id && !t.isUsed);
-        const count = available.length;
-        
-        let status = '';
-        let statusClass = '';
-        if (count === 0) {
-          status = '⛔ Rupture de stock';
-          statusClass = 'status inactive';
-        } else if (count <= 5) {
-          status = `⚠️ Stock faible (${count})`;
-          statusClass = 'status warning';
-        } else {
-          status = `✅ ${count} disponibles`;
-          statusClass = 'status active';
-        }
-
-        html += `
-          <tr>
-            <td><strong>${product.name}</strong></td>
-            <td>${formatPrice(product.price)}</td>
-            <td>${product.duration}</td>
-            <td style="font-weight:700;text-align:center;font-size:22px;color:#e67e22;">${count}</td>
-            <td><span class="${statusClass}">${status}</span></td>
-          </tr>
-        `;
-      });
-
-      html += `</tbody></table>`;
-      document.getElementById('stock-by-product').innerHTML = html;
-
-    } catch (error) {
-      console.error('Erreur chargement stock:', error);
-      document.getElementById('stock-by-product').innerHTML = '<p style="color:#e74c3c;text-align:center;padding:16px;">Erreur chargement du stock</p>';
-    }
-  }
-
-  // =============================================
-  // FORFAITS
-  // =============================================
-  async function loadProducts() {
-    try {
-      const products = await apiCall(`/products/${USER_ID}`, 'GET');
-      const container = document.getElementById('products-list');
-      const tableContainer = document.getElementById('products-table-container');
-      container.innerHTML = '';
-      tableContainer.innerHTML = '';
-      if (products.length === 0) {
-        container.innerHTML = '<p style="color:#7f8c8d;">Aucun forfait.</p>';
-        tableContainer.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun forfait</p>';
-        return;
-      }
-      let html = `<table><thead><tr><th>Nom</th><th>Prix</th><th>Durée</th><th>Statut</th></tr></thead><tbody>`;
-      products.forEach(p => { html += `<tr><td><strong>${p.name}</strong></td><td>${formatPrice(p.price)}</td><td>${p.duration}</td><td><span class="status active">Actif</span></td></tr>`; });
-      html += `</tbody></table>`;
-      tableContainer.innerHTML = html;
-      products.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;"><div><strong>${p.name}</strong> - ${formatPrice(p.price)}<div style="font-size:12px;color:#7f8c8d;">${p.duration}</div></div><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p._id}')">🗑️</button></div>`;
-        container.appendChild(div);
-      });
-      populateProductSelect(products);
-    } catch (error) { console.error('Erreur forfaits:', error); }
-  }
-
-  function populateProductSelect(products) {
-    const select = document.getElementById('ticket-product-select');
-    select.innerHTML = '<option value="">Sélectionner</option>';
-    (products || []).forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p._id;
-      opt.textContent = `${p.name} - ${formatPrice(p.price)}`;
-      select.appendChild(opt);
-    });
-  }
-
-  document.getElementById('add-product-btn').onclick = async function() {
-    const name = document.getElementById('product-name').value.trim();
-    const price = parseInt(document.getElementById('product-price').value);
-    const duration = document.getElementById('product-duration').value.trim();
-    if (!name || !price || !duration) { alert('Veuillez remplir tous les champs.'); return; }
-    try {
-      await apiCall('/products', 'POST', { userId: USER_ID, name, price, duration });
-      document.getElementById('product-name').value = '';
-      document.getElementById('product-price').value = '';
-      document.getElementById('product-duration').value = '';
-      loadProducts();
-      loadStats();
-      loadStockByProduct();
-    } catch (error) { alert('Erreur: ' + error.message); }
-  };
-
-  async function deleteProduct(productId) {
-    if (!confirm('Supprimer ce forfait ?')) return;
-    try {
-      await apiCall(`/products/${productId}`, 'DELETE');
-      loadProducts();
-      loadStats();
-      loadStockByProduct();
-    } catch (error) { alert('Erreur: ' + error.message); }
-  }
-
-  // =============================================
-  // IMPORT PDF
-  // =============================================
-  const dropzone = document.getElementById('dropzone');
-  const fileInput = document.getElementById('pdf-file-input');
-  const productSelect = document.getElementById('ticket-product-select');
-
-  dropzone.addEventListener('click', () => {
-    fileInput.click();
-  });
-
-  fileInput.addEventListener('change', function() {
-    if (this.files && this.files[0]) {
-      document.querySelector('#dropzone span').textContent = `📄 ${this.files[0].name}`;
-    }
-  });
-
-  document.getElementById('preview-pdf-btn').onclick = async function() {
-    const file = fileInput.files[0];
-    if (!file) {
-      alert('Veuillez sélectionner un fichier PDF.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('userId', USER_ID);
-
-    try {
-      const response = await fetch(API_URL + '/tickets/preview-pdf', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await response.json();
-      const previewDiv = document.getElementById('pdf-preview');
-      const codesList = document.getElementById('codes-list');
-      const codesCount = document.getElementById('codes-count');
-
-      previewDiv.style.display = 'block';
-      codesList.innerHTML = '';
-      codesCount.textContent = data.detectedCodes || 0;
-
-      if (data.detectedCodes > 0) {
-        data.codes.forEach(code => {
-          const div = document.createElement('div');
-          div.className = 'code-item';
-          div.innerHTML = `<span>${code}</span><span class="valid">✅ Valide</span>`;
-          codesList.appendChild(div);
-        });
-        if (data.detectedCodes > 50) {
-          codesList.innerHTML += `<div style="text-align:center;color:#7f8c8d;padding:8px;">... et ${data.detectedCodes - 50} autres</div>`;
-        }
-      } else {
-        codesList.innerHTML = `<div style="color:#e74c3c;padding:8px;">⚠️ Aucun code valide trouvé</div>`;
-      }
-    } catch (error) {
-      alert('Erreur: ' + error.message);
-    }
-  };
-
-  document.getElementById('import-pdf-btn').onclick = async function() {
-    const file = fileInput.files[0];
-    const productId = productSelect.value;
-
-    if (!file) {
-      alert('Veuillez sélectionner un fichier PDF.');
-      return;
-    }
-    if (!productId) {
-      alert('Veuillez sélectionner un forfait.');
-      return;
-    }
-    if (!confirm('Importer les tickets du PDF vers le forfait sélectionné ?')) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('userId', USER_ID);
-    formData.append('productId', productId);
-
-    try {
-      const response = await fetch(API_URL + '/tickets/import-pdf', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert(`✅ ${data.imported} tickets importés ! (${data.duplicates} doublons ignorés)`);
-        fileInput.value = '';
-        document.querySelector('#dropzone span').textContent = '📂 Cliquez pour sélectionner un fichier PDF';
-        document.getElementById('pdf-preview').style.display = 'none';
-        loadTickets();
-        loadStats();
-        loadStockByProduct();
-      } else {
-        alert('Erreur: ' + (data.message || 'Import échoué'));
-      }
-    } catch (error) {
-      alert('Erreur: ' + error.message);
-    }
-  };
-
-  document.getElementById('clear-pdf-btn').onclick = function() {
-    fileInput.value = '';
-    document.querySelector('#dropzone span').textContent = '📂 Cliquez pour sélectionner un fichier PDF';
-    document.getElementById('pdf-preview').style.display = 'none';
-  };
-
-  // =============================================
-  // CHARGER TICKETS
-  // =============================================
-  async function loadTickets() {
-    try {
-      const data = await apiCall(`/tickets/${USER_ID}`, 'GET');
-      const container = document.getElementById('tickets-list');
-      container.innerHTML = '';
-      if (!data.tickets || data.tickets.length === 0) { container.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket</p>'; return; }
-      data.tickets.slice(0, 30).forEach(t => {
-        const div = document.createElement('div');
-        div.style.cssText = 'display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #e9ecef;font-family:monospace;font-size:13px;';
-        div.innerHTML = `<span>${t.code}</span><span style="font-size:11px;padding:2px 12px;border-radius:20px;background:#27ae60;color:white;">${t.isUsed ? 'Vendu' : 'Disponible'}</span>`;
-        container.appendChild(div);
-      });
-    } catch (error) { console.error('Erreur tickets:', error); }
-  }
-
-  // =============================================
-  // RETRAIT
-  // =============================================
-  document.getElementById('withdraw-btn').onclick = async function() {
-    const amount = parseInt(document.getElementById('withdraw-amount').value);
-    const phone = document.getElementById('withdraw-phone').value.trim();
-    if (!amount || amount < 1000) { alert('Montant minimum : 1000 FCFA.'); return; }
-    if (!phone || phone.length < 8) { alert('Numéro valide requis.'); return; }
-    try {
-      const result = await apiCall('/withdrawals', 'POST', { userId: USER_ID, amount, phone, method: 'airtelmoney' });
-      alert(`✅ Retrait de ${formatPrice(amount)} demandé ! Commission: ${formatPrice(result.commission)}`);
-      document.getElementById('withdraw-amount').value = '';
-      document.getElementById('withdraw-phone').value = '';
-      loadStats();
-      loadCommissions();
-    } catch (error) { alert('Erreur: ' + error.message); }
-  };
-
-  // =============================================
-  // MIKROTIK
-  // =============================================
-  async function loadMikrotiks() {
-    try {
-      const mikrotiks = await apiCall(`/mikrotik/${USER_ID}`, 'GET');
-      const container = document.getElementById('mikrotik-list');
-      container.innerHTML = '';
-      if (!mikrotiks || mikrotiks.length === 0) {
-        container.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun routeur configuré</p>';
-        return;
-      }
-      mikrotiks.forEach(m => {
-        const div = document.createElement('div');
-        div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f8f9fa;border-radius:12px;margin-bottom:8px;border:1px solid #e9ecef;';
-        div.innerHTML = `
-          <div class="info">
-            <div style="font-weight:700;">${m.name}</div>
-            <div style="font-size:13px;color:#7f8c8d;">${m.ip} | ${m.ssid || 'SSID: N/A'} | ${m.isActive ? '🟢 Actif' : '🔴 Inactif'}</div>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-sm" style="background:${m.isActive ? '#e74c3c' : '#27ae60'};color:white;border:none;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:12px;" onclick="toggleMikrotik('${m._id}')">${m.isActive ? 'Désactiver' : 'Activer'}</button>
-            <button class="btn btn-sm" style="background:#e74c3c;color:white;border:none;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:12px;" onclick="deleteMikrotik('${m._id}')">🗑️</button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    } catch (error) { console.error('Erreur MikroTik:', error); }
-  }
-
-  document.getElementById('add-mt-btn').onclick = async function() {
-    const name = document.getElementById('mt-name').value.trim();
-    const ip = document.getElementById('mt-ip').value.trim();
-    const username = document.getElementById('mt-username').value.trim();
-    const password = document.getElementById('mt-password').value;
-    const port = parseInt(document.getElementById('mt-port').value) || 8728;
-    const ssid = document.getElementById('mt-ssid').value.trim();
-    const location = document.getElementById('mt-location').value.trim();
-
-    if (!name || !ip || !username || !password) {
-      alert('Veuillez remplir les champs obligatoires (Nom, IP, Utilisateur, Mot de passe).');
-      return;
-    }
-
-    try {
-      const result = await apiCall('/mikrotik/add', 'POST', { userId: USER_ID, name, ip, username, password, port, ssid, location });
-      alert(result.message);
-      document.getElementById('mt-name').value = '';
-      document.getElementById('mt-ip').value = '';
-      document.getElementById('mt-username').value = '';
-      document.getElementById('mt-password').value = '';
-      document.getElementById('mt-ssid').value = '';
-      document.getElementById('mt-location').value = '';
-      loadMikrotiks();
-    } catch (error) { alert('Erreur: ' + error.message); }
-  };
-
-  async function toggleMikrotik(mikrotikId) {
-    try {
-      const result = await apiCall(`/mikrotik/toggle/${USER_ID}/${mikrotikId}`, 'PUT');
-      alert(result.message);
-      loadMikrotiks();
-    } catch (error) { alert('Erreur: ' + error.message); }
-  }
-
-  async function deleteMikrotik(mikrotikId) {
-    if (!confirm('Supprimer ce routeur ?')) return;
-    try {
-      const result = await apiCall(`/mikrotik/${USER_ID}/${mikrotikId}`, 'DELETE');
-      alert(result.message);
-      loadMikrotiks();
-    } catch (error) { alert('Erreur: ' + error.message); }
-  }
-
-  // =============================================
-  // GPS
-  // =============================================
-  let gpsEnabled = false;
-
-  async function loadGPS() {
-    try {
-      const data = await apiCall(`/gps/${USER_ID}`, 'GET');
-      gpsEnabled = data.gpsEnabled || false;
-      document.getElementById('gps-lat').value = data.gpsLat || '';
-      document.getElementById('gps-lng').value = data.gpsLng || '';
-      updateGPSUI();
-    } catch (error) { console.error('Erreur GPS:', error); }
-  }
-
-  function updateGPSUI() {
-    const statusText = document.getElementById('gps-status-text');
-    const toggleBtn = document.getElementById('gps-toggle-btn');
-    const coords = document.getElementById('gps-coords');
-    if (gpsEnabled) {
-      statusText.textContent = '📍 GPS Activé';
-      statusText.style.color = '#27ae60';
-      toggleBtn.textContent = 'Désactiver';
-      toggleBtn.style.background = '#e74c3c';
-      toggleBtn.style.color = 'white';
-      const lat = document.getElementById('gps-lat').value || '--';
-      const lng = document.getElementById('gps-lng').value || '--';
-      coords.textContent = `Lat: ${lat} | Lng: ${lng}`;
-    } else {
-      statusText.textContent = '📍 GPS Désactivé';
-      statusText.style.color = '#e74c3c';
-      toggleBtn.textContent = 'Activer';
-      toggleBtn.style.background = '#27ae60';
-      toggleBtn.style.color = 'white';
-      coords.textContent = 'Lat: -- | Lng: --';
-    }
-  }
-
-  document.getElementById('gps-toggle-btn').onclick = async function() {
-    gpsEnabled = !gpsEnabled;
-    try {
-      await apiCall(`/gps/toggle/${USER_ID}`, 'PUT', { gpsEnabled });
-      updateGPSUI();
-    } catch (error) { alert('Erreur: ' + error.message); }
-  };
-
-  document.getElementById('gps-save-btn').onclick = async function() {
-    const lat = parseFloat(document.getElementById('gps-lat').value);
-    const lng = parseFloat(document.getElementById('gps-lng').value);
-    if (isNaN(lat) || isNaN(lng)) {
-      alert('Veuillez entrer des coordonnées valides.');
-      return;
-    }
-    try {
-      await apiCall(`/gps/toggle/${USER_ID}`, 'PUT', { gpsEnabled, gpsLat: lat, gpsLng: lng });
-      alert('✅ Position enregistrée !');
-      loadGPS();
-    } catch (error) { alert('Erreur: ' + error.message); }
-  };
-
-  document.getElementById('gps-detect-btn').onclick = function() {
-    if (!navigator.geolocation) {
-      alert('La géolocalisation n\'est pas supportée par votre navigateur.');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        document.getElementById('gps-lat').value = position.coords.latitude.toFixed(6);
-        document.getElementById('gps-lng').value = position.coords.longitude.toFixed(6);
-        alert('✅ Position détectée !');
-        loadGPS();
-      },
-      (error) => {
-        alert('Erreur de géolocalisation: ' + error.message);
-      }
-    );
-  };
-
-  // =============================================
-  // BOUTONS DE PÉRIODE
-  // =============================================
-  document.querySelectorAll('.periode-btn').forEach(btn => {
-    btn.onclick = function() {
-      document.querySelectorAll('.periode-btn').forEach(b => {
-        b.style.background = '#f0f2f5';
-        b.style.color = '#2c3e50';
-      });
-      this.style.background = '#e67e22';
-      this.style.color = 'white';
-      loadAdvancedStats(parseInt(this.dataset.period));
-    };
-  });
 
   // =============================================
   // INIT
@@ -1087,19 +531,14 @@
   async function init() {
     document.getElementById('sidebar-name').textContent = localStorage.getItem('userName') || '__________';
     document.getElementById('sidebar-email').textContent = localStorage.getItem('userEmail') || '__________';
-    await loadSubscriptionStatus();
+    
+    await loadZones();
     await loadStats();
     await loadProducts();
     await loadTickets();
-    await loadCommissions();
-    await loadMikrotiks();
-    await loadGPS();
-    await loadStockByProduct();
-    await loadAdvancedStats(7);
     showDefaultTab();
   }
   init();
 </script>
-
 </body>
 </html>

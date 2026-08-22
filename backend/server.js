@@ -353,7 +353,88 @@ app.get('/api/tickets/:userId', async (req, res) => {
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
+// =============================================
+// ROUTES - TICKETS PAR ZONE
+// =============================================
 
+// Récupérer les tickets d'une zone spécifique
+app.get('/api/tickets/:userId/:mikrotikId', async (req, res) => {
+  try {
+    const { userId, mikrotikId } = req.params;
+    const tickets = await Ticket.find({ 
+      userId, 
+      mikrotikId: mikrotikId || null, 
+      isUsed: false 
+    });
+    res.json({ total: tickets.length, tickets });
+  } catch (error) {
+    console.error('❌ Erreur récupération tickets par zone:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// Récupérer toutes les zones d'un vendeur
+app.get('/api/zones/:userId', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    res.json(user.mikrotiks || []);
+  } catch (error) {
+    console.error('❌ Erreur récupération zones:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// =============================================
+// MODIFICATION IMPORTATION PDF AVEC ZONE
+// =============================================
+
+app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
+  try {
+    const { userId, productId, mikrotikId } = req.body; // ← AJOUT mikrotikId
+    
+    if (!req.file) {
+      return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
+    }
+    
+    const data = await pdfParse(req.file.buffer);
+    const text = data.text;
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const codes = lines.filter(line => /^[A-Z0-9\-]{4,20}$/i.test(line));
+    
+    if (codes.length === 0) {
+      return res.status(400).json({ message: 'Aucun code valide trouvé', preview: text.slice(0, 500) });
+    }
+    
+    const existingCodes = await Ticket.find({ userId: userId, code: { $in: codes } });
+    const existingSet = new Set(existingCodes.map(t => t.code));
+    const newCodes = codes.filter(code => !existingSet.has(code));
+    
+    if (newCodes.length === 0) {
+      return res.status(400).json({ message: 'Tous les codes existent déjà' });
+    }
+    
+    const tickets = newCodes.map(code => ({ 
+      userId, 
+      code: code.trim(), 
+      productId: productId || null,
+      mikrotikId: mikrotikId || null // ← ASSOCIER À LA ZONE
+    }));
+    
+    const inserted = await Ticket.insertMany(tickets);
+    res.json({
+      success: true,
+      message: `${inserted.length} tickets importés pour la zone`,
+      total: codes.length,
+      imported: inserted.length,
+      duplicates: codes.length - newCodes.length,
+      tickets: inserted
+    });
+  } catch (error) {
+    console.error('Erreur import PDF:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
 // =============================================
 // ROUTES - IMPORT PDF
 // =============================================
@@ -588,7 +669,7 @@ app.post('/api/withdrawals', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - PAIEMENT AVEC MESOMB
+// ROUTES - PAIEMENT AVEC MESOMB V1.1
 // =============================================
 
 app.post('/api/payment/initiate', async (req, res) => {
@@ -597,28 +678,24 @@ app.post('/api/payment/initiate', async (req, res) => {
 
     console.log(`📝 Tentative de paiement: userId=${userId}, productId=${productId}, phone=${customerPhone}`);
 
-    // Vérifier que tous les champs sont présents
     if (!userId || !productId || !customerPhone) {
       return res.status(400).json({ message: 'Tous les champs sont requis' });
     }
 
-    // Vérifier que le forfait existe
     const product = await Product.findOne({ _id: productId, userId });
     if (!product) {
       console.log(`❌ Forfait non trouvé: ${productId}`);
       return res.status(404).json({ message: 'Forfait non trouvé' });
     }
 
-    // Vérifier qu'il reste des tickets
     const ticket = await Ticket.findOne({ userId, productId, isUsed: false });
     if (!ticket) {
-      console.log(`❌ Plus de tickets disponibles pour le forfait: ${productId}`);
+      console.log(`❌ Plus de tickets disponibles`);
       return res.status(400).json({ message: 'Plus de tickets disponibles' });
     }
 
     console.log(`✅ Ticket trouvé: ${ticket.code}`);
 
-    // Créer la commande
     const order = new Order({
       userId,
       productId,
@@ -630,17 +707,22 @@ app.post('/api/payment/initiate', async (req, res) => {
     await order.save();
 
     try {
-      // === APPEL MeSomb ===
-      const response = await axios.post(`${MESOMB_API_URL}/payment/initiate/`, {
+      // === APPEL MeSomb V1.1 ===
+      const response = await axios.post(`${MESOMB_API_URL}/payment/collect`, {
+        receiver: customerPhone,
         amount: product.price,
-        phone: customerPhone,
-        method: method || 'airtelmoney',
-        reference: order.transactionId,
-        description: `Ticket ${product.name}`,
+        service: method || 'airtelmoney',
         country: MESOMB_COUNTRY,
         currency: MESOMB_CURRENCY,
-        return_url: 'https://autoticket-pi.vercel.app/payment-status.html',
-        webhook_url: 'https://autoticket-backend-ktsj.onrender.com/api/payment/webhook'
+        customer: {
+          email: 'client@autoticket.com',
+          first_name: 'Client',
+          last_name: 'AutoTicket',
+          town: 'Niamey',
+          region: 'Niamey',
+          country: MESOMB_COUNTRY,
+          address: 'Niger'
+        }
       }, {
         headers: {
           'X-Access-Key': MESOMB_ACCESS_KEY,
@@ -653,12 +735,29 @@ app.post('/api/payment/initiate', async (req, res) => {
       console.log('✅ Réponse MeSomb:', response.data);
 
       if (response.data && response.data.success) {
+        // Paiement réussi
+        ticket.isUsed = true;
+        ticket.usedAt = new Date();
+        ticket.usedBy = customerPhone;
+        await ticket.save();
+
+        order.status = 'paid';
+        order.ticketId = ticket._id;
+        await order.save();
+
+        const user = await User.findById(userId);
+        if (user) {
+          user.balance = (user.balance || 0) + product.price;
+          await user.save();
+          console.log(`💰 Vendeur crédité: +${product.price} FCFA`);
+        }
+
         return res.json({
           success: true,
+          message: 'Paiement confirmé ! Ticket reçu.',
+          ticket: { code: ticket.code },
           orderId: order._id,
-          transactionId: order.transactionId,
-          paymentUrl: response.data.payment_url,
-          message: 'Paiement initié. Veuillez confirmer sur votre téléphone.'
+          amount: product.price
         });
       } else {
         order.status = 'failed';
@@ -671,26 +770,88 @@ app.post('/api/payment/initiate', async (req, res) => {
       }
     } catch (mesombError) {
       console.error('❌ Erreur MeSomb:', mesombError.message);
-      // En cas d'erreur MeSomb, on simule pour les tests
-      console.log('🔄 Mode simulation: paiement accepté');
-      
-      // Marquer le ticket comme utilisé
+      order.status = 'failed';
+      await order.save();
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur de paiement. Veuillez réessayer.',
+        error: mesombError.message
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Erreur paiement:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+// =============================================
+// ROUTE - PAIEMENT I-PAY (MyNita / AmanaTa)
+// =============================================
+
+app.post('/api/payment/ipay/initiate', async (req, res) => {
+  try {
+    const { userId, productId, customerPhone, paymentType } = req.body;
+
+    console.log(`📝 Paiement i-pay: userId=${userId}, type=${paymentType}, phone=${customerPhone}`);
+
+    if (!userId || !productId || !customerPhone || !paymentType) {
+      return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
+
+    const product = await Product.findOne({ _id: productId, userId });
+    if (!product) {
+      return res.status(404).json({ message: 'Forfait non trouvé' });
+    }
+
+    const ticket = await Ticket.findOne({ userId, productId, isUsed: false });
+    if (!ticket) {
+      return res.status(400).json({ message: 'Plus de tickets disponibles' });
+    }
+
+    const order = new Order({
+      userId,
+      productId,
+      customerPhone,
+      amount: product.price,
+      status: 'pending',
+      transactionId: `IPAY-${Date.now()}-${Math.floor(Math.random() * 10000)}`
+    });
+    await order.save();
+
+    // === APPEL API I-PAY.MONEY ===
+    const response = await axios.post('https://api.i-pay.money/v1/payment', {
+      amount: product.price,
+      msisdn: customerPhone,
+      paymentType: paymentType, // 'amanata' ou 'myNita'
+      reference: order.transactionId,
+      description: `Ticket ${product.name}`,
+      country: 'NE',
+      currency: 'XOF'
+    }, {
+      headers: {
+        'X-Api-Key': process.env.IPAY_API_KEY,
+        'X-Secret-Key': process.env.IPAY_SECRET_KEY,
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+
+    console.log('✅ Réponse i-pay:', response.data);
+
+    if (response.data && response.data.success) {
       ticket.isUsed = true;
       ticket.usedAt = new Date();
       ticket.usedBy = customerPhone;
       await ticket.save();
 
-      // Mettre à jour la commande
       order.status = 'paid';
       order.ticketId = ticket._id;
       await order.save();
 
-      // Créditer le vendeur
       const user = await User.findById(userId);
       if (user) {
         user.balance = (user.balance || 0) + product.price;
         await user.save();
-        console.log(`💰 Vendeur crédité: +${product.price} FCFA, nouveau solde: ${user.balance}`);
       }
 
       return res.json({
@@ -700,14 +861,21 @@ app.post('/api/payment/initiate', async (req, res) => {
         orderId: order._id,
         amount: product.price
       });
+    } else {
+      order.status = 'failed';
+      await order.save();
+      return res.status(400).json({
+        success: false,
+        message: 'Erreur paiement i-pay',
+        error: response.data?.message || 'Transaction échouée'
+      });
     }
 
   } catch (error) {
-    console.error('❌ Erreur paiement:', error);
+    console.error('❌ Erreur i-pay:', error.message);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
-
 // =============================================
 // ROUTE - STATUT DE PAIEMENT
 // =============================================
