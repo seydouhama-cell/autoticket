@@ -655,7 +655,39 @@ app.post('/api/payment/initiate', async (req, res) => {
       orderId: order._id,
       amount: product.price
     });
+// =============================================
+// ROUTE - STATUT DE PAIEMENT
+// =============================================
 
+app.get('/api/payment/status/:orderId', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Commande non trouvée' });
+    }
+
+    // Vérifier si la commande est payée
+    if (order.status === 'paid') {
+      const ticket = await Ticket.findById(order.ticketId);
+      return res.json({
+        status: 'paid',
+        ticket: ticket ? { code: ticket.code } : null,
+        amount: order.amount
+      });
+    }
+
+    if (order.status === 'failed') {
+      return res.json({ status: 'failed', message: 'Paiement échoué' });
+    }
+
+    // Par défaut, en attente
+    res.json({ status: 'pending', message: 'En attente de confirmation' });
+
+  } catch (error) {
+    console.error('❌ Erreur vérification paiement:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
   } catch (error) {
     console.error('❌ Erreur paiement:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
