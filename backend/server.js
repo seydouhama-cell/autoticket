@@ -68,7 +68,6 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   balance: { type: Number, default: 0 },
   hotspotName: { type: String },
-  // Routeurs MikroTik multiples
   mikrotiks: [{
     name: { type: String, required: true },
     ip: { type: String, required: true },
@@ -141,7 +140,6 @@ const WithdrawalSchema = new mongoose.Schema({
 });
 const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);
 
-// Abonnement SANS essai gratuit
 const SubscriptionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   status: { type: String, enum: ['active', 'expired', 'cancelled'], default: 'active' },
@@ -204,6 +202,7 @@ async function createMikrotikUser(userId, username, password) {
 app.get('/', (req, res) => {
   res.json({ message: '🚀 AutoTicket avec MeSomb, import PDF, MikroTik multiple et GPS !' });
 });
+
 // =============================================
 // ROUTES - AUTHENTIFICATION
 // =============================================
@@ -242,7 +241,6 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = await User.findOne({ email });
     
-    // ✅ VÉRIFICATION : si l'utilisateur n'existe PAS
     if (!user) {
       console.log(`❌ Utilisateur non trouvé: ${email}`);
       return res.status(401).json({ message: 'Identifiants incorrects' });
@@ -271,12 +269,89 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// =============================================
+// ROUTES - FORFAITS (COMPLÈTES)
+// =============================================
+
+// Ajouter un forfait
+app.post('/api/products', async (req, res) => {
+  try {
+    const { userId, name, price, duration } = req.body;
+    
+    if (!userId || !name || !price || !duration) {
+      return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
+
+    const product = new Product({
+      userId,
+      name,
+      price,
+      duration,
+      isActive: true
+    });
+    
+    await product.save();
+    res.status(201).json({ 
+      success: true, 
+      message: 'Forfait ajouté avec succès',
+      product 
+    });
+  } catch (error) {
+    console.error('❌ Erreur ajout forfait:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// Récupérer les forfaits d'un utilisateur
+app.get('/api/products/:userId', async (req, res) => {
+  try {
+    const products = await Product.find({ 
+      userId: req.params.userId, 
+      isActive: true 
+    });
+    res.json(products);
+  } catch (error) {
+    console.error('❌ Erreur récupération forfaits:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// Supprimer un forfait
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Forfait supprimé' });
+  } catch (error) {
+    console.error('❌ Erreur suppression forfait:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
+// =============================================
+// ROUTES - TICKETS
+// =============================================
+
+app.post('/api/tickets/bulk', async (req, res) => {
+  try {
+    const { userId, codes, productId } = req.body;
+    if (!codes || codes.length === 0) {
+      return res.status(400).json({ message: 'Aucun code' });
+    }
+    const tickets = codes.map(code => ({ userId, code: code.trim(), productId }));
+    const inserted = await Ticket.insertMany(tickets);
+    res.json({ message: `${inserted.length} tickets importés`, tickets: inserted });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+});
+
 app.get('/api/tickets/:userId', async (req, res) => {
   try {
     const tickets = await Ticket.find({ userId: req.params.userId, isUsed: false });
     res.json({ total: tickets.length, tickets });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur' });
+    console.error('❌ Erreur récupération tickets:', error);
+    res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
@@ -358,7 +433,7 @@ app.get('/api/stats/:userId', async (req, res) => {
       balance: user ? user.balance : 0
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur' });
+    res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
@@ -922,7 +997,6 @@ app.get('/api/gps/:userId', async (req, res) => {
 // ROUTES ADMIN - COMMISSIONS
 // =============================================
 
-// Stats générales des commissions
 app.get('/api/admin/commissions/stats', async (req, res) => {
   try {
     const withdrawals = await Withdrawal.find({ status: 'completed' });
@@ -943,7 +1017,6 @@ app.get('/api/admin/commissions/stats', async (req, res) => {
     const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
     const totalFees = withdrawals.reduce((sum, w) => sum + (w.feeAmount || 0), 0);
 
-    // Par méthode de paiement
     const byMethod = {};
     withdrawals.forEach(w => {
       if (!byMethod[w.method]) byMethod[w.method] = { count: 0, amount: 0, commission: 0 };
@@ -952,7 +1025,6 @@ app.get('/api/admin/commissions/stats', async (req, res) => {
       byMethod[w.method].commission += w.commissionAmount;
     });
 
-    // Par jour (30 derniers jours)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const dailyData = {};
@@ -963,7 +1035,6 @@ app.get('/api/admin/commissions/stats', async (req, res) => {
       dailyData[date].commission += w.commissionAmount;
     });
 
-    // Récupérer les noms des vendeurs
     const userIds = withdrawals.map(w => w.userId);
     const users = await User.find({ _id: { $in: userIds } });
     const userMap = {};
@@ -992,7 +1063,6 @@ app.get('/api/admin/commissions/stats', async (req, res) => {
   }
 });
 
-// Derniers retraits
 app.get('/api/admin/withdrawals/recent', async (req, res) => {
   try {
     const withdrawals = await Withdrawal.find({ status: 'completed' })
@@ -1007,13 +1077,12 @@ app.get('/api/admin/withdrawals/recent', async (req, res) => {
 });
 
 // =============================================
-// ROUTE ADMIN - RETRAIT DES COMMISSIONS (AJOUTÉE)
+// ROUTE ADMIN - RETRAIT DES COMMISSIONS
 // =============================================
 app.post('/api/admin/withdraw-commission', async (req, res) => {
   try {
     const { amount, phone, method } = req.body;
 
-    // Vérifier le solde total des commissions
     const withdrawals = await Withdrawal.find({ status: 'completed' });
     const totalCommission = withdrawals.reduce((sum, w) => sum + (w.commissionAmount || 0), 0);
 
@@ -1040,9 +1109,8 @@ app.post('/api/admin/withdraw-commission', async (req, res) => {
 
     const transactionId = `ADMIN-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
-    // Créer une transaction de retrait admin
     const adminWithdrawal = new Withdrawal({
-      userId: null, // admin
+      userId: null,
       amount: amount,
       feeAmount: 0,
       commissionAmount: 0,
