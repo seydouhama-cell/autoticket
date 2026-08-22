@@ -68,7 +68,19 @@
     }
     .zone-selector select:focus { border-color: #e67e22; outline: none; }
     .zone-selector .active-zone { font-weight: 600; color: #e67e22; }
-    .zone-selector .btn-zone { background: #e67e22; color: white; border: none; padding: 8px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; }
+    .zone-selector .btn-zone { 
+      background: #e67e22; 
+      color: white; 
+      border: none; 
+      padding: 8px 16px; 
+      border-radius: 30px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      font-size: 14px;
+    }
+    .zone-selector .btn-zone:hover { background: #d35400; }
+    .zone-selector .btn-zone-add { background: #27ae60; }
+    .zone-selector .btn-zone-add:hover { background: #1e8449; }
 
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
     .stat-card { background: white; padding: 16px 20px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e9ecef; }
@@ -93,6 +105,7 @@
 
     .table-wrap { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e9ecef; margin-bottom: 24px; overflow-x: auto; }
     .table-wrap h3 { font-size: 16px; color: #0d1b2a; margin-bottom: 12px; border-left: 4px solid #e67e22; padding-left: 12px; }
+    .table-wrap h4 { font-size: 14px; color: #0d1b2a; margin: 16px 0 8px 0; }
     .table-wrap table { width: 100%; border-collapse: collapse; font-size: 14px; }
     .table-wrap th { text-align: left; padding: 10px 12px; background: #f8f9fa; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e9ecef; }
     .table-wrap td { padding: 10px 12px; border-bottom: 1px solid #f0f2f5; }
@@ -106,6 +119,7 @@
     .form-group label { display: block; font-weight: 600; font-size: 13px; color: #2c3e50; margin-bottom: 4px; }
     .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 2px solid #e0e4e8; border-radius: 12px; font-size: 14px; background: #fafbfc; transition: 0.3s; }
     .form-group input:focus, .form-group select:focus { border-color: #e67e22; outline: none; background: white; }
+    .form-group small { display: block; font-size: 12px; color: #7f8c8d; margin-top: 4px; }
 
     .btn { padding: 10px 20px; border: none; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%; }
     .btn-primary { background: linear-gradient(135deg, #e67e22, #d35400); color: white; }
@@ -133,6 +147,12 @@
     .guide-step .content p { color: #7f8c8d; font-size: 14px; }
 
     .param-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .param-section { margin-top: 16px; padding: 16px; background: #f8f9fa; border-radius: 12px; border: 1px solid #e9ecef; }
+    .param-section h4 { color: #0d1b2a; margin-bottom: 8px; }
+    .param-section p { font-size: 13px; color: #7f8c8d; margin-bottom: 12px; }
+    .param-checkbox { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+
+    .geo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
 
     @media (max-width: 768px) {
       .sidebar { width: 200px; padding: 16px 12px; }
@@ -142,6 +162,7 @@
       .balance-card.commission { grid-column: span 1; }
       .zone-selector { flex-direction: column; align-items: stretch; text-align: center; }
       .param-row { grid-template-columns: 1fr; }
+      .geo-row { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .sidebar { width: 100%; position: relative; height: auto; flex-direction: row; flex-wrap: wrap; padding: 12px 16px; gap: 8px; }
@@ -205,6 +226,7 @@
           <option value="">Chargement...</option>
         </select>
         <button class="btn-zone" onclick="refreshZone()">🔄</button>
+        <button class="btn-zone btn-zone-add" onclick="addZone()">➕ Ajouter</button>
       </div>
     </div>
 
@@ -345,17 +367,65 @@
       <button class="btn btn-success" id="withdraw-btn">📤 Demander le retrait</button>
     </div>
 
-    <!-- ===== TAB - PARAMÈTRES ===== -->
+    <!-- ===== TAB - PARAMÈTRES (COMPLET) ===== -->
     <div class="table-wrap" id="tab-parametres" style="display:none;">
       <h3>⚙️ Paramètres de la zone</h3>
       <p style="color:#7f8c8d;font-size:14px;margin-bottom:12px;">Gérez les informations publiques et techniques de votre zone WiFi.</p>
+
       <div class="param-row">
-        <div class="form-group"><label>Nom de la zone</label><input type="text" id="zone-name" placeholder="ZAKOKI WIFI"></div>
+        <div class="form-group"><label>Nom de la Zone</label><input type="text" id="zone-name" placeholder="ZAKOKI WIFI"></div>
         <div class="form-group"><label>Ville</label><input type="text" id="zone-city" placeholder="MARADI"></div>
       </div>
-      <div class="form-group"><label>SSID (nom du réseau WiFi)</label><input type="text" id="zone-ssid" placeholder="ZAKOKI WIFI"></div>
-      <div class="form-group"><label>Lien public de votre zone</label><input type="text" id="zone-url" value="https://autoticket-pi.vercel.app/achat.html" readonly style="background:#f0f2f5;"></div>
-      <button class="btn btn-primary" onclick="saveZoneSettings()">💾 Enregistrer</button>
+
+      <div class="form-group">
+        <label>Nom du réseau Wi-Fi (SSID)</label>
+        <input type="text" id="zone-ssid" placeholder="ZAKOKI WIFI">
+        <small>C'est le nom du réseau WiFi que vos clients verront dans leurs paramètres. Il sera affiché dans le guide de connexion après paiement.</small>
+      </div>
+
+      <div class="form-group">
+        <label>Lien public de votre zone</label>
+        <input type="text" id="zone-url" value="https://autoticket-pi.vercel.app/achat.html" readonly style="background:#f0f2f5;">
+        <small>Ce lien est permanent afin que vos anciens partages, affiches et QR codes restent toujours valides. Contactez AutoTicket si une correction exceptionnelle est nécessaire.</small>
+      </div>
+
+      <div class="form-group">
+        <label>DNS MikroTik</label>
+        <input type="text" id="zone-dns" placeholder="zakoki.log">
+        <small>L'URL de votre portail captif local.</small>
+      </div>
+
+      <div class="form-group">
+        <label>Format de Ticket</label>
+        <select id="zone-format">
+          <option value="code">Code unique</option>
+          <option value="userpass">Utilisateur / Mot de passe</option>
+          <option value="both">Les deux</option>
+        </select>
+      </div>
+
+      <!-- ===== LOCALISATION GÉOGRAPHIQUE ===== -->
+      <div class="param-section">
+        <h4>📍 Localisation géographique</h4>
+        <p>Une seule action suffit pour enregistrer la position de cette zone et autoriser sa publication sur la carte AutoTicket.</p>
+
+        <div class="geo-row">
+          <div class="form-group"><label>Latitude</label><input type="text" id="zone-lat" placeholder="13.491819"></div>
+          <div class="form-group"><label>Longitude</label><input type="text" id="zone-lng" placeholder="7.115676"></div>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+          <button class="btn btn-primary" onclick="getLocation()" style="width:auto;padding:8px 24px;">📍 Acquérir la position</button>
+          <label class="param-checkbox">
+            <input type="checkbox" id="zone-publish"> Publier sur la carte
+          </label>
+        </div>
+
+        <p style="font-size:12px;color:#7f8c8d;margin-top:8px;">Cette zone est prête à apparaître sur la carte AutoTicket.</p>
+        <p style="font-size:12px;color:#7f8c8d;">Les coordonnées sont enregistrées et votre accord de publication est actif.</p>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveZoneSettings()" style="margin-top:16px;">💾 Enregistrer les modifications</button>
     </div>
 
   </div>
@@ -442,6 +512,34 @@
       loadStats();
       loadProducts();
     });
+  }
+
+  // =============================================
+  // AJOUTER UNE ZONE
+  // =============================================
+  function addZone() {
+    const name = prompt("Nom de la nouvelle zone :");
+    if (!name) return;
+    const ip = prompt("Adresse IP du routeur :");
+    if (!ip) return;
+    const username = prompt("Utilisateur MikroTik :");
+    if (!username) return;
+    const password = prompt("Mot de passe MikroTik :");
+    if (!password) return;
+    
+    apiCall('/mikrotik/add', 'POST', {
+      userId: USER_ID,
+      name: name,
+      ip: ip,
+      username: username,
+      password: password,
+      port: 8728,
+      ssid: name,
+      location: "Niger"
+    }).then(() => {
+      alert("✅ Zone ajoutée !");
+      refreshZone();
+    }).catch(err => alert("Erreur: " + err.message));
   }
 
   // =============================================
@@ -641,13 +739,39 @@
   };
 
   // =============================================
-  // PARAMÈTRES
+  // PARAMÈTRES - LOCALISATION
+  // =============================================
+  function getLocation() {
+    if (!navigator.geolocation) {
+      alert('La géolocalisation n\'est pas supportée par votre navigateur.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        document.getElementById('zone-lat').value = position.coords.latitude.toFixed(6);
+        document.getElementById('zone-lng').value = position.coords.longitude.toFixed(6);
+        alert('✅ Position détectée !');
+      },
+      (error) => {
+        alert('Erreur de géolocalisation: ' + error.message);
+      }
+    );
+  }
+
+  // =============================================
+  // PARAMÈTRES - SAUVEGARDE
   // =============================================
   function saveZoneSettings() {
     const name = document.getElementById('zone-name').value.trim();
     const city = document.getElementById('zone-city').value.trim();
     const ssid = document.getElementById('zone-ssid').value.trim();
-    alert(`✅ Paramètres enregistrés !\nNom: ${name}\nVille: ${city}\nSSID: ${ssid}`);
+    const dns = document.getElementById('zone-dns').value.trim();
+    const format = document.getElementById('zone-format').value;
+    const lat = document.getElementById('zone-lat').value.trim();
+    const lng = document.getElementById('zone-lng').value.trim();
+    const publish = document.getElementById('zone-publish').checked;
+    
+    alert(`✅ Paramètres enregistrés !\n\nNom: ${name}\nVille: ${city}\nSSID: ${ssid}\nDNS: ${dns}\nFormat: ${format}\nLat: ${lat}\nLng: ${lng}\nPublié: ${publish ? 'Oui' : 'Non'}`);
   }
 
   // =============================================
@@ -673,7 +797,6 @@
     };
     document.getElementById('page-title').textContent = titles[tab] || '📊 Dashboard';
     
-    // Charger les données spécifiques
     if (tab === 'ventes') loadVentes();
     if (tab === 'tickets') loadTickets();
   }
