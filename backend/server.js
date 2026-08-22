@@ -1039,23 +1039,25 @@ app.get('/api/subscription/:userId', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - MIKROTIK
+// ROUTES - MIKROTIK (COMPLET)
 // =============================================
 
+// Ajouter un routeur
 app.post('/api/mikrotik/add', async (req, res) => {
   try {
     const { userId, name, ip, username, password, port, ssid, location } = req.body;
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
-    user.mikrotiks.push({ 
-      name, 
-      ip, 
-      username, 
-      password, 
-      port: port || 8728, 
-      ssid, 
-      location,
+    const newMikrotik = {
+      name,
+      ip,
+      username,
+      password,
+      port: port || 8728,
+      ssid: ssid || name,
+      location: location || '',
+      isActive: true,
       config: {
         dns: '',
         portalUrl: '',
@@ -1063,26 +1065,37 @@ app.post('/api/mikrotik/add', async (req, res) => {
         walledGarden: true,
         maxUsers: 100,
         sessionTimeout: 3600
-      }
-    });
+      },
+      createdAt: new Date()
+    };
+
+    user.mikrotiks.push(newMikrotik);
     await user.save();
 
-    res.json({ success: true, message: 'Routeur MikroTik ajouté', mikrotiks: user.mikrotiks });
+    res.json({ 
+      success: true, 
+      message: 'Routeur MikroTik ajouté',
+      mikrotiks: user.mikrotiks 
+    });
   } catch (error) {
+    console.error('❌ Erreur ajout routeur:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
+// Récupérer tous les routeurs d'un utilisateur
 app.get('/api/mikrotik/:userId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
     if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
     res.json(user.mikrotiks || []);
   } catch (error) {
+    console.error('❌ Erreur récupération routeurs:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
+// Supprimer un routeur
 app.delete('/api/mikrotik/:userId/:mikrotikId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -1091,12 +1104,18 @@ app.delete('/api/mikrotik/:userId/:mikrotikId', async (req, res) => {
     user.mikrotiks = user.mikrotiks.filter(m => m._id.toString() !== req.params.mikrotikId);
     await user.save();
 
-    res.json({ success: true, message: 'Routeur supprimé', mikrotiks: user.mikrotiks });
+    res.json({ 
+      success: true, 
+      message: 'Routeur supprimé',
+      mikrotiks: user.mikrotiks 
+    });
   } catch (error) {
+    console.error('❌ Erreur suppression routeur:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
+// Activer/Désactiver un routeur
 app.put('/api/mikrotik/toggle/:userId/:mikrotikId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -1108,36 +1127,18 @@ app.put('/api/mikrotik/toggle/:userId/:mikrotikId', async (req, res) => {
     mikrotik.isActive = !mikrotik.isActive;
     await user.save();
 
-    res.json({ success: true, message: 'Routeur mis à jour', mikrotik });
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-app.put('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
-  try {
-    const { userId, mikrotikId } = req.params;
-    const { config } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-
-    const mikrotik = user.mikrotiks.id(mikrotikId);
-    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
-
-    mikrotik.config = { ...mikrotik.config, ...config };
-    await user.save();
-
     res.json({ 
       success: true, 
-      message: 'Configuration mise à jour',
+      message: `Routeur ${mikrotik.isActive ? 'activé' : 'désactivé'}`,
       mikrotik 
     });
   } catch (error) {
+    console.error('❌ Erreur toggle routeur:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
+// Récupérer la configuration d'un routeur
 app.get('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -1146,7 +1147,7 @@ app.get('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
     const mikrotik = user.mikrotiks.id(req.params.mikrotikId);
     if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
 
-    res.json({ 
+    res.json({
       success: true,
       mikrotik: {
         id: mikrotik._id,
@@ -1160,47 +1161,66 @@ app.get('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('❌ Erreur récupération config:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
-// =============================================
-// ROUTES - GPS
-// =============================================
-
-app.put('/api/gps/toggle/:userId', async (req, res) => {
+// Mettre à jour la configuration d'un routeur (DNS, format ticket)
+app.put('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
   try {
-    const { gpsEnabled, gpsLat, gpsLng } = req.body;
-    const user = await User.findById(req.params.userId);
+    const { userId, mikrotikId } = req.params;
+    const { config } = req.body;
+
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
-    user.gpsEnabled = gpsEnabled !== undefined ? gpsEnabled : !user.gpsEnabled;
-    if (gpsLat !== undefined) user.gpsLat = gpsLat;
-    if (gpsLng !== undefined) user.gpsLng = gpsLng;
-    await user.save();
+    const mikrotik = user.mikrotiks.id(mikrotikId);
+    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
 
+    if (config) {
+      mikrotik.config = {
+        ...mikrotik.config,
+        ...config
+      };
+    }
+
+    await user.save();
     res.json({
       success: true,
-      gpsEnabled: user.gpsEnabled,
-      gpsLat: user.gpsLat,
-      gpsLng: user.gpsLng
+      message: 'Configuration mise à jour',
+      mikrotik
     });
   } catch (error) {
+    console.error('❌ Erreur mise à jour config:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
 
-app.get('/api/gps/:userId', async (req, res) => {
+// Mettre à jour les informations générales d'un routeur (nom, ville, ssid)
+app.put('/api/mikrotik/update/:userId/:mikrotikId', async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId);
+    const { userId, mikrotikId } = req.params;
+    const { name, location, ssid } = req.body;
+
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
 
+    const mikrotik = user.mikrotiks.id(mikrotikId);
+    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
+
+    if (name !== undefined) mikrotik.name = name;
+    if (location !== undefined) mikrotik.location = location;
+    if (ssid !== undefined) mikrotik.ssid = ssid;
+
+    await user.save();
     res.json({
-      gpsEnabled: user.gpsEnabled || false,
-      gpsLat: user.gpsLat || null,
-      gpsLng: user.gpsLng || null
+      success: true,
+      message: 'Informations mises à jour',
+      mikrotik
     });
   } catch (error) {
+    console.error('❌ Erreur mise à jour zone:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
