@@ -33,9 +33,11 @@ app.use(cors());
 app.use(express.json());
 
 // =============================================
-// CONFIGURATION MESOMB
+// CONFIGURATION MESOMB - CORRIGÉE
 // =============================================
-const MESOMB_API_URL = 'https://mesomb.hachther.com/api/v1';
+const MESOMB_API_HOST = 'https://mesomb.hachther.com';
+const MESOMB_API_VERSION = 'v1.1';
+const MESOMB_API_URL = `${MESOMB_API_HOST}/api/${MESOMB_API_VERSION}`;
 const MESOMB_ACCESS_KEY = process.env.MESOMB_ACCESS_KEY || 'votre_access_key_ici';
 const MESOMB_SECRET_KEY = process.env.MESOMB_SECRET_KEY || 'votre_secret_key_ici';
 const MESOMB_COUNTRY = 'NE';
