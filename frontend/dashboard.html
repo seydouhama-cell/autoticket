@@ -367,7 +367,7 @@
       <button class="btn btn-success" id="withdraw-btn">📤 Demander le retrait</button>
     </div>
 
-    <!-- ===== TAB - PARAMÈTRES (COMPLET) ===== -->
+    <!-- ===== TAB - PARAMÈTRES (COMPLET AVEC PRÉ-REMPLISSAGE) ===== -->
     <div class="table-wrap" id="tab-parametres" style="display:none;">
       <h3>⚙️ Paramètres de la zone</h3>
       <p style="color:#7f8c8d;font-size:14px;margin-bottom:12px;">Gérez les informations publiques et techniques de votre zone WiFi.</p>
@@ -498,6 +498,7 @@
     loadTickets();
     loadStats();
     loadProducts();
+    loadZoneSettings();
   }
 
   function refreshZone() {
@@ -511,6 +512,7 @@
       loadTickets();
       loadStats();
       loadProducts();
+      loadZoneSettings();
     });
   }
 
@@ -540,6 +542,29 @@
       alert("✅ Zone ajoutée !");
       refreshZone();
     }).catch(err => alert("Erreur: " + err.message));
+  }
+
+  // =============================================
+  // CHARGER LES PARAMÈTRES DE LA ZONE
+  // =============================================
+  async function loadZoneSettings() {
+    if (!activeZoneId) return;
+    try {
+      const zones = await apiCall(`/mikrotik/${USER_ID}`, 'GET');
+      const zone = zones.find(z => z._id === activeZoneId);
+      if (!zone) return;
+      
+      document.getElementById('zone-name').value = zone.name || '';
+      document.getElementById('zone-city').value = zone.location || '';
+      document.getElementById('zone-ssid').value = zone.ssid || zone.name || '';
+      document.getElementById('zone-dns').value = zone.config?.dns || '';
+      document.getElementById('zone-format').value = zone.config?.ticketFormat || 'code';
+      document.getElementById('zone-lat').value = zone.gpsLat || '';
+      document.getElementById('zone-lng').value = zone.gpsLng || '';
+      document.getElementById('zone-publish').checked = zone.published || false;
+    } catch (error) {
+      console.error('Erreur chargement paramètres:', error);
+    }
   }
 
   // =============================================
@@ -751,6 +776,7 @@
         document.getElementById('zone-lat').value = position.coords.latitude.toFixed(6);
         document.getElementById('zone-lng').value = position.coords.longitude.toFixed(6);
         alert('✅ Position détectée !');
+        loadZoneSettings();
       },
       (error) => {
         alert('Erreur de géolocalisation: ' + error.message);
@@ -761,7 +787,7 @@
   // =============================================
   // PARAMÈTRES - SAUVEGARDE
   // =============================================
-  function saveZoneSettings() {
+  async function saveZoneSettings() {
     const name = document.getElementById('zone-name').value.trim();
     const city = document.getElementById('zone-city').value.trim();
     const ssid = document.getElementById('zone-ssid').value.trim();
@@ -771,7 +797,32 @@
     const lng = document.getElementById('zone-lng').value.trim();
     const publish = document.getElementById('zone-publish').checked;
     
-    alert(`✅ Paramètres enregistrés !\n\nNom: ${name}\nVille: ${city}\nSSID: ${ssid}\nDNS: ${dns}\nFormat: ${format}\nLat: ${lat}\nLng: ${lng}\nPublié: ${publish ? 'Oui' : 'Non'}`);
+    if (!activeZoneId) {
+      alert('❌ Veuillez sélectionner une zone d\'abord.');
+      return;
+    }
+
+    try {
+      // Mettre à jour la configuration
+      await apiCall(`/mikrotik/config/${USER_ID}/${activeZoneId}`, 'PUT', {
+        config: {
+          dns: dns,
+          ticketFormat: format
+        }
+      });
+      
+      // Mettre à jour les infos générales
+      await apiCall(`/mikrotik/update/${USER_ID}/${activeZoneId}`, 'PUT', {
+        name: name,
+        location: city,
+        ssid: ssid
+      });
+      
+      alert('✅ Paramètres enregistrés avec succès !');
+      refreshZone();
+    } catch (error) {
+      alert('❌ Erreur: ' + error.message);
+    }
   }
 
   // =============================================
@@ -799,6 +850,7 @@
     
     if (tab === 'ventes') loadVentes();
     if (tab === 'tickets') loadTickets();
+    if (tab === 'parametres') loadZoneSettings();
   }
 
   function showDefaultTab() {
@@ -830,6 +882,7 @@
     await loadSubscription();
     await loadCommissions();
     await loadVentes();
+    await loadZoneSettings();
     showDefaultTab();
   }
   init();
