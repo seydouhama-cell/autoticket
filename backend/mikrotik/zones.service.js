@@ -1,4 +1,4 @@
-const Zone = require('../models/Zone');
+const Zone = require('../models/zone');
 const RouterOSService = require('./routeros.service');
 
 class ZonesService {
@@ -7,7 +7,6 @@ class ZonesService {
    */
   async createZone(data) {
     try {
-      // Vérifier si la zone existe déjà
       const existing = await Zone.findOne({ 
         ownerId: data.ownerId, 
         ip: data.ip 
@@ -20,14 +19,13 @@ class ZonesService {
       const zone = new Zone(data);
       await zone.save();
 
-      // Tester la connexion
       const routeros = new RouterOSService({
         ip: zone.ip,
         port: zone.port,
         username: zone.username,
-        password: zone.password,
-        ssl: zone.ssl,
-        serverHotspot: zone.serverHotspot
+        password: zone.passwordEncrypt,
+        ssl: zone.ssl || false,
+        serverHotspot: zone.serverHotspot || 'hotspot'
       });
 
       const test = await routeros.ping();
@@ -128,9 +126,9 @@ class ZonesService {
         ip: zone.ip,
         port: zone.port,
         username: zone.username,
-        password: zone.password,
-        ssl: zone.ssl,
-        serverHotspot: zone.serverHotspot
+        password: zone.passwordEncrypt,
+        ssl: zone.ssl || false,
+        serverHotspot: zone.serverHotspot || 'hotspot'
       });
 
       const test = await routeros.ping();
