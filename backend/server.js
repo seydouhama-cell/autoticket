@@ -31,13 +31,15 @@ mongoose.connect(MONGODB_URI, {
 
 app.use(cors());
 app.use(express.json());
+
 // =============================================
 // ROUTES - MIKROTIK (NOUVELLE ARCHITECTURE)
 // =============================================
 const mikrotikRoutes = require('./mikrotik/routes');
 app.use('/api/mikrotik', mikrotikRoutes);
+
 // =============================================
-// CONFIGURATION MESOMB - CORRIGÉE
+// CONFIGURATION MESOMB
 // =============================================
 const MESOMB_API_HOST = 'https://mesomb.hachther.com';
 const MESOMB_API_VERSION = 'v1.1';
@@ -74,25 +76,6 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   balance: { type: Number, default: 0 },
   hotspotName: { type: String },
-  mikrotiks: [{
-    name: { type: String, required: true },
-    ip: { type: String, required: true },
-    username: { type: String, required: true },
-    password: { type: String, required: true },
-    port: { type: Number, default: 8728 },
-    ssid: { type: String },
-    location: { type: String },
-    isActive: { type: Boolean, default: true },
-    config: {
-      dns: { type: String, default: '' },
-      portalUrl: { type: String, default: '' },
-      ticketFormat: { type: String, enum: ['code', 'userpass', 'both'], default: 'code' },
-      walledGarden: { type: Boolean, default: true },
-      maxUsers: { type: Number, default: 100 },
-      sessionTimeout: { type: Number, default: 3600 }
-    },
-    createdAt: { type: Date, default: Date.now }
-  }],
   gpsEnabled: { type: Boolean, default: false },
   gpsLat: { type: Number },
   gpsLng: { type: Number },
@@ -166,38 +149,38 @@ const Subscription = mongoose.model('Subscription', SubscriptionSchema);
 async function createMikrotikUser(userId, username, password) {
   try {
     const user = await User.findById(userId);
-    if (!user || !user.mikrotiks || user.mikrotiks.length === 0) {
-      console.log('⚠️ Aucun routeur MikroTik configuré pour ce vendeur');
+    if (!user) {
+      console.log('⚠️ Utilisateur non trouvé');
       return false;
     }
 
-    const mikrotik = user.mikrotiks.find(m => m.isActive === true) || user.mikrotiks[0];
+    // Utiliser la nouvelle architecture via les services
+    const zones = await Zone.find({ ownerId: userId, status: 'active' });
+    if (!zones || zones.length === 0) {
+      console.log('⚠️ Aucune zone active configurée');
+      return false;
+    }
 
-    const apiUrl = `http://${mikrotik.ip}:${mikrotik.port}/rest/ip/hotspot/user/add`;
-
-    const data = {
-      name: username,
-      password: password || '123456',
-      profile: 'ticket-24h'
-    };
-
-    console.log(`🔄 Création du ticket ${username} sur ${mikrotik.ip}...`);
-
-    const response = await axios.post(apiUrl, data, {
-      auth: {
-        username: mikrotik.username,
-        password: mikrotik.password
-      },
-      timeout: 5000
+    const zone = zones[0];
+    const RouterOSService = require('./mikrotik/routeros.service');
+    const routeros = new RouterOSService({
+      ip: zone.ip,
+      port: zone.port,
+      username: zone.username,
+      password: zone.passwordEncrypt,
+      ssl: zone.ssl || false,
+      serverHotspot: zone.serverHotspot || 'hotspot'
     });
 
-    console.log(`✅ Ticket ${username} créé dans MikroTik`);
-    return true;
+    const result = await routeros.createHotspotUser(
+      username,
+      password || '123456',
+      'ticket-24h'
+    );
+
+    return result.success;
   } catch (error) {
     console.error('❌ Erreur création ticket MikroTik:', error.message);
-    if (error.response) {
-      console.error('📦 Réponse MikroTik:', error.response.data);
-    }
     return false;
   }
 }
@@ -357,88 +340,7 @@ app.get('/api/tickets/:userId', async (req, res) => {
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
-// =============================================
-// ROUTES - TICKETS PAR ZONE
-// =============================================
 
-// Récupérer les tickets d'une zone spécifique
-app.get('/api/tickets/:userId/:mikrotikId', async (req, res) => {
-  try {
-    const { userId, mikrotikId } = req.params;
-    const tickets = await Ticket.find({ 
-      userId, 
-      mikrotikId: mikrotikId || null, 
-      isUsed: false 
-    });
-    res.json({ total: tickets.length, tickets });
-  } catch (error) {
-    console.error('❌ Erreur récupération tickets par zone:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-// Récupérer toutes les zones d'un vendeur
-app.get('/api/zones/:userId', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-    res.json(user.mikrotiks || []);
-  } catch (error) {
-    console.error('❌ Erreur récupération zones:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-// =============================================
-// MODIFICATION IMPORTATION PDF AVEC ZONE
-// =============================================
-
-app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
-  try {
-    const { userId, productId, mikrotikId } = req.body; // ← AJOUT mikrotikId
-    
-    if (!req.file) {
-      return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
-    }
-    
-    const data = await pdfParse(req.file.buffer);
-    const text = data.text;
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    const codes = lines.filter(line => /^[A-Z0-9\-]{4,20}$/i.test(line));
-    
-    if (codes.length === 0) {
-      return res.status(400).json({ message: 'Aucun code valide trouvé', preview: text.slice(0, 500) });
-    }
-    
-    const existingCodes = await Ticket.find({ userId: userId, code: { $in: codes } });
-    const existingSet = new Set(existingCodes.map(t => t.code));
-    const newCodes = codes.filter(code => !existingSet.has(code));
-    
-    if (newCodes.length === 0) {
-      return res.status(400).json({ message: 'Tous les codes existent déjà' });
-    }
-    
-    const tickets = newCodes.map(code => ({ 
-      userId, 
-      code: code.trim(), 
-      productId: productId || null,
-      mikrotikId: mikrotikId || null // ← ASSOCIER À LA ZONE
-    }));
-    
-    const inserted = await Ticket.insertMany(tickets);
-    res.json({
-      success: true,
-      message: `${inserted.length} tickets importés pour la zone`,
-      total: codes.length,
-      imported: inserted.length,
-      duplicates: codes.length - newCodes.length,
-      tickets: inserted
-    });
-  } catch (error) {
-    console.error('Erreur import PDF:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
 // =============================================
 // ROUTES - IMPORT PDF
 // =============================================
@@ -673,7 +575,7 @@ app.post('/api/withdrawals', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - PAIEMENT AVEC MESOMB V1.1
+// ROUTES - PAIEMENT AVEC MESOMB
 // =============================================
 
 app.post('/api/payment/initiate', async (req, res) => {
@@ -711,7 +613,6 @@ app.post('/api/payment/initiate', async (req, res) => {
     await order.save();
 
     try {
-      // === APPEL MeSomb V1.1 ===
       const response = await axios.post(`${MESOMB_API_URL}/payment/collect`, {
         receiver: customerPhone,
         amount: product.price,
@@ -739,7 +640,6 @@ app.post('/api/payment/initiate', async (req, res) => {
       console.log('✅ Réponse MeSomb:', response.data);
 
       if (response.data && response.data.success) {
-        // Paiement réussi
         ticket.isUsed = true;
         ticket.usedAt = new Date();
         ticket.usedBy = customerPhone;
@@ -788,8 +688,9 @@ app.post('/api/payment/initiate', async (req, res) => {
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
+
 // =============================================
-// ROUTE - PAIEMENT I-PAY (MyNita / AmanaTa)
+// ROUTE - PAIEMENT I-PAY
 // =============================================
 
 app.post('/api/payment/ipay/initiate', async (req, res) => {
@@ -822,11 +723,10 @@ app.post('/api/payment/ipay/initiate', async (req, res) => {
     });
     await order.save();
 
-    // === APPEL API I-PAY.MONEY ===
     const response = await axios.post('https://api.i-pay.money/v1/payment', {
       amount: product.price,
       msisdn: customerPhone,
-      paymentType: paymentType, // 'amanata' ou 'myNita'
+      paymentType: paymentType,
       reference: order.transactionId,
       description: `Ticket ${product.name}`,
       country: 'NE',
@@ -880,6 +780,7 @@ app.post('/api/payment/ipay/initiate', async (req, res) => {
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
+
 // =============================================
 // ROUTE - STATUT DE PAIEMENT
 // =============================================
@@ -891,7 +792,6 @@ app.get('/api/payment/status/:orderId', async (req, res) => {
       return res.status(404).json({ message: 'Commande non trouvée' });
     }
 
-    // Vérifier si la commande est payée
     if (order.status === 'paid') {
       const ticket = await Ticket.findById(order.ticketId);
       return res.json({
@@ -905,7 +805,6 @@ app.get('/api/payment/status/:orderId', async (req, res) => {
       return res.json({ status: 'failed', message: 'Paiement échoué' });
     }
 
-    // Par défaut, en attente
     res.json({ status: 'pending', message: 'En attente de confirmation' });
 
   } catch (error) {
@@ -1038,193 +937,6 @@ app.get('/api/subscription/:userId', async (req, res) => {
       isActive: status === 'active'
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-// =============================================
-// ROUTES - MIKROTIK (COMPLET)
-// =============================================
-
-// Ajouter un routeur
-app.post('/api/mikrotik/add', async (req, res) => {
-  try {
-    const { userId, name, ip, username, password, port, ssid, location } = req.body;
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-
-    const newMikrotik = {
-      name,
-      ip,
-      username,
-      password,
-      port: port || 8728,
-      ssid: ssid || name,
-      location: location || '',
-      isActive: true,
-      config: {
-        dns: '',
-        portalUrl: '',
-        ticketFormat: 'code',
-        walledGarden: true,
-        maxUsers: 100,
-        sessionTimeout: 3600
-      },
-      createdAt: new Date()
-    };
-
-    user.mikrotiks.push(newMikrotik);
-    await user.save();
-
-    res.json({ 
-      success: true, 
-      message: 'Routeur MikroTik ajouté',
-      mikrotiks: user.mikrotiks 
-    });
-  } catch (error) {
-    console.error('❌ Erreur ajout routeur:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-// Récupérer tous les routeurs d'un utilisateur
-app.get('/api/mikrotik/:userId', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-    res.json(user.mikrotiks || []);
-  } catch (error) {
-    console.error('❌ Erreur récupération routeurs:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-// Supprimer un routeur
-app.delete('/api/mikrotik/:userId/:mikrotikId', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-
-    user.mikrotiks = user.mikrotiks.filter(m => m._id.toString() !== req.params.mikrotikId);
-    await user.save();
-
-    res.json({ 
-      success: true, 
-      message: 'Routeur supprimé',
-      mikrotiks: user.mikrotiks 
-    });
-  } catch (error) {
-    console.error('❌ Erreur suppression routeur:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-// Activer/Désactiver un routeur
-app.put('/api/mikrotik/toggle/:userId/:mikrotikId', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-
-    const mikrotik = user.mikrotiks.id(req.params.mikrotikId);
-    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
-
-    mikrotik.isActive = !mikrotik.isActive;
-    await user.save();
-
-    res.json({ 
-      success: true, 
-      message: `Routeur ${mikrotik.isActive ? 'activé' : 'désactivé'}`,
-      mikrotik 
-    });
-  } catch (error) {
-    console.error('❌ Erreur toggle routeur:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-// Récupérer la configuration d'un routeur
-app.get('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-
-    const mikrotik = user.mikrotiks.id(req.params.mikrotikId);
-    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
-
-    res.json({
-      success: true,
-      mikrotik: {
-        id: mikrotik._id,
-        name: mikrotik.name,
-        ip: mikrotik.ip,
-        port: mikrotik.port,
-        ssid: mikrotik.ssid,
-        location: mikrotik.location,
-        isActive: mikrotik.isActive,
-        config: mikrotik.config || {}
-      }
-    });
-  } catch (error) {
-    console.error('❌ Erreur récupération config:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-// Mettre à jour la configuration d'un routeur (DNS, format ticket)
-app.put('/api/mikrotik/config/:userId/:mikrotikId', async (req, res) => {
-  try {
-    const { userId, mikrotikId } = req.params;
-    const { config } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-
-    const mikrotik = user.mikrotiks.id(mikrotikId);
-    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
-
-    if (config) {
-      mikrotik.config = {
-        ...mikrotik.config,
-        ...config
-      };
-    }
-
-    await user.save();
-    res.json({
-      success: true,
-      message: 'Configuration mise à jour',
-      mikrotik
-    });
-  } catch (error) {
-    console.error('❌ Erreur mise à jour config:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
-// Mettre à jour les informations générales d'un routeur (nom, ville, ssid)
-app.put('/api/mikrotik/update/:userId/:mikrotikId', async (req, res) => {
-  try {
-    const { userId, mikrotikId } = req.params;
-    const { name, location, ssid } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
-
-    const mikrotik = user.mikrotiks.id(mikrotikId);
-    if (!mikrotik) return res.status(404).json({ message: 'Routeur non trouvé' });
-
-    if (name !== undefined) mikrotik.name = name;
-    if (location !== undefined) mikrotik.location = location;
-    if (ssid !== undefined) mikrotik.ssid = ssid;
-
-    await user.save();
-    res.json({
-      success: true,
-      message: 'Informations mises à jour',
-      mikrotik
-    });
-  } catch (error) {
-    console.error('❌ Erreur mise à jour zone:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
