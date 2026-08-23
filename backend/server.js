@@ -31,7 +31,11 @@ mongoose.connect(MONGODB_URI, {
 
 app.use(cors());
 app.use(express.json());
-
+// =============================================
+// ROUTES - MIKROTIK (NOUVELLE ARCHITECTURE)
+// =============================================
+const mikrotikRoutes = require('./mikrotik/routes');
+app.use('/api/mikrotik', mikrotikRoutes);
 // =============================================
 // CONFIGURATION MESOMB - CORRIGÉE
 // =============================================
