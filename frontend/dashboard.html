@@ -367,7 +367,7 @@
       <button class="btn btn-success" id="withdraw-btn">📤 Demander le retrait</button>
     </div>
 
-    <!-- ===== TAB - PARAMÈTRES (COMPLET AVEC PRÉ-REMPLISSAGE) ===== -->
+    <!-- ===== TAB - PARAMÈTRES (COMPLET) ===== -->
     <div class="table-wrap" id="tab-parametres" style="display:none;">
       <h3>⚙️ Paramètres de la zone</h3>
       <p style="color:#7f8c8d;font-size:14px;margin-bottom:12px;">Gérez les informations publiques et techniques de votre zone WiFi.</p>
@@ -456,31 +456,39 @@
   }
 
   // =============================================
-  // ZONES
+  // ZONES (NOUVELLE API)
   // =============================================
   async function loadZones() {
     try {
-      const zones = await apiCall(`/mikrotik/${USER_ID}`, 'GET');
+      const result = await apiCall(`/mikrotik/zones/${USER_ID}`, 'GET');
+      
+      if (!result.success || !result.zones) {
+        console.error('Erreur chargement zones:', result.message);
+        return [];
+      }
+      
+      const zones = result.zones;
       const select = document.getElementById('zone-select');
       select.innerHTML = '<option value="">Sélectionner une zone</option>';
       
       zones.forEach(zone => {
         const opt = document.createElement('option');
         opt.value = zone._id;
-        opt.textContent = `${zone.name} - ${zone.location || 'N/A'}`;
+        opt.textContent = `${zone.nom} - ${zone.location || 'N/A'}`;
         if (zone._id === activeZoneId) opt.selected = true;
         select.appendChild(opt);
       });
 
       if (activeZoneId) {
         const activeZone = zones.find(z => z._id === activeZoneId);
-        document.getElementById('active-zone-name').textContent = activeZone ? activeZone.name : 'Aucune';
+        document.getElementById('active-zone-name').textContent = activeZone ? activeZone.nom : 'Aucune';
       } else if (zones.length > 0) {
         activeZoneId = zones[0]._id;
         localStorage.setItem('activeZoneId', activeZoneId);
-        document.getElementById('active-zone-name').textContent = zones[0].name;
+        document.getElementById('active-zone-name').textContent = zones[0].nom;
         select.value = zones[0]._id;
       }
+      
       return zones;
     } catch (error) {
       console.error('Erreur chargement zones:', error);
@@ -520,27 +528,32 @@
   // AJOUTER UNE ZONE
   // =============================================
   function addZone() {
-    const name = prompt("Nom de la nouvelle zone :");
-    if (!name) return;
+    const nom = prompt("Nom de la nouvelle zone :");
+    if (!nom) return;
     const ip = prompt("Adresse IP du routeur :");
     if (!ip) return;
     const username = prompt("Utilisateur MikroTik :");
     if (!username) return;
     const password = prompt("Mot de passe MikroTik :");
     if (!password) return;
+    const location = prompt("Emplacement :") || 'Niger';
     
-    apiCall('/mikrotik/add', 'POST', {
-      userId: USER_ID,
-      name: name,
+    apiCall('/mikrotik/zones', 'POST', {
+      ownerId: USER_ID,
+      nom: nom,
       ip: ip,
-      username: username,
-      password: password,
       port: 8728,
-      ssid: name,
-      location: "Niger"
-    }).then(() => {
-      alert("✅ Zone ajoutée !");
-      refreshZone();
+      username: username,
+      passwordEncrypt: password,
+      location: location,
+      ssid: nom
+    }).then(result => {
+      if (result.success) {
+        alert("✅ Zone ajoutée !");
+        refreshZone();
+      } else {
+        alert("❌ Erreur: " + result.message);
+      }
     }).catch(err => alert("Erreur: " + err.message));
   }
 
@@ -550,21 +563,91 @@
   async function loadZoneSettings() {
     if (!activeZoneId) return;
     try {
-      const zones = await apiCall(`/mikrotik/${USER_ID}`, 'GET');
-      const zone = zones.find(z => z._id === activeZoneId);
-      if (!zone) return;
+      const result = await apiCall(`/mikrotik/zone/${activeZoneId}`, 'GET');
       
-      document.getElementById('zone-name').value = zone.name || '';
+      if (!result.success || !result.zone) {
+        console.error('Erreur chargement paramètres:', result.message);
+        return;
+      }
+      
+      const zone = result.zone;
+      document.getElementById('zone-name').value = zone.nom || '';
       document.getElementById('zone-city').value = zone.location || '';
-      document.getElementById('zone-ssid').value = zone.ssid || zone.name || '';
+      document.getElementById('zone-ssid').value = zone.ssid || '';
       document.getElementById('zone-dns').value = zone.config?.dns || '';
       document.getElementById('zone-format').value = zone.config?.ticketFormat || 'code';
-      document.getElementById('zone-lat').value = zone.gpsLat || '';
-      document.getElementById('zone-lng').value = zone.gpsLng || '';
-      document.getElementById('zone-publish').checked = zone.published || false;
+      document.getElementById('zone-lat').value = zone.gps?.lat || '';
+      document.getElementById('zone-lng').value = zone.gps?.lng || '';
+      document.getElementById('zone-publish').checked = zone.isPublished || false;
     } catch (error) {
       console.error('Erreur chargement paramètres:', error);
     }
+  }
+
+  // =============================================
+  // PARAMÈTRES - SAUVEGARDE
+  // =============================================
+  async function saveZoneSettings() {
+    const name = document.getElementById('zone-name').value.trim();
+    const city = document.getElementById('zone-city').value.trim();
+    const ssid = document.getElementById('zone-ssid').value.trim();
+    const dns = document.getElementById('zone-dns').value.trim();
+    const format = document.getElementById('zone-format').value;
+    const lat = document.getElementById('zone-lat').value.trim();
+    const lng = document.getElementById('zone-lng').value.trim();
+    const publish = document.getElementById('zone-publish').checked;
+    
+    if (!activeZoneId) {
+      alert('❌ Veuillez sélectionner une zone d\'abord.');
+      return;
+    }
+
+    try {
+      const result = await apiCall(`/mikrotik/zone/${activeZoneId}`, 'PUT', {
+        nom: name,
+        location: city,
+        ssid: ssid,
+        config: {
+          dns: dns,
+          ticketFormat: format
+        },
+        gps: {
+          lat: parseFloat(lat) || 0,
+          lng: parseFloat(lng) || 0
+        },
+        isPublished: publish
+      });
+      
+      if (result.success) {
+        alert('✅ Paramètres enregistrés avec succès !');
+        refreshZone();
+      } else {
+        alert('❌ Erreur: ' + (result.message || 'Erreur inconnue'));
+      }
+    } catch (error) {
+      alert('❌ Erreur: ' + error.message);
+    }
+  }
+
+  // =============================================
+  // PARAMÈTRES - LOCALISATION
+  // =============================================
+  function getLocation() {
+    if (!navigator.geolocation) {
+      alert('La géolocalisation n\'est pas supportée par votre navigateur.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        document.getElementById('zone-lat').value = position.coords.latitude.toFixed(6);
+        document.getElementById('zone-lng').value = position.coords.longitude.toFixed(6);
+        alert('✅ Position détectée !');
+        loadZoneSettings();
+      },
+      (error) => {
+        alert('Erreur de géolocalisation: ' + error.message);
+      }
+    );
   }
 
   // =============================================
@@ -572,24 +655,26 @@
   // =============================================
   async function loadTickets() {
     try {
-      const endpoint = activeZoneId ? `/tickets/${USER_ID}/${activeZoneId}` : `/tickets/${USER_ID}`;
-      const data = await apiCall(endpoint, 'GET');
+      const endpoint = activeZoneId ? `/mikrotik/tickets/${activeZoneId}` : `/tickets/${USER_ID}`;
+      const result = await apiCall(endpoint, 'GET');
+      
       const container = document.getElementById('tickets-list');
       container.innerHTML = '';
       
-      if (!data.tickets || data.tickets.length === 0) {
+      if (!result.success || !result.tickets || result.tickets.length === 0) {
         container.innerHTML = '<p style="color:#7f8c8d;text-align:center;padding:16px;">Aucun ticket pour cette zone</p>';
         return;
       }
       
       const table = document.createElement('table');
       table.innerHTML = `
-        <thead><tr><th>Code</th><th>Statut</th></tr></thead>
+        <thead><tr><th>Code</th><th>Username</th><th>Statut</th></tr></thead>
         <tbody>
-          ${data.tickets.map(t => `
+          ${result.tickets.map(t => `
             <tr>
               <td><strong>${t.code}</strong></td>
-              <td><span class="status active">Disponible</span></td>
+              <td>${t.username || t.code}</td>
+              <td><span class="status ${t.etat === 'disponible' ? 'active' : 'inactive'}">${t.etat || 'disponible'}</span></td>
             </tr>
           `).join('')}
         </tbody>
@@ -635,8 +720,9 @@
       document.getElementById('balance-display').textContent = formatPrice(stats.balance || 0);
       
       if (activeZoneId) {
-        const ticketsData = await apiCall(`/tickets/${USER_ID}/${activeZoneId}`, 'GET');
-        document.getElementById('stat-tickets').textContent = ticketsData.total || 0;
+        const ticketsResult = await apiCall(`/mikrotik/tickets/${activeZoneId}`, 'GET');
+        const disponibles = ticketsResult.success ? ticketsResult.tickets?.filter(t => t.etat === 'disponible').length || 0 : 0;
+        document.getElementById('stat-tickets').textContent = disponibles;
       } else {
         document.getElementById('stat-tickets').textContent = stats.availableTickets || 0;
       }
@@ -762,68 +848,6 @@
       loadCommissions();
     } catch (error) { alert('Erreur: ' + error.message); }
   };
-
-  // =============================================
-  // PARAMÈTRES - LOCALISATION
-  // =============================================
-  function getLocation() {
-    if (!navigator.geolocation) {
-      alert('La géolocalisation n\'est pas supportée par votre navigateur.');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        document.getElementById('zone-lat').value = position.coords.latitude.toFixed(6);
-        document.getElementById('zone-lng').value = position.coords.longitude.toFixed(6);
-        alert('✅ Position détectée !');
-        loadZoneSettings();
-      },
-      (error) => {
-        alert('Erreur de géolocalisation: ' + error.message);
-      }
-    );
-  }
-
-  // =============================================
-  // PARAMÈTRES - SAUVEGARDE
-  // =============================================
-  async function saveZoneSettings() {
-    const name = document.getElementById('zone-name').value.trim();
-    const city = document.getElementById('zone-city').value.trim();
-    const ssid = document.getElementById('zone-ssid').value.trim();
-    const dns = document.getElementById('zone-dns').value.trim();
-    const format = document.getElementById('zone-format').value;
-    const lat = document.getElementById('zone-lat').value.trim();
-    const lng = document.getElementById('zone-lng').value.trim();
-    const publish = document.getElementById('zone-publish').checked;
-    
-    if (!activeZoneId) {
-      alert('❌ Veuillez sélectionner une zone d\'abord.');
-      return;
-    }
-
-    try {
-      // Mettre à jour la configuration
-      await apiCall(`/mikrotik/config/${USER_ID}/${activeZoneId}`, 'PUT', {
-        config: {
-          dns: dns,
-          ticketFormat: format
-        }
-      });
-      
-      // Mettre à jour les infos générales
-      await apiCall(`/mikrotik/update/${USER_ID}/${activeZoneId}`, 'PUT', {
-        name: name,
-        location: city,
-        ssid: ssid
-      });
-      
-      alert('✅ Paramètres enregistrés avec succès !');
-      refreshZone();
-    } catch (error) {
-      alert('❌ Erreur: ' + error.message);
-    }
-  }
 
   // =============================================
   // NAVIGATION
