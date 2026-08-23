@@ -1,11 +1,11 @@
-const Ticket = require('../models/Ticket');
-const Zone = require('../models/Zone');
-const Profile = require('../models/Profile');
+const Ticket = require('../models/ticket');
+const Zone = require('../models/zone');
+const Profile = require('../models/profile');
 const RouterOSService = require('./routeros.service');
 
 class TicketsService {
   /**
-   * Créer un ticket (manuellement)
+   * Créer un ticket
    */
   async createTicket(data) {
     try {
@@ -19,7 +19,6 @@ class TicketsService {
         return { success: false, message: 'Profil non trouvé' };
       }
 
-      // Vérifier si le ticket existe déjà
       const existing = await Ticket.findOne({ code: data.code });
       if (existing) {
         return { success: false, message: 'Ce ticket existe déjà' };
@@ -59,7 +58,7 @@ class TicketsService {
   }
 
   /**
-   * Vendre un ticket (mise à jour et création sur MikroTik)
+   * Vendre un ticket
    */
   async sellTicket(ticketId, clientPhone) {
     try {
@@ -82,14 +81,13 @@ class TicketsService {
         return { success: false, message: 'Profil non trouvé' };
       }
 
-      // Créer l'utilisateur sur MikroTik
       const routeros = new RouterOSService({
         ip: zone.ip,
         port: zone.port,
         username: zone.username,
-        password: zone.password,
-        ssl: zone.ssl,
-        serverHotspot: zone.serverHotspot
+        password: zone.passwordEncrypt,
+        ssl: zone.ssl || false,
+        serverHotspot: zone.serverHotspot || 'hotspot'
       });
 
       const createResult = await routeros.createHotspotUser(
@@ -103,7 +101,6 @@ class TicketsService {
         return { success: false, message: 'Erreur création sur MikroTik' };
       }
 
-      // Mettre à jour le ticket
       ticket.etat = 'vendu';
       ticket.dateVente = new Date();
       ticket.clientPhone = clientPhone;

@@ -1,5 +1,5 @@
-const Profile = require('../models/Profile');
-const Zone = require('../models/Zone');
+const Profile = require('../models/profile');
+const Zone = require('../models/zone');
 
 class ProfilesService {
   /**
