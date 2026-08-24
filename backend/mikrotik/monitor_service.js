@@ -1,10 +1,7 @@
-const Zone = require('../models/Zone');
+const Zone = require('../models/zone');
 const RouterOSService = require('./routeros.service');
 
 class MonitorService {
-  /**
-   * Surveiller toutes les zones
-   */
   async monitorAllZones() {
     try {
       const zones = await Zone.find();
@@ -27,9 +24,6 @@ class MonitorService {
     }
   }
 
-  /**
-   * Vérifier le statut d'une zone
-   */
   async checkZoneStatus(zoneId) {
     try {
       const zone = await Zone.findById(zoneId);
@@ -41,9 +35,9 @@ class MonitorService {
         ip: zone.ip,
         port: zone.port,
         username: zone.username,
-        password: zone.password,
-        ssl: zone.ssl,
-        serverHotspot: zone.serverHotspot
+        password: zone.passwordEncrypt,
+        ssl: zone.ssl || false,
+        serverHotspot: zone.serverHotspot || 'hotspot'
       });
 
       const test = await routeros.ping();
@@ -71,9 +65,6 @@ class MonitorService {
     }
   }
 
-  /**
-   * Récupérer les statistiques d'une zone
-   */
   async getZoneStats(zoneId) {
     try {
       const zone = await Zone.findById(zoneId);
@@ -81,14 +72,12 @@ class MonitorService {
         return { success: false, message: 'Zone non trouvée' };
       }
 
-      // Compter les tickets
-      const Ticket = require('../models/Ticket');
+      const Ticket = require('../models/ticket');
       const total = await Ticket.countDocuments({ zoneId });
       const disponibles = await Ticket.countDocuments({ zoneId, etat: 'disponible' });
       const vendus = await Ticket.countDocuments({ zoneId, etat: 'vendu' });
 
-      // Compter les profils
-      const Profile = require('../models/Profile');
+      const Profile = require('../models/profile');
       const profils = await Profile.countDocuments({ zoneId, isActive: true });
 
       return {
