@@ -154,6 +154,20 @@
 
     .geo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
 
+    .script-container { background: #0d1b2a; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2c3e50; }
+    .script-container .script-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+    .script-container .script-header h4 { color: #e67e22; margin: 0; }
+    .script-container pre { background: #1a1a2e; color: #27ae60; padding: 16px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto; max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; margin: 0; }
+
+    .info-box { background: #fef9f0; border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid #f7dc6f; }
+    .info-box h4 { color: #0d1b2a; margin-bottom: 8px; }
+
+    .guide-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .guide-step-card { background: white; border-radius: 12px; padding: 16px; border: 1px solid #e9ecef; text-align: center; }
+    .guide-step-card .step-number { font-size: 32px; font-weight: 700; color: #e67e22; margin-bottom: 8px; }
+    .guide-step-card h5 { color: #0d1b2a; margin-bottom: 4px; }
+    .guide-step-card p { font-size: 13px; color: #7f8c8d; }
+
     @media (max-width: 768px) {
       .sidebar { width: 200px; padding: 16px 12px; }
       .main { margin-left: 200px; padding: 16px; }
@@ -163,6 +177,7 @@
       .zone-selector { flex-direction: column; align-items: stretch; text-align: center; }
       .param-row { grid-template-columns: 1fr; }
       .geo-row { grid-template-columns: 1fr; }
+      .guide-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .sidebar { width: 100%; position: relative; height: auto; flex-direction: row; flex-wrap: wrap; padding: 12px 16px; gap: 8px; }
@@ -199,6 +214,7 @@
       <li onclick="showTab('tickets')"><span class="icon">🎫</span> Tickets</li>
       <li onclick="showTab('retrait')"><span class="icon">💰</span> Retraits</li>
       <li onclick="showTab('parametres')"><span class="icon">⚙️</span> Paramètres</li>
+      <li onclick="showTab('mikrotik-config')"><span class="icon">🛜</span> Configuration MikroTik</li>
       <li onclick="window.location.href='admin.html'"><span class="icon">👑</span> Admin</li>
       <li class="menu-bottom">
         <li onclick="window.location.href='abonnement.html'"><span class="icon">📋</span> Abonnement</li>
@@ -367,7 +383,7 @@
       <button class="btn btn-success" id="withdraw-btn">📤 Demander le retrait</button>
     </div>
 
-    <!-- ===== TAB - PARAMÈTRES (COMPLET) ===== -->
+    <!-- ===== TAB - PARAMÈTRES ===== -->
     <div class="table-wrap" id="tab-parametres" style="display:none;">
       <h3>⚙️ Paramètres de la zone</h3>
       <p style="color:#7f8c8d;font-size:14px;margin-bottom:12px;">Gérez les informations publiques et techniques de votre zone WiFi.</p>
@@ -380,13 +396,13 @@
       <div class="form-group">
         <label>Nom du réseau Wi-Fi (SSID)</label>
         <input type="text" id="zone-ssid" placeholder="ZAKOKI WIFI">
-        <small>C'est le nom du réseau WiFi que vos clients verront dans leurs paramètres. Il sera affiché dans le guide de connexion après paiement.</small>
+        <small>C'est le nom du réseau WiFi que vos clients verront dans leurs paramètres.</small>
       </div>
 
       <div class="form-group">
         <label>Lien public de votre zone</label>
         <input type="text" id="zone-url" value="https://autoticket-pi.vercel.app/achat.html" readonly style="background:#f0f2f5;">
-        <small>Ce lien est permanent afin que vos anciens partages, affiches et QR codes restent toujours valides. Contactez AutoTicket si une correction exceptionnelle est nécessaire.</small>
+        <small>Ce lien est permanent afin que vos anciens partages, affiches et QR codes restent toujours valides.</small>
       </div>
 
       <div class="form-group">
@@ -404,7 +420,6 @@
         </select>
       </div>
 
-      <!-- ===== LOCALISATION GÉOGRAPHIQUE ===== -->
       <div class="param-section">
         <h4>📍 Localisation géographique</h4>
         <p>Une seule action suffit pour enregistrer la position de cette zone et autoriser sa publication sur la carte AutoTicket.</p>
@@ -422,10 +437,172 @@
         </div>
 
         <p style="font-size:12px;color:#7f8c8d;margin-top:8px;">Cette zone est prête à apparaître sur la carte AutoTicket.</p>
-        <p style="font-size:12px;color:#7f8c8d;">Les coordonnées sont enregistrées et votre accord de publication est actif.</p>
       </div>
 
       <button class="btn btn-primary" onclick="saveZoneSettings()" style="margin-top:16px;">💾 Enregistrer les modifications</button>
+    </div>
+
+    <!-- ===== TAB - CONFIGURATION MIKROTIK ===== -->
+    <div class="table-wrap" id="tab-mikrotik-config" style="display:none;">
+      <h3>🛜 Configuration MikroTik (Walled Garden)</h3>
+      
+      <p style="color:#7f8c8d;font-size:14px;margin-bottom:16px;">
+        Autorisez l'accès gratuit à AutoTicket pour permettre à vos clients d'acheter des forfaits même sans connexion active.
+      </p>
+
+      <!-- ===== CARTE : QU'EST-CE QUE LE WALLED GARDEN ===== -->
+      <div style="background:#f8f9fa;border-radius:12px;padding:16px;margin-bottom:20px;border-left:4px solid #e67e22;">
+        <h4 style="color:#0d1b2a;margin-bottom:8px;">🔍 Qu'est-ce que le Walled Garden ?</h4>
+        <p style="font-size:14px;color:#7f8c8d;">
+          Cette configuration permet à un utilisateur connecté à votre WiFi (mais bloqué par le portail captif) d'accéder uniquement à AutoTicket et à la passerelle de paiement pour payer son ticket. Une fois son paiement validé, le routeur lui redonne un accès complet à Internet.
+        </p>
+      </div>
+
+      <!-- ===== ZONE SELECTEUR POUR LE LIEN D'ACHAT ===== -->
+      <div style="background:#fef9f0;border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid #f7dc6f;">
+        <h4 style="color:#0d1b2a;margin-bottom:8px;">🔗 Lien du portail d'achat</h4>
+        <p style="font-size:13px;color:#7f8c8d;margin-bottom:12px;">
+          Sélectionnez une zone pour obtenir son lien d'achat direct. Placez ce lien sur un bouton dans le fichier login.html de votre MikroTik.
+        </p>
+        
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+          <select id="zone-link-select" style="padding:10px 16px;border:2px solid #e0e4e8;border-radius:12px;font-size:14px;background:#fafbfc;min-width:200px;">
+            <option value="">Sélectionner une zone</option>
+          </select>
+          <button class="btn btn-primary" onclick="generateZoneLink()" style="width:auto;padding:8px 24px;">🔗 Générer le lien</button>
+        </div>
+        
+        <div id="zone-link-result" style="margin-top:12px;padding:12px;background:white;border-radius:8px;border:1px solid #e9ecef;display:none;">
+          <div style="font-size:13px;color:#7f8c8d;margin-bottom:4px;">Lien direct de la zone :</div>
+          <div style="font-size:16px;font-weight:600;color:#e67e22;word-break:break-all;" id="zone-link-display"></div>
+          <button class="btn btn-sm" onclick="copyZoneLink()" style="width:auto;padding:4px 16px;background:#2c3e50;color:white;border:none;border-radius:20px;margin-top:8px;cursor:pointer;">📋 Copier</button>
+        </div>
+      </div>
+
+      <!-- ===== SCRIPT MIKROTIK ===== -->
+      <div class="script-container">
+        <div class="script-header">
+          <h4>📜 Script MikroTik - Walled Garden</h4>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm" onclick="copyScript()" style="width:auto;padding:4px 16px;background:#27ae60;color:white;border:none;border-radius:20px;cursor:pointer;">📋 Copier le script</button>
+            <button class="btn btn-sm" onclick="downloadScript()" style="width:auto;padding:4px 16px;background:#3498db;color:white;border:none;border-radius:20px;cursor:pointer;">⬇️ Télécharger</button>
+          </div>
+        </div>
+        
+        <pre id="mikrotik-script">
+# =====================================================================
+# AUTOTICKET - WALLED GARDEN COMPLET
+# Version : 2026-08-24
+#
+# Autorise avant authentification HotSpot :
+# - AutoTicket
+# - iPay
+# - MyNITA
+# - Amanata
+# =====================================================================
+
+# =====================================================================
+# 1. NETTOYAGE DES REGLES IP EXISTANTES
+# =====================================================================
+
+/ip hotspot walled-garden ip remove [find where comment~"AutoTicket"]
+/ip hotspot walled-garden ip remove [find where comment~"iPay"]
+/ip hotspot walled-garden ip remove [find where comment~"MyNITA"]
+/ip hotspot walled-garden ip remove [find where comment~"Amanata"]
+
+:delay 2s
+
+# =====================================================================
+# 2. NETTOYAGE DES REGLES PAR DOMAINE
+# =====================================================================
+
+/ip hotspot walled-garden remove [find where dynamic=no and comment~"AutoTicket"]
+/ip hotspot walled-garden remove [find where dynamic=no and comment~"iPay"]
+/ip hotspot walled-garden remove [find where dynamic=no and comment~"MyNITA"]
+/ip hotspot walled-garden remove [find where dynamic=no and comment~"Amanata"]
+
+# =====================================================================
+# 3. AUTOTICKET - DOMAINES
+# =====================================================================
+
+/ip hotspot walled-garden add dst-host="autoticket-pi.vercel.app" action=allow comment="AutoTicket Principal"
+/ip hotspot walled-garden add dst-host="autoticket-ne.com" action=allow comment="AutoTicket Principal"
+/ip hotspot walled-garden add dst-host="*.autoticket-ne.com" action=allow comment="AutoTicket Sous-domaines"
+
+# =====================================================================
+# 4. AUTOTICKET - BACKEND (Render)
+# =====================================================================
+
+/ip hotspot walled-garden add dst-host="autoticket-backend-ktsj.onrender.com" action=allow comment="AutoTicket Backend"
+
+# =====================================================================
+# 5. IPAY - DOMAINES PRINCIPAUX
+# =====================================================================
+
+/ip hotspot walled-garden add dst-host="i-pay.money" action=allow comment="iPay Principal"
+/ip hotspot walled-garden add dst-host="*.i-pay.money" action=allow comment="iPay Sous-domaines"
+
+# =====================================================================
+# 6. IPAY - SERVEUR PRINCIPAL
+# =====================================================================
+
+/ip hotspot walled-garden ip add dst-address=34.204.115.196/32 protocol=tcp dst-port=80 action=accept comment="iPay HTTP"
+/ip hotspot walled-garden ip add dst-address=34.204.115.196/32 protocol=tcp dst-port=443 action=accept comment="iPay HTTPS"
+
+# =====================================================================
+# 7. MYNITA - API DE VALIDATION
+# =====================================================================
+
+/ip hotspot walled-garden add dst-host="api.nitacashhub.com" action=allow comment="MyNITA API"
+
+# =====================================================================
+# 8. AMANATA - DOMAINE PRINCIPAL
+# =====================================================================
+
+/ip hotspot walled-garden add dst-host="amana-ta.com" action=allow comment="Amanata Principal"
+/ip hotspot walled-garden add dst-host="*.amana-ta.com" action=allow comment="Amanata Sous-domaines"
+
+# =====================================================================
+# 9. AMANATA - SERVICES FIREBASE
+# =====================================================================
+
+/ip hotspot walled-garden add dst-host="securetoken.googleapis.com" action=allow comment="Amanata Firebase Auth"
+/ip hotspot walled-garden add dst-host="firestore.googleapis.com" action=allow comment="Amanata Firestore"
+/ip hotspot walled-garden add dst-host="firebaseremoteconfig.googleapis.com" action=allow comment="Amanata Firebase Config"
+
+# =====================================================================
+# CONFIGURATION TERMINEE
+# =====================================================================
+
+:put "✅ AutoTicket Walled Garden installe avec succes."
+:put "✅ Services autorises : AutoTicket, iPay, MyNITA et Amanata."
+        </pre>
+      </div>
+
+      <!-- ===== GUIDE D'INSTALLATION ===== -->
+      <div style="background:#f8f9fa;border-radius:12px;padding:20px;border:1px solid #e9ecef;">
+        <h4 style="color:#0d1b2a;margin-bottom:12px;">📖 Comment appliquer ce script</h4>
+        
+        <div class="guide-grid">
+          <div class="guide-step-card">
+            <div class="step-number">1</div>
+            <h5>📥 WinBox</h5>
+            <p>Connectez-vous à votre routeur MikroTik à l'aide de l'outil WinBox.</p>
+          </div>
+          
+          <div class="guide-step-card">
+            <div class="step-number">2</div>
+            <h5>💻 Nouveau Terminal</h5>
+            <p>Dans le menu, cliquez sur <strong>New Terminal</strong> pour ouvrir la console.</p>
+          </div>
+          
+          <div class="guide-step-card">
+            <div class="step-number">3</div>
+            <h5>📋 Coller & Valider</h5>
+            <p>Collez le script dans le terminal et appuyez sur <strong>Entrée</strong>.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -456,16 +633,12 @@
   }
 
   // =============================================
-  // ZONES (NOUVELLE API)
+  // ZONES
   // =============================================
   async function loadZones() {
     try {
       const result = await apiCall(`/mikrotik/zones/${USER_ID}`, 'GET');
-      
-      if (!result.success || !result.zones) {
-        console.error('Erreur chargement zones:', result.message);
-        return [];
-      }
+      if (!result.success || !result.zones) return [];
       
       const zones = result.zones;
       const select = document.getElementById('zone-select');
@@ -524,9 +697,6 @@
     });
   }
 
-  // =============================================
-  // AJOUTER UNE ZONE
-  // =============================================
   function addZone() {
     const nom = prompt("Nom de la nouvelle zone :");
     if (!nom) return;
@@ -564,11 +734,7 @@
     if (!activeZoneId) return;
     try {
       const result = await apiCall(`/mikrotik/zone/${activeZoneId}`, 'GET');
-      
-      if (!result.success || !result.zone) {
-        console.error('Erreur chargement paramètres:', result.message);
-        return;
-      }
+      if (!result.success || !result.zone) return;
       
       const zone = result.zone;
       document.getElementById('zone-name').value = zone.nom || '';
@@ -584,9 +750,6 @@
     }
   }
 
-  // =============================================
-  // PARAMÈTRES - SAUVEGARDE
-  // =============================================
   async function saveZoneSettings() {
     const name = document.getElementById('zone-name').value.trim();
     const city = document.getElementById('zone-city').value.trim();
@@ -629,9 +792,6 @@
     }
   }
 
-  // =============================================
-  // PARAMÈTRES - LOCALISATION
-  // =============================================
   function getLocation() {
     if (!navigator.geolocation) {
       alert('La géolocalisation n\'est pas supportée par votre navigateur.');
@@ -850,6 +1010,65 @@
   };
 
   // =============================================
+  // CONFIGURATION MIKROTIK
+  // =============================================
+
+  function generateZoneLink() {
+    const select = document.getElementById('zone-link-select');
+    const zoneName = select.options[select.selectedIndex]?.text || '';
+    const zoneId = select.value;
+    
+    if (!zoneId) {
+      alert('Veuillez sélectionner une zone.');
+      return;
+    }
+    
+    const link = `https://autoticket-pi.vercel.app/achat.html?zone=${zoneId}`;
+    document.getElementById('zone-link-display').textContent = link;
+    document.getElementById('zone-link-result').style.display = 'block';
+  }
+
+  function copyZoneLink() {
+    const link = document.getElementById('zone-link-display').textContent;
+    navigator.clipboard.writeText(link);
+    alert('✅ Lien copié !');
+  }
+
+  function copyScript() {
+    const script = document.getElementById('mikrotik-script').textContent;
+    navigator.clipboard.writeText(script);
+    alert('✅ Script copié !');
+  }
+
+  function downloadScript() {
+    const script = document.getElementById('mikrotik-script').textContent;
+    const blob = new Blob([script], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'autoticket-walled-garden.rsc';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function loadZonesForLink() {
+    try {
+      const result = await apiCall(`/mikrotik/zones/${USER_ID}`, 'GET');
+      if (!result.success || !result.zones) return;
+      
+      const select = document.getElementById('zone-link-select');
+      result.zones.forEach(zone => {
+        const opt = document.createElement('option');
+        opt.value = zone._id;
+        opt.textContent = `${zone.nom} - ${zone.location || 'N/A'}`;
+        select.appendChild(opt);
+      });
+    } catch (error) {
+      console.error('Erreur chargement zones pour lien:', error);
+    }
+  }
+
+  // =============================================
   // NAVIGATION
   // =============================================
   function showTab(tab) {
@@ -868,13 +1087,15 @@
       'forfaits': '📦 Gestion des forfaits',
       'tickets': '🎫 Gestion des tickets',
       'retrait': '💰 Retraits',
-      'parametres': '⚙️ Paramètres'
+      'parametres': '⚙️ Paramètres',
+      'mikrotik-config': '🛜 Configuration MikroTik'
     };
     document.getElementById('page-title').textContent = titles[tab] || '📊 Dashboard';
     
     if (tab === 'ventes') loadVentes();
     if (tab === 'tickets') loadTickets();
     if (tab === 'parametres') loadZoneSettings();
+    if (tab === 'mikrotik-config') loadZonesForLink();
   }
 
   function showDefaultTab() {
@@ -907,6 +1128,7 @@
     await loadCommissions();
     await loadVentes();
     await loadZoneSettings();
+    await loadZonesForLink();
     showDefaultTab();
   }
   init();
