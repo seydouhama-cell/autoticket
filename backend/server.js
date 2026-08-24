@@ -75,12 +75,19 @@ const Order = require('./models/order');
 const Withdrawal = require('./models/withdrawal');
 const Subscription = require('./models/subscription');
 const Zone = require('./models/zone');
+const Profile = require('./models/profile');
+
+// =============================================
+// SERVICES
+// =============================================
+const TicketsService = require('./mikrotik/tickets.service');
+const RouterOSService = require('./mikrotik/routeros.service');
 
 // =============================================
 // FONCTION - CRÉER TICKET DANS MIKROTIK
 // =============================================
 
-async function createMikrotikUser(userId, username, password) {
+async function createMikrotikUser(userId, username, password, zoneId) {
   try {
     const user = await User.findById(userId);
     if (!user) {
@@ -88,14 +95,19 @@ async function createMikrotikUser(userId, username, password) {
       return false;
     }
 
-    const zones = await Zone.find({ ownerId: userId, status: 'active' });
-    if (!zones || zones.length === 0) {
+    let zone;
+    if (zoneId) {
+      zone = await Zone.findById(zoneId);
+    } else {
+      const zones = await Zone.find({ ownerId: userId, status: 'active' });
+      zone = zones[0];
+    }
+
+    if (!zone) {
       console.log('⚠️ Aucune zone active configurée');
       return false;
     }
 
-    const zone = zones[0];
-    const RouterOSService = require('./mikrotik/routeros.service');
     const routeros = new RouterOSService({
       ip: zone.ip,
       port: zone.port,
@@ -197,7 +209,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.post('/api/products', async (req, res) => {
   try {
-    const { userId, name, price, duration } = req.body;
+    const { userId, zoneId, name, price, duration, profileName } = req.body;
     
     if (!userId || !name || !price || !duration) {
       return res.status(400).json({ message: 'Tous les champs sont requis' });
@@ -205,9 +217,11 @@ app.post('/api/products', async (req, res) => {
 
     const product = new Product({
       userId,
+      zoneId: zoneId || null,
       name,
       price,
       duration,
+      profileName: profileName || '',
       isActive: true
     });
     
@@ -300,34 +314,57 @@ app.post('/api/tickets/preview-pdf', upload.single('file'), async (req, res) => 
 
 app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
   try {
-    const { userId, productId } = req.body;
+    const { userId, productId, zoneId } = req.body;
     if (!req.file) {
       return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
     }
+
+    // Vérifier que la zone existe
+    if (zoneId) {
+      const zone = await Zone.findById(zoneId);
+      if (!zone) {
+        return res.status(404).json({ message: 'Zone non trouvée' });
+      }
+    }
+
     const data = await pdfParse(req.file.buffer);
     const text = data.text;
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     const codes = lines.filter(line => /^[A-Z0-9\-]{4,20}$/i.test(line));
+
     if (codes.length === 0) {
       return res.status(400).json({ message: 'Aucun code valide trouvé', preview: text.slice(0, 500) });
     }
-    const existingCodes = await Ticket.find({ userId: userId, code: { $in: codes } });
+
+    const query = zoneId ? { zoneId, code: { $in: codes } } : { userId, code: { $in: codes } };
+    const existingCodes = await Ticket.find(query);
     const existingSet = new Set(existingCodes.map(t => t.code));
     const newCodes = codes.filter(code => !existingSet.has(code));
+
     if (newCodes.length === 0) {
       return res.status(400).json({ message: 'Tous les codes existent déjà' });
     }
-    const tickets = newCodes.map(code => ({ userId, code: code.trim(), productId: productId || null }));
+
+    const tickets = newCodes.map(code => ({
+      userId,
+      zoneId: zoneId || null,
+      productId: productId || null,
+      code: code.trim(),
+      etat: 'disponible',
+      source: 'import'
+    }));
+
     const inserted = await Ticket.insertMany(tickets);
     res.json({
       success: true,
-      message: `${inserted.length} tickets importés`,
+      message: `${inserted.length} tickets importés${zoneId ? ' pour la zone' : ''}`,
       total: codes.length,
       imported: inserted.length,
       duplicates: codes.length - newCodes.length,
       tickets: inserted
     });
   } catch (error) {
+    console.error('Erreur import PDF:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 });
@@ -508,7 +545,7 @@ app.post('/api/withdrawals', async (req, res) => {
 });
 
 // =============================================
-// ROUTES - PAIEMENT AVEC MESOMB
+// ROUTES - PAIEMENT AVEC MESOMB (AVEC ZONEID)
 // =============================================
 
 app.post('/api/payment/initiate', async (req, res) => {
@@ -527,16 +564,21 @@ app.post('/api/payment/initiate', async (req, res) => {
       return res.status(404).json({ message: 'Forfait non trouvé' });
     }
 
-    const ticket = await Ticket.findOne({ userId, productId, isUsed: false });
-    if (!ticket) {
-      console.log(`❌ Plus de tickets disponibles`);
-      return res.status(400).json({ message: 'Plus de tickets disponibles' });
+    const zoneId = product.zoneId;
+    if (!zoneId) {
+      return res.status(400).json({ message: 'Aucune zone associée à ce forfait' });
     }
 
-    console.log(`✅ Ticket trouvé: ${ticket.code}`);
+    const ticket = await Ticket.findOne({ zoneId, productId, isUsed: false });
+    if (!ticket) {
+      return res.status(400).json({ message: 'Plus de tickets disponibles pour cette zone' });
+    }
+
+    console.log(`✅ Ticket trouvé: ${ticket.code} pour la zone ${zoneId}`);
 
     const order = new Order({
       userId,
+      zoneId,
       productId,
       customerPhone,
       amount: product.price,
@@ -589,6 +631,8 @@ app.post('/api/payment/initiate', async (req, res) => {
           console.log(`💰 Vendeur crédité: +${product.price} FCFA`);
         }
 
+        await createMikrotikUser(userId, ticket.code, '123456', zoneId);
+
         return res.json({
           success: true,
           message: 'Paiement confirmé ! Ticket reçu.',
@@ -599,10 +643,10 @@ app.post('/api/payment/initiate', async (req, res) => {
       } else {
         order.status = 'failed';
         await order.save();
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Erreur paiement', 
-          error: response.data.message 
+        return res.status(400).json({
+          success: false,
+          message: 'Erreur paiement',
+          error: response.data.message
         });
       }
     } catch (mesombError) {
@@ -615,7 +659,6 @@ app.post('/api/payment/initiate', async (req, res) => {
         error: mesombError.message
       });
     }
-
   } catch (error) {
     console.error('❌ Erreur paiement:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
@@ -623,7 +666,7 @@ app.post('/api/payment/initiate', async (req, res) => {
 });
 
 // =============================================
-// ROUTE - PAIEMENT I-PAY
+// ROUTE - PAIEMENT I-PAY (AVEC ZONEID)
 // =============================================
 
 app.post('/api/payment/ipay/initiate', async (req, res) => {
@@ -641,13 +684,19 @@ app.post('/api/payment/ipay/initiate', async (req, res) => {
       return res.status(404).json({ message: 'Forfait non trouvé' });
     }
 
-    const ticket = await Ticket.findOne({ userId, productId, isUsed: false });
+    const zoneId = product.zoneId;
+    if (!zoneId) {
+      return res.status(400).json({ message: 'Aucune zone associée à ce forfait' });
+    }
+
+    const ticket = await Ticket.findOne({ zoneId, productId, isUsed: false });
     if (!ticket) {
-      return res.status(400).json({ message: 'Plus de tickets disponibles' });
+      return res.status(400).json({ message: 'Plus de tickets disponibles pour cette zone' });
     }
 
     const order = new Order({
       userId,
+      zoneId,
       productId,
       customerPhone,
       amount: product.price,
@@ -691,6 +740,8 @@ app.post('/api/payment/ipay/initiate', async (req, res) => {
         await user.save();
       }
 
+      await createMikrotikUser(userId, ticket.code, '123456', zoneId);
+
       return res.json({
         success: true,
         message: 'Paiement confirmé ! Ticket reçu.',
@@ -707,7 +758,6 @@ app.post('/api/payment/ipay/initiate', async (req, res) => {
         error: response.data?.message || 'Transaction échouée'
       });
     }
-
   } catch (error) {
     console.error('❌ Erreur i-pay:', error.message);
     res.status(500).json({ message: 'Erreur', error: error.message });
@@ -739,7 +789,6 @@ app.get('/api/payment/status/:orderId', async (req, res) => {
     }
 
     res.json({ status: 'pending', message: 'En attente de confirmation' });
-
   } catch (error) {
     console.error('❌ Erreur vérification paiement:', error);
     res.status(500).json({ message: 'Erreur', error: error.message });
@@ -766,7 +815,7 @@ app.post('/api/payment/webhook', async (req, res) => {
         return res.status(400).json({ message: 'Stock épuisé' });
       }
 
-      await createMikrotikUser(order.userId, ticket.code, '123456');
+      await createMikrotikUser(order.userId, ticket.code, '123456', order.zoneId);
 
       ticket.isUsed = true;
       ticket.usedAt = new Date();
