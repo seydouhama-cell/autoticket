@@ -295,24 +295,38 @@ app.get('/api/tickets/:userId', async (req, res) => {
 app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
   try {
     const { userId, productId, zoneId } = req.body;
+    
+    // Vérifier que le fichier est présent
     if (!req.file) {
       return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
     }
 
-    if (zoneId) {
-      const zone = await Zone.findById(zoneId);
-      if (!zone) {
-        return res.status(404).json({ message: 'Zone non trouvée' });
-      }
+    // Vérifier les paramètres requis
+    if (!userId) {
+      return res.status(400).json({ message: 'userId requis' });
+    }
+    if (!productId) {
+      return res.status(400).json({ message: 'productId requis' });
+    }
+    if (!zoneId) {
+      return res.status(400).json({ message: 'zoneId requis' });
     }
 
+    // Vérifier que la zone existe
+    const zone = await Zone.findById(zoneId);
+    if (!zone) {
+      return res.status(404).json({ message: 'Zone non trouvée' });
+    }
+
+    // Extraire le texte du PDF
     const data = await pdfParse(req.file.buffer);
     const text = data.text;
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
-    // ✅ FORMAT CORRIGÉ : 4 lettres + 4 chiffres (sans espace)
+    // Filtrer les codes : 4 lettres + 4 chiffres (sans espace)
     const codes = lines.filter(line => /^[a-z]{4}\d{4}$/.test(line));
 
+    // Si aucun code trouvé
     if (codes.length === 0) {
       return res.status(400).json({ 
         message: 'Aucun code valide trouvé', 
@@ -320,10 +334,11 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
       });
     }
 
+    // Créer les tickets
     const tickets = codes.map(code => ({
-      userId,
-      zoneId: zoneId || null,
-      productId: productId || null,
+      userId: userId,
+      zoneId: zoneId,
+      productId: productId,
       code: code,
       username: code.substring(0, 4),
       password: code.substring(4, 8),
@@ -331,17 +346,37 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
       source: 'import'
     }));
 
-    const inserted = await Ticket.insertMany(tickets);
+    // Vérifier les doublons
+    const existingCodes = await Ticket.find({ 
+      zoneId: zoneId, 
+      code: { $in: codes } 
+    });
+    const existingSet = new Set(existingCodes.map(t => t.code));
+    const newTickets = tickets.filter(t => !existingSet.has(t.code));
+
+    if (newTickets.length === 0) {
+      return res.status(400).json({ 
+        message: 'Tous les codes existent déjà' 
+      });
+    }
+
+    // Insérer les tickets
+    const inserted = await Ticket.insertMany(newTickets);
+    
     res.json({
       success: true,
       message: `${inserted.length} tickets importés`,
       total: codes.length,
       imported: inserted.length,
+      duplicates: codes.length - newTickets.length,
       tickets: inserted
     });
   } catch (error) {
-    console.error('Erreur import PDF:', error);
-    res.status(500).json({ message: 'Erreur', error: error.message });
+    console.error('❌ Erreur import PDF:', error);
+    res.status(500).json({ 
+      message: 'Erreur lors de l\'importation', 
+      error: error.message 
+    });
   }
 });
 
