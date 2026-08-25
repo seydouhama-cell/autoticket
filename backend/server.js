@@ -292,26 +292,6 @@ app.get('/api/tickets/:userId', async (req, res) => {
 // ROUTES - IMPORT PDF
 // =============================================
 
-app.post('/api/tickets/preview-pdf', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
-    }
-    const data = await pdfParse(req.file.buffer);
-    const text = data.text;
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    const codes = lines.filter(line => /^[A-Z0-9\-]{4,20}$/i.test(line));
-    res.json({
-      totalLines: lines.length,
-      detectedCodes: codes.length,
-      codes: codes.slice(0, 50),
-      preview: text.slice(0, 1000)
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur', error: error.message });
-  }
-});
-
 app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
   try {
     const { userId, productId, zoneId } = req.body;
@@ -319,7 +299,6 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
       return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
     }
 
-    // Vérifier que la zone existe
     if (zoneId) {
       const zone = await Zone.findById(zoneId);
       if (!zone) {
@@ -330,37 +309,38 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
     const data = await pdfParse(req.file.buffer);
     const text = data.text;
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    const codes = lines.filter(line => /^[A-Z0-9\-]{4,20}$/i.test(line));
+    
+    // ✅ FORMAT CORRIGÉ : 4 lettres + 4 chiffres
+    const codes = lines.filter(line => /^[a-z]{4}\s\d{4}$/.test(line));
 
     if (codes.length === 0) {
-      return res.status(400).json({ message: 'Aucun code valide trouvé', preview: text.slice(0, 500) });
+      return res.status(400).json({ 
+        message: 'Aucun code valide trouvé', 
+        preview: text.slice(0, 500) 
+      });
     }
 
-    const query = zoneId ? { zoneId, code: { $in: codes } } : { userId, code: { $in: codes } };
-    const existingCodes = await Ticket.find(query);
-    const existingSet = new Set(existingCodes.map(t => t.code));
-    const newCodes = codes.filter(code => !existingSet.has(code));
-
-    if (newCodes.length === 0) {
-      return res.status(400).json({ message: 'Tous les codes existent déjà' });
-    }
-
-    const tickets = newCodes.map(code => ({
-      userId,
-      zoneId: zoneId || null,
-      productId: productId || null,
-      code: code.trim(),
-      etat: 'disponible',
-      source: 'import'
-    }));
+    // Créer les tickets avec username et password
+    const tickets = codes.map(code => {
+      const [username, password] = code.split(' ');
+      return {
+        userId,
+        zoneId: zoneId || null,
+        productId: productId || null,
+        code: username + password,
+        username: username,
+        password: password,
+        etat: 'disponible',
+        source: 'import'
+      };
+    });
 
     const inserted = await Ticket.insertMany(tickets);
     res.json({
       success: true,
-      message: `${inserted.length} tickets importés${zoneId ? ' pour la zone' : ''}`,
+      message: `${inserted.length} tickets importés`,
       total: codes.length,
       imported: inserted.length,
-      duplicates: codes.length - newCodes.length,
       tickets: inserted
     });
   } catch (error) {
