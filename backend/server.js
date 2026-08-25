@@ -296,37 +296,32 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
   try {
     const { userId, productId, zoneId } = req.body;
     
-    // Vérifier que le fichier est présent
+    console.log('📥 Import PDF - Début');
+    console.log('userId:', userId);
+    console.log('productId:', productId);
+    console.log('zoneId:', zoneId);
+    console.log('Fichier:', req.file ? req.file.originalname : 'Aucun fichier');
+
     if (!req.file) {
       return res.status(400).json({ message: 'Aucun fichier PDF envoyé' });
     }
 
-    // Vérifier les paramètres requis
-    if (!userId) {
-      return res.status(400).json({ message: 'userId requis' });
-    }
-    if (!productId) {
-      return res.status(400).json({ message: 'productId requis' });
-    }
-    if (!zoneId) {
-      return res.status(400).json({ message: 'zoneId requis' });
+    if (!userId || !productId || !zoneId) {
+      return res.status(400).json({ message: 'userId, productId et zoneId sont requis' });
     }
 
-    // Vérifier que la zone existe
     const zone = await Zone.findById(zoneId);
     if (!zone) {
       return res.status(404).json({ message: 'Zone non trouvée' });
     }
 
-    // Extraire le texte du PDF
     const data = await pdfParse(req.file.buffer);
     const text = data.text;
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
-    // Filtrer les codes : 4 lettres + 4 chiffres (sans espace)
+    // Format: 4 lettres + 4 chiffres (sans espace)
     const codes = lines.filter(line => /^[a-z]{4}\d{4}$/.test(line));
 
-    // Si aucun code trouvé
     if (codes.length === 0) {
       return res.status(400).json({ 
         message: 'Aucun code valide trouvé', 
@@ -334,11 +329,12 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
       });
     }
 
-    // Créer les tickets
+    // ✅ AJOUT : profileId = productId
     const tickets = codes.map(code => ({
       userId: userId,
       zoneId: zoneId,
       productId: productId,
+      profileId: productId, // ← CHAMP REQUIS
       code: code,
       username: code.substring(0, 4),
       password: code.substring(4, 8),
@@ -346,7 +342,6 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
       source: 'import'
     }));
 
-    // Vérifier les doublons
     const existingCodes = await Ticket.find({ 
       zoneId: zoneId, 
       code: { $in: codes } 
@@ -355,12 +350,9 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
     const newTickets = tickets.filter(t => !existingSet.has(t.code));
 
     if (newTickets.length === 0) {
-      return res.status(400).json({ 
-        message: 'Tous les codes existent déjà' 
-      });
+      return res.status(400).json({ message: 'Tous les codes existent déjà' });
     }
 
-    // Insérer les tickets
     const inserted = await Ticket.insertMany(newTickets);
     
     res.json({
