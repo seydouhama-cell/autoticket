@@ -310,8 +310,8 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
     const text = data.text;
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
-    // ✅ FORMAT CORRIGÉ : 4 lettres + 4 chiffres
-    const codes = lines.filter(line => /^[a-z]{4}\s\d{4}$/.test(line));
+    // ✅ FORMAT CORRIGÉ : 4 lettres + 4 chiffres (sans espace)
+    const codes = lines.filter(line => /^[a-z]{4}\d{4}$/.test(line));
 
     if (codes.length === 0) {
       return res.status(400).json({ 
@@ -320,20 +320,16 @@ app.post('/api/tickets/import-pdf', upload.single('file'), async (req, res) => {
       });
     }
 
-    // Créer les tickets avec username et password
-    const tickets = codes.map(code => {
-      const [username, password] = code.split(' ');
-      return {
-        userId,
-        zoneId: zoneId || null,
-        productId: productId || null,
-        code: username + password,
-        username: username,
-        password: password,
-        etat: 'disponible',
-        source: 'import'
-      };
-    });
+    const tickets = codes.map(code => ({
+      userId,
+      zoneId: zoneId || null,
+      productId: productId || null,
+      code: code,
+      username: code.substring(0, 4),
+      password: code.substring(4, 8),
+      etat: 'disponible',
+      source: 'import'
+    }));
 
     const inserted = await Ticket.insertMany(tickets);
     res.json({
