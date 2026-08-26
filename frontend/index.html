@@ -76,7 +76,104 @@
     .footer .links a:hover { color: #e67e22; }
     .footer .copy { text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 20px; font-size: 13px; color: #7f8c8d; }
 
+    /* ===== SECTIONS AJOUTÉES ===== */
+    section { padding: 50px 0; }
+    .section-title { text-align: center; font-size: 32px; margin-bottom: 8px; }
+    .section-sub { text-align: center; color: #7f8c8d; max-width: 600px; margin: 0 auto 40px; font-size: 15px; }
+
+    /* Parcours de vente */
+    .journey { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+    .journey-card { background: white; border-radius: 20px; padding: 26px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e9ecef; position: relative; }
+    .journey-card .jnum { width: 36px; height: 36px; border-radius: 50%; background: #e67e22; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-bottom: 14px; }
+    .journey-card h4 { font-size: 18px; margin-bottom: 8px; }
+    .journey-card p { color: #7f8c8d; font-size: 14px; margin-bottom: 14px; }
+    .journey-mock { background: #f5f7fa; border-radius: 12px; padding: 12px; font-size: 13px; }
+    .journey-mock .row { display: flex; justify-content: space-between; padding: 4px 0; color: #2c3e50; }
+    .journey-mock .tag { font-weight: 700; color: #27ae60; }
+    .journey-mock .big { font-size: 22px; font-weight: 800; color: #e67e22; }
+
+    /* Compatibilité */
+    .compat-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .compat-list { list-style: none; }
+    .compat-list li { display: flex; gap: 14px; margin-bottom: 20px; }
+    .compat-list .cnum { background: #e67e22; color: white; width: 30px; height: 30px; min-width: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+    .compat-list h4 { font-size: 16px; margin-bottom: 4px; }
+    .compat-list p { font-size: 14px; color: #7f8c8d; }
+    .compat-demo { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e9ecef; }
+    .compat-demo .dz { border: 2px dashed #d0d7de; border-radius: 14px; padding: 20px; text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 16px; }
+    .compat-code-row { display: flex; justify-content: space-between; align-items: center; background: #f5f7fa; border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; font-size: 13px; }
+    .compat-code-row .valid { color: #27ae60; font-weight: 700; font-size: 12px; }
+
+    /* Hotspot identity */
+    .hotspot-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .hotspot-list { list-style: none; }
+    .hotspot-list li { display: flex; gap: 12px; margin-bottom: 18px; font-size: 15px; }
+    .hotspot-list .check { color: #27ae60; font-weight: 700; }
+    .hotspot-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e9ecef; }
+    .hotspot-card .hrow { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .hotspot-card .hrow:last-child { border-bottom: none; }
+    .hotspot-card .hlabel { color: #7f8c8d; }
+    .hotspot-card .hval { font-weight: 600; color: #1a1a2e; }
+
+    /* Sécurité */
+    .security-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
+    .security-card { background: white; border-radius: 20px; padding: 26px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e9ecef; }
+    .security-card .snum { width: 40px; height: 40px; border-radius: 50%; background: #1b3a4b; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; margin: 0 auto 14px; }
+    .security-card h4 { font-size: 16px; margin-bottom: 8px; }
+    .security-card p { font-size: 13px; color: #7f8c8d; }
+
+    /* WhatsApp support */
+    .whatsapp-box { background: linear-gradient(135deg, #25D366, #128C7E); border-radius: 20px; padding: 34px; color: white; text-align: center; }
+    .whatsapp-box h3 { font-size: 22px; margin-bottom: 10px; }
+    .whatsapp-box p { color: rgba(255,255,255,0.9); max-width: 500px; margin: 0 auto 20px; font-size: 14px; }
+    .whatsapp-box .btn-wa { background: white; color: #128C7E; padding: 12px 28px; border-radius: 50px; font-weight: 700; text-decoration: none; display: inline-block; }
+    .whatsapp-box .btn-wa:hover { transform: translateY(-2px); }
+
+    /* Cas d'usage */
+    .usecase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+    .usecase-card { background: white; border-radius: 20px; padding: 26px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e9ecef; }
+    .usecase-card .unum { color: #e67e22; font-weight: 800; font-size: 24px; margin-bottom: 10px; }
+    .usecase-card h4 { font-size: 17px; margin-bottom: 8px; }
+    .usecase-card p { font-size: 14px; color: #7f8c8d; }
+
+    /* Tarifs */
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto; }
+    .price-card { background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 2px solid #e9ecef; position: relative; transition: 0.3s; }
+    .price-card:hover { transform: translateY(-6px); }
+    .price-card.popular { border-color: #e67e22; }
+    .price-card .badge-pop { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: #e67e22; color: white; padding: 4px 16px; border-radius: 30px; font-size: 12px; font-weight: 700; }
+    .price-card h3 { font-size: 20px; margin-bottom: 6px; }
+    .price-card .plan-sub { color: #7f8c8d; font-size: 13px; margin-bottom: 16px; }
+    .price-card .price { font-size: 30px; font-weight: 800; color: #e67e22; margin-bottom: 4px; }
+    .price-card .period { color: #7f8c8d; font-size: 13px; margin-bottom: 20px; }
+    .price-card ul { list-style: none; text-align: left; margin-bottom: 24px; }
+    .price-card ul li { font-size: 14px; padding: 6px 0; color: #2c3e50; }
+    .price-card ul li::before { content: "✓ "; color: #27ae60; font-weight: 700; }
+    .price-card .btn-price { display: block; background: #1b3a4b; color: white; padding: 12px; border-radius: 50px; text-decoration: none; font-weight: 700; }
+    .price-card.popular .btn-price { background: #e67e22; }
+    .price-card .btn-price:hover { opacity: 0.9; }
+
+    /* FAQ */
+    .faq-list { max-width: 800px; margin: 0 auto; }
+    .faq-item { background: white; border-radius: 14px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef; overflow: hidden; }
+    .faq-question { padding: 18px 22px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 15px; }
+    .faq-question .arrow { transition: transform 0.3s; color: #e67e22; }
+    .faq-item.open .arrow { transform: rotate(180deg); }
+    .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 22px; }
+    .faq-item.open .faq-answer { max-height: 300px; padding: 0 22px 18px; }
+    .faq-answer p { color: #7f8c8d; font-size: 14px; }
+
+    /* CTA final */
+    .final-cta { background: linear-gradient(135deg, #0d1b2a, #1b3a4b); border-radius: 30px; padding: 60px 20px; text-align: center; color: white; margin: 20px 0; }
+    .final-cta h2 { font-size: 28px; margin-bottom: 12px; }
+    .final-cta p { color: #c9d1d9; max-width: 500px; margin: 0 auto 26px; }
+    .final-cta .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .final-cta .btn-hero { background: linear-gradient(135deg, #e67e22, #d35400); }
+    .final-cta .btn-outline { border: 2px solid white; color: white; padding: 14px 40px; border-radius: 50px; font-weight: 700; text-decoration: none; }
+    .final-cta .btn-outline:hover { background: white; color: #1b3a4b; }
+
     @media (max-width: 768px) {
+      .compat-wrap, .hotspot-wrap { grid-template-columns: 1fr; }
       .hero h1 { font-size: 28px; }
       .header .nav { width: 100%; justify-content: center; }
       .features-grid { grid-template-columns: 1fr 1fr; }
@@ -104,6 +201,8 @@
       <nav class="nav">
         <a href="#features">Fonctionnalités</a>
         <a href="#how-it-works">Comment ça marche</a>
+        <a href="#pricing">Tarifs</a>
+        <a href="guide.html">Guides</a>
         <a href="login.html" class="btn-login">🔐 Se connecter</a>
         <a href="register.html" class="btn-register">S'inscrire</a>
       </nav>
@@ -239,6 +338,265 @@
     </div>
   </section>
 
+  <!-- ========== PARCOURS DE VENTE ET DE RETRAIT ========== -->
+  <section id="journey">
+    <div class="container">
+      <h2 class="section-title">💰 Parcours de vente et de retrait</h2>
+      <p class="section-sub">De l'achat client au suivi de vos fonds — exemple de parcours, montants et références fictifs.</p>
+      <div class="journey">
+        <div class="journey-card">
+          <div class="jnum">1</div>
+          <h4>Ventes automatiques</h4>
+          <p>Après configuration du Walled Garden, le client accède au portail, choisit une offre, paie par Mobile Money et reçoit un code de votre stock après confirmation du paiement.</p>
+          <div class="journey-mock">
+            <div class="row"><span>TX_Gare_482</span><span class="tag">+500 FCFA</span></div>
+            <div class="row"><span>TX_Gare_481</span><span class="tag">+1 000 FCFA</span></div>
+            <div class="row"><span>TX_Gare_480</span><span class="tag">+200 FCFA</span></div>
+          </div>
+        </div>
+        <div class="journey-card">
+          <div class="jnum">2</div>
+          <h4>Solde centralisé</h4>
+          <p>Après une vente confirmée et l'attribution d'un ticket, son montant apparaît dans le solde AutoTicket consultable depuis votre tableau de bord.</p>
+          <div class="journey-mock" style="text-align:center;">
+            <div style="font-size:12px;color:#7f8c8d;margin-bottom:6px;">SOLDE DISPONIBLE</div>
+            <div class="big">184 700 FCFA</div>
+            <div style="font-size:12px;color:#7f8c8d;margin-top:6px;">Mis à jour après vente confirmée</div>
+          </div>
+        </div>
+        <div class="journey-card">
+          <div class="jnum">3</div>
+          <h4>Demande de retrait suivie</h4>
+          <p>Créez votre demande depuis le tableau de bord, suivez son statut et recevez les fonds sur le canal choisi après vérification et traitement.</p>
+          <div class="journey-mock">
+            <div class="row"><span>Opérateur</span><span>AIRTEL MONEY</span></div>
+            <div class="row"><span>Traitement</span><span class="tag">EN COURS</span></div>
+            <div class="row"><span>Suivi</span><span>STATUT VISIBLE</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== COMPATIBILITÉ MIKHMON / MIKROTIK ========== -->
+  <section id="compat" style="background:white;border-radius:30px;">
+    <div class="container">
+      <h2 class="section-title">🔌 Compatible avec vos outils habituels</h2>
+      <p class="section-sub">AutoTicket complète une installation MikroTik avec portail captif lorsque les tickets sont créés à l'avance et exportés dans un format pris en charge.</p>
+      <div class="compat-wrap">
+        <ul class="compat-list">
+          <li>
+            <div class="cnum">1</div>
+            <div>
+              <h4>Génération flexible sur Mikhmon</h4>
+              <p>Continuez à générer vos tickets avec Mikhmon, MikroTik User Manager, Mikroticket ou un outil produisant un format pris en charge, puis importez-les dans AutoTicket.</p>
+            </div>
+          </li>
+          <li>
+            <div class="cnum">2</div>
+            <div>
+              <h4>Importation PDF et saisie compatible</h4>
+              <p>Le fichier doit contenir des codes uniques ou des couples identifiant/mot de passe lisibles dans une mise en page reconnue par l'extracteur AutoTicket.</p>
+            </div>
+          </li>
+          <li>
+            <div class="cnum">3</div>
+            <div>
+              <h4>Distribution automatique</h4>
+              <p>Dès que l'achat est confirmé, un code disponible est attribué au client et la vente apparaît dans le tableau de bord. Aucune synchronisation directe avec le routeur n'est effectuée.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="compat-demo">
+          <div class="dz">📄 Importez votre PDF MikroTik / Mikhmon<br><small>Glissez le fichier exporté ou collez vos codes</small></div>
+          <p style="font-size:13px;color:#7f8c8d;margin-bottom:10px;">Aperçu de l'extraction (3 codes détectés)</p>
+          <div class="compat-code-row"><span>WIFI-84A2</span><span class="valid">✓ Valide</span></div>
+          <div class="compat-code-row"><span>WIFI-91B7</span><span class="valid">✓ Valide</span></div>
+          <div class="compat-code-row"><span>WIFI-30C4</span><span class="valid">✓ Valide</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== IDENTITÉ DU HOTSPOT ========== -->
+  <section id="hotspot">
+    <div class="container">
+      <h2 class="section-title">📍 Chaque hotspot dispose de son identité</h2>
+      <p class="section-sub">AutoTicket centralise cette configuration afin d'actualiser en temps réel le portail d'achat client et de cibler vos acheteurs avec précision.</p>
+      <div class="hotspot-wrap">
+        <ul class="hotspot-list">
+          <li><span class="check">✓</span><span><strong>SSID (nom du réseau) visible</strong> — vos clients savent immédiatement à quel réseau WiFi se connecter après validation de leur paiement.</span></li>
+          <li><span class="check">✓</span><span><strong>Géolocalisation GPS</strong> — permet à vos utilisateurs de repérer physiquement votre commerce sur les cartes.</span></li>
+        </ul>
+        <div class="hotspot-card">
+          <div class="hrow"><span class="hlabel">ID</span><span class="hval">ZN_Gare_12</span></div>
+          <div class="hrow"><span class="hlabel">Nom</span><span class="hval">Café de la Gare</span></div>
+          <div class="hrow"><span class="hlabel">SSID WiFi</span><span class="hval">AutoTicket-Gare</span></div>
+          <div class="hrow"><span class="hlabel">Ville</span><span class="hval">Niamey, Plateau</span></div>
+          <div class="hrow"><span class="hlabel">GPS</span><span class="hval">13.5116° N, 2.1254° E</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SÉCURITÉ ========== -->
+  <section id="security" style="background:white;border-radius:30px;">
+    <div class="container">
+      <h2 class="section-title">🔐 Une plateforme conçue pour protéger votre activité</h2>
+      <p class="section-sub">Des contrôles protègent votre compte, vos ventes et vos tickets. AutoTicket ne demande aucun accès d'administration à votre routeur MikroTik.</p>
+      <div class="security-grid">
+        <div class="security-card">
+          <div class="snum">1</div>
+          <h4>Mots de passe hachés</h4>
+          <p>Chiffrement robuste via l'algorithme bcrypt de toutes les informations d'authentification utilisateur.</p>
+        </div>
+        <div class="security-card">
+          <div class="snum">2</div>
+          <h4>Chiffrement JWT</h4>
+          <p>Les communications et sessions d'administration sont scellées à l'aide de jetons JWT sécurisés.</p>
+        </div>
+        <div class="security-card">
+          <div class="snum">3</div>
+          <h4>Isolation réseau</h4>
+          <p>AutoTicket n'ouvre aucun accès direct à votre réseau local et ne récupère pas les utilisateurs du routeur.</p>
+        </div>
+        <div class="security-card">
+          <div class="snum">4</div>
+          <h4>Gestion des accès</h4>
+          <p>Rôles stricts et contrôle d'accès empêchant l'accès non autorisé aux statistiques d'autres hotspots partenaires.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SUPPORT WHATSAPP ========== -->
+  <section id="support">
+    <div class="container">
+      <div class="whatsapp-box">
+        <h3>💬 Une question ? Notre équipe vous accompagne</h3>
+        <p>Assistance à chaque étape de la configuration de votre MikroTik ou de votre compte, directement sur WhatsApp.</p>
+        <a href="https://wa.me/22796724257?text=Bonjour,%20je%20souhaite%20en%20savoir%20plus%20sur%20la%20solution%20AutoTicket" class="btn-wa" target="_blank">📲 Échanger sur WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CAS D'USAGE ========== -->
+  <section id="usecases" style="background:white;border-radius:30px;">
+    <div class="container">
+      <h2 class="section-title">🎯 Les situations qu'AutoTicket aide à simplifier</h2>
+      <p class="section-sub">Trois parcours concrets couverts par la plateforme, sans promesse de résultat commercial.</p>
+      <div class="usecase-grid">
+        <div class="usecase-card">
+          <div class="unum">01</div>
+          <h4>Vendre lorsque le gérant est absent</h4>
+          <p>Le client ouvre le lien de la zone, choisit un forfait disponible et reçoit un code lorsque son paiement est confirmé.</p>
+        </div>
+        <div class="usecase-card">
+          <div class="unum">02</div>
+          <h4>Rapprocher ventes et stock</h4>
+          <p>Le tableau de bord aide à distinguer les commandes, les tickets distribués et le stock restant pour chaque forfait.</p>
+        </div>
+        <div class="usecase-card">
+          <div class="unum">03</div>
+          <h4>Suivre une demande de retrait</h4>
+          <p>Le propriétaire crée sa demande depuis son espace et consulte son statut pendant la vérification et le traitement.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TARIFS ========== -->
+  <section id="pricing">
+    <div class="container">
+      <h2 class="section-title">💵 Des forfaits adaptés à votre activité</h2>
+      <p class="section-sub">Les abonnements sont affichés clairement. Des frais de 4% sont présentés avant chaque demande de retrait.</p>
+      <div class="pricing-grid">
+        <div class="price-card">
+          <h3>1 Mois</h3>
+          <div class="plan-sub">Plan de connexion active</div>
+          <div class="price">1 600 FCFA</div>
+          <div class="period">/ 30 jours</div>
+          <ul>
+            <li>Mise en vente des tickets importés</li>
+            <li>Assistance AutoTicket</li>
+            <li>1 zone WiFi par abonnement</li>
+            <li>Suivi des ventes et du stock</li>
+          </ul>
+          <a href="register.html" class="btn-price">Choisir ce forfait</a>
+        </div>
+        <div class="price-card popular">
+          <div class="badge-pop">⭐ Populaire</div>
+          <h3>3 Mois</h3>
+          <div class="plan-sub">Plan de connexion active</div>
+          <div class="price">4 500 FCFA</div>
+          <div class="period">/ 90 jours</div>
+          <ul>
+            <li>Mise en vente des tickets importés</li>
+            <li>Assistance AutoTicket</li>
+            <li>1 zone WiFi par abonnement</li>
+            <li>Suivi des ventes et du stock</li>
+          </ul>
+          <a href="register.html" class="btn-price">Choisir ce forfait</a>
+        </div>
+        <div class="price-card">
+          <h3>1 An</h3>
+          <div class="plan-sub">Plan de connexion active</div>
+          <div class="price">15 000 FCFA</div>
+          <div class="period">/ 365 jours</div>
+          <ul>
+            <li>Mise en vente des tickets importés</li>
+            <li>Assistance AutoTicket</li>
+            <li>1 zone WiFi par abonnement</li>
+            <li>Suivi des ventes et du stock</li>
+          </ul>
+          <a href="register.html" class="btn-price">Choisir ce forfait</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FAQ ========== -->
+  <section id="faq" style="background:white;border-radius:30px;">
+    <div class="container">
+      <h2 class="section-title">❓ Des réponses pour piloter votre zone</h2>
+      <p class="section-sub">Retrouvez les règles de vente, d'abonnement, de stock et de retrait avant de commencer.</p>
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">À quoi sert AutoTicket ? <span class="arrow">▼</span></div>
+          <div class="faq-answer"><p>AutoTicket vous permet d'automatiser la vente de vos tickets WiFi : vos clients paient par Mobile Money et reçoivent leur code instantanément, même en votre absence.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">Quels moyens de paiement mes clients peuvent-ils utiliser ? <span class="arrow">▼</span></div>
+          <div class="faq-answer"><p>Airtel Money, Moov Flooz, Zamani Cash, Nita et Amana, selon la disponibilité du service au moment du paiement.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">Comment ajouter mes tickets dans AutoTicket ? <span class="arrow">▼</span></div>
+          <div class="faq-answer"><p>Générez vos codes sur Mikhmon ou MikroTik, exportez-les en PDF, puis importez le fichier dans AutoTicket pour remplir votre stock.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">Comment demander un retrait ? <span class="arrow">▼</span></div>
+          <div class="faq-answer"><p>Créez votre demande depuis le tableau de bord, choisissez votre canal de réception, puis suivez le statut de traitement en temps réel.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">Qui m'aide si je suis bloqué ? <span class="arrow">▼</span></div>
+          <div class="faq-answer"><p>Le support AutoTicket vous accompagne sur WhatsApp pour la configuration de votre compte, l'import des tickets et la mise en place du Walled Garden.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA FINAL ========== -->
+  <div class="container">
+    <div class="final-cta">
+      <h2>🚀 Prêt à moderniser votre activité WiFi ?</h2>
+      <p>Rejoignez les exploitants de hotspots qui utilisent AutoTicket pour gérer leurs ventes et leurs revenus en toute simplicité.</p>
+      <div class="cta-buttons">
+        <a href="register.html" class="btn-hero">Créer mon compte</a>
+        <a href="login.html" class="btn-outline">Se connecter</a>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== FOOTER ========== -->
   <footer class="footer">
     <div class="container">
@@ -252,7 +610,7 @@
         <a href="achat.html">Acheter un ticket</a>
         <a href="faq.html">FAQ</a>
         <a href="guide.html">Guide</a>
-      </div>
+        </div>
     </div>
     <div class="copy">
       © 2026 AutoTicket Niger 🇳🇪 – Tous droits réservés
@@ -285,6 +643,14 @@
 
     loadStats();
     setInterval(loadStats, 30000);
+
+    // ===== Accordéon FAQ =====
+    function toggleFaq(el) {
+      const item = el.parentElement;
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    }
   </script>
 
 </body>
