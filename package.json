@@ -6,6 +6,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.2",
     "multer": "^2.2.0",
-    "pdf-parse": "^2.4.5"
+    "pdf-parse": "^2.4.5",
+    "routeros-client": "^1.1.1"
   }
 }
