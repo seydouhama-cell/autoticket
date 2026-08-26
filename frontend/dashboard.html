@@ -410,6 +410,7 @@
       <h3>📦 Gérer mes forfaits</h3>
       <div id="products-list"></div>
       <h4>➕ Ajouter un forfait</h4>
+      <div class="form-group"><label>Zone WiFi</label><select id="product-zone"><option value="">Sélectionner une zone</option></select></div>
       <div class="form-group"><label>Nom</label><input type="text" id="product-name" placeholder="24h, 12h..."></div>
       <div class="form-group"><label>Prix (FCFA)</label><input type="number" id="product-price" placeholder="100"></div>
       <div class="form-group"><label>Durée</label><input type="text" id="product-duration" placeholder="24 heures..."></div>
@@ -746,6 +747,18 @@
         if (zone._id === activeZoneId) opt.selected = true;
         select.appendChild(opt);
       });
+
+      // Remplir aussi le sélecteur de zone du formulaire "Ajouter un forfait"
+      const productZoneSelect = document.getElementById('product-zone');
+      if (productZoneSelect) {
+        productZoneSelect.innerHTML = '<option value="">Sélectionner une zone</option>';
+        zones.forEach(zone => {
+          const opt = document.createElement('option');
+          opt.value = zone._id;
+          opt.textContent = `${zone.nom} - ${zone.location || 'N/A'}`;
+          productZoneSelect.appendChild(opt);
+        });
+      }
 
       if (activeZoneId) {
         const activeZone = zones.find(z => z._id === activeZoneId);
@@ -1210,12 +1223,15 @@
     const name = document.getElementById('product-name').value.trim();
     const price = parseInt(document.getElementById('product-price').value);
     const duration = document.getElementById('product-duration').value.trim();
+    const zoneId = document.getElementById('product-zone').value;
     if (!name || !price || !duration) { alert('Veuillez remplir tous les champs.'); return; }
+    if (!zoneId) { alert('Veuillez sélectionner une zone WiFi pour ce forfait.'); return; }
     try {
-      await apiCall('/products', 'POST', { userId: USER_ID, name, price, duration });
+      await apiCall('/products', 'POST', { userId: USER_ID, zoneId, name, price, duration });
       document.getElementById('product-name').value = '';
       document.getElementById('product-price').value = '';
       document.getElementById('product-duration').value = '';
+      document.getElementById('product-zone').value = '';
       loadProducts();
       loadStats();
     } catch (error) { alert('Erreur: ' + error.message); }
