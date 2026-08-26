@@ -672,13 +672,19 @@ app.post('/api/payment/initiate', async (req, res) => {
         });
       }
     } catch (mesombError) {
-      console.error('❌ Erreur MeSomb:', mesombError.message);
+      console.error('❌ Erreur MeSomb - message axios:', mesombError.message);
+      if (mesombError.response) {
+        console.error('❌ Erreur MeSomb - statut HTTP:', mesombError.response.status);
+        console.error('❌ Erreur MeSomb - corps de la réponse:', JSON.stringify(mesombError.response.data));
+      } else {
+        console.error('❌ Erreur MeSomb - pas de réponse reçue (timeout/réseau ?)');
+      }
       order.status = 'failed';
       await order.save();
       return res.status(500).json({
         success: false,
         message: 'Erreur de paiement. Veuillez réessayer.',
-        error: mesombError.message
+        error: mesombError.response ? mesombError.response.data : mesombError.message
       });
     }
   } catch (error) {
