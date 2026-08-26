@@ -280,7 +280,9 @@ app.post('/api/tickets/bulk', async (req, res) => {
 
 app.get('/api/tickets/:userId', async (req, res) => {
   try {
-    const tickets = await Ticket.find({ userId: req.params.userId, isUsed: false });
+    const zones = await Zone.find({ ownerId: req.params.userId });
+    const zoneIds = zones.map(z => z._id);
+    const tickets = await Ticket.find({ zoneId: { $in: zoneIds }, etat: 'disponible' });
     res.json({ total: tickets.length, tickets });
   } catch (error) {
     console.error('❌ Erreur récupération tickets:', error);
@@ -380,7 +382,9 @@ app.get('/api/stats/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
     const orders = await Order.find({ userId, status: 'paid' });
-    const tickets = await Ticket.countDocuments({ userId, isUsed: false });
+    const userZones = await Zone.find({ ownerId: userId });
+    const zoneIds = userZones.map(z => z._id);
+    const tickets = await Ticket.countDocuments({ zoneId: { $in: zoneIds }, etat: 'disponible' });
     const user = await User.findById(userId);
     res.json({
       today: { count: 0, revenue: 0 },
@@ -572,7 +576,21 @@ app.post('/api/payment/initiate', async (req, res) => {
       return res.status(400).json({ message: 'Aucune zone associée à ce forfait' });
     }
 
-    const ticket = await Ticket.findOne({ zoneId, productId, isUsed: false });
+    console.log('🔍 DEBUG recherche ticket:');
+    console.log('   zoneId utilisé:', zoneId.toString());
+    console.log('   productId (= profileId cherché):', productId);
+    const totalTicketsZone = await Ticket.countDocuments({ zoneId });
+    const totalTicketsProfil = await Ticket.countDocuments({ profileId: productId });
+    const totalTicketsDispo = await Ticket.countDocuments({ zoneId, etat: 'disponible' });
+    console.log('   Tickets total dans cette zone:', totalTicketsZone);
+    console.log('   Tickets total avec ce profileId (toutes zones):', totalTicketsProfil);
+    console.log('   Tickets disponibles dans cette zone (tout profileId confondu):', totalTicketsDispo);
+    const sample = await Ticket.findOne({ zoneId });
+    if (sample) {
+      console.log('   Exemple ticket de cette zone -> profileId:', sample.profileId ? sample.profileId.toString() : 'AUCUN', '| etat:', sample.etat);
+    }
+
+    const ticket = await Ticket.findOne({ zoneId, profileId: productId, etat: 'disponible' });
     if (!ticket) {
       return res.status(400).json({ message: 'Plus de tickets disponibles pour cette zone' });
     }
@@ -618,9 +636,10 @@ app.post('/api/payment/initiate', async (req, res) => {
       console.log('✅ Réponse MeSomb:', response.data);
 
       if (response.data && response.data.success) {
-        ticket.isUsed = true;
+        ticket.etat = 'vendu';
+        ticket.dateVente = new Date();
+        ticket.clientPhone = customerPhone;
         ticket.usedAt = new Date();
-        ticket.usedBy = customerPhone;
         await ticket.save();
 
         order.status = 'paid';
@@ -692,7 +711,7 @@ app.post('/api/payment/ipay/initiate', async (req, res) => {
       return res.status(400).json({ message: 'Aucune zone associée à ce forfait' });
     }
 
-    const ticket = await Ticket.findOne({ zoneId, productId, isUsed: false });
+    const ticket = await Ticket.findOne({ zoneId, profileId: productId, etat: 'disponible' });
     if (!ticket) {
       return res.status(400).json({ message: 'Plus de tickets disponibles pour cette zone' });
     }
@@ -728,9 +747,10 @@ app.post('/api/payment/ipay/initiate', async (req, res) => {
     console.log('✅ Réponse i-pay:', response.data);
 
     if (response.data && response.data.success) {
-      ticket.isUsed = true;
+      ticket.etat = 'vendu';
+      ticket.dateVente = new Date();
+      ticket.clientPhone = customerPhone;
       ticket.usedAt = new Date();
-      ticket.usedBy = customerPhone;
       await ticket.save();
 
       order.status = 'paid';
@@ -811,7 +831,7 @@ app.post('/api/payment/webhook', async (req, res) => {
     }
 
     if (status === 'success') {
-      const ticket = await Ticket.findOne({ userId: order.userId, productId: order.productId, isUsed: false });
+      const ticket = await Ticket.findOne({ zoneId: order.zoneId, profileId: order.productId, etat: 'disponible' });
       if (!ticket) {
         order.status = 'failed';
         await order.save();
@@ -820,9 +840,10 @@ app.post('/api/payment/webhook', async (req, res) => {
 
       await createMikrotikUser(order.userId, ticket.code, '123456', order.zoneId);
 
-      ticket.isUsed = true;
+      ticket.etat = 'vendu';
+      ticket.dateVente = new Date();
+      ticket.clientPhone = phone || order.customerPhone;
       ticket.usedAt = new Date();
-      ticket.usedBy = phone || order.customerPhone;
       await ticket.save();
 
       order.status = 'paid';
