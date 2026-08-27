@@ -9,6 +9,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const { PaymentOperation, RandomGenerator } = require('@hachther/mesomb');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
 require('dotenv').config();
@@ -44,10 +45,27 @@ app.use('/api/mikrotik', mikrotikRoutes);
 const MESOMB_API_HOST = 'https://mesomb.hachther.com';
 const MESOMB_API_VERSION = 'v1.1';
 const MESOMB_API_URL = `${MESOMB_API_HOST}/api/${MESOMB_API_VERSION}`;
+const MESOMB_APPLICATION_KEY = process.env.MESOMB_APPLICATION_KEY || '';
 const MESOMB_ACCESS_KEY = process.env.MESOMB_ACCESS_KEY || 'votre_access_key_ici';
 const MESOMB_SECRET_KEY = process.env.MESOMB_SECRET_KEY || 'votre_secret_key_ici';
 const MESOMB_COUNTRY = 'NE';
 const MESOMB_CURRENCY = 'XOF';
+
+const mesombClient = new PaymentOperation({
+  applicationKey: MESOMB_APPLICATION_KEY,
+  accessKey: MESOMB_ACCESS_KEY,
+  secretKey: MESOMB_SECRET_KEY
+});
+
+// Correspondance entre les boutons du site et les codes opérateur attendus par MeSomb
+const MESOMB_SERVICE_MAP = {
+  'airtelmoney': 'AIRTEL',
+  'airtel money': 'AIRTEL',
+  'orangemoney': 'ORANGE',
+  'orange money': 'ORANGE',
+  'moovflooz': 'MOOV',
+  'moov flooz': 'MOOV'
+};
 
 // =============================================
 // CONFIGURATION IMPORT PDF
@@ -609,33 +627,30 @@ app.post('/api/payment/initiate', async (req, res) => {
     await order.save();
 
     try {
-      const response = await axios.post(`${MESOMB_API_URL}/payment/collect`, {
-        receiver: customerPhone,
+      const mesombService = MESOMB_SERVICE_MAP[(method || '').toLowerCase()] || 'AIRTEL';
+
+      const mesombResponse = await mesombClient.makeCollect({
+        payer: customerPhone,
         amount: product.price,
-        service: method || 'airtelmoney',
+        service: mesombService,
         country: MESOMB_COUNTRY,
         currency: MESOMB_CURRENCY,
+        nonce: RandomGenerator.nonce(),
         customer: {
           email: 'client@autoticket.com',
-          first_name: 'Client',
-          last_name: 'AutoTicket',
+          firstName: 'Client',
+          lastName: 'AutoTicket',
           town: 'Niamey',
           region: 'Niamey',
           country: MESOMB_COUNTRY,
           address: 'Niger'
         }
-      }, {
-        headers: {
-          'X-Access-Key': MESOMB_ACCESS_KEY,
-          'X-Secret-Key': MESOMB_SECRET_KEY,
-          'Content-Type': 'application/json'
-        },
-        timeout: 30000
       });
 
-      console.log('✅ Réponse MeSomb:', response.data);
+      console.log('✅ Réponse MeSomb - succès opération:', mesombResponse.isOperationSuccess());
+      console.log('✅ Réponse MeSomb - succès transaction:', mesombResponse.isTransactionSuccess());
 
-      if (response.data && response.data.success) {
+      if (mesombResponse.isOperationSuccess() && mesombResponse.isTransactionSuccess()) {
         ticket.etat = 'vendu';
         ticket.dateVente = new Date();
         ticket.clientPhone = customerPhone;
@@ -668,16 +683,14 @@ app.post('/api/payment/initiate', async (req, res) => {
         return res.status(400).json({
           success: false,
           message: 'Erreur paiement',
-          error: response.data.message
+          error: mesombResponse.message || 'Transaction refusée par MeSomb'
         });
       }
     } catch (mesombError) {
-      console.error('❌ Erreur MeSomb - message axios:', mesombError.message);
+      console.error('❌ Erreur MeSomb - message:', mesombError.message);
       if (mesombError.response) {
         console.error('❌ Erreur MeSomb - statut HTTP:', mesombError.response.status);
         console.error('❌ Erreur MeSomb - corps de la réponse:', JSON.stringify(mesombError.response.data));
-      } else {
-        console.error('❌ Erreur MeSomb - pas de réponse reçue (timeout/réseau ?)');
       }
       order.status = 'failed';
       await order.save();
